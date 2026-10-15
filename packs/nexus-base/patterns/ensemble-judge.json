@@ -1,0 +1,112 @@
+{
+  "api_version": "nexus/v1",
+  "kind": "FlowPattern",
+  "metadata": {
+    "id": "ensemble-judge",
+    "name": "Ensemble & judge",
+    "version": "1.0",
+    "category": "quality",
+    "layer": "flow_pattern",
+    "human_reviewed_by": "Nexi maintainers",
+    "reviewed_at": "2026-09-17T12:00:00Z"
+  },
+  "description": "Several candidates answer the same question; a judge picks the best or asks a person when they disagree.",
+  "use_when": [
+    "quality_over_cost",
+    "high_assurance",
+    "single_task_many_attempts"
+  ],
+  "examples": [
+    "High-stakes recommendation",
+    "Ambiguous classification with a confidence requirement"
+  ],
+  "characteristics": {
+    "autonomy": "medium",
+    "cost": "high",
+    "latency": "medium",
+    "reliability": "high"
+  },
+  "diagram": {
+    "columns": [
+      [
+        "trigger"
+      ],
+      [
+        "agent",
+        "agent",
+        "agent"
+      ],
+      [
+        "join"
+      ],
+      [
+        "evaluator"
+      ],
+      [
+        "end"
+      ]
+    ],
+    "aria": "Trigger, three candidates in parallel, join, judge, end."
+  },
+  "template": {
+    "workflow_uri": "nexus://workflow/template/ensemble-judge",
+    "version": "1.1.0",
+    "file": "templates/ensemble-judge.json"
+  },
+  "requires": {
+    "node_types": [
+      "agent",
+      "join",
+      "evaluator",
+      "condition",
+      "approval"
+    ]
+  },
+  "placeholders": [
+    {
+      "node_id": "candidate_a",
+      "role": "reasoner"
+    },
+    {
+      "node_id": "candidate_b",
+      "role": "reasoner"
+    },
+    {
+      "node_id": "candidate_c",
+      "role": "reasoner"
+    },
+    {
+      "node_id": "judge",
+      "role": "evaluator"
+    },
+    {
+      "node_id": "check",
+      "role": "evaluator"
+    }
+  ],
+  "recommended": {
+    "parallelism": 3,
+    "model_strategy": "cheapest_qualified",
+    "agreement_threshold": 0.67
+  },
+  "learn_more": [
+    {
+      "term": "Self-consistency / LLM-as-judge",
+      "note": "Not three frontier models by default — economical models plus a judge often reach the same quality."
+    }
+  ],
+  "ui": {
+    "icon": "scale"
+  },
+  "i18n": {
+    "uk": {
+      "name": "Ансамбль і суддя",
+      "description": "Кілька кандидатів відповідають на одне питання; суддя обирає найкраще або звертається до людини при розбіжності.",
+      "examples": [
+        "Рекомендація з високою ціною помилки",
+        "Неоднозначна класифікація з вимогою до впевненості"
+      ],
+      "diagram_aria": "Тригер, три кандидати паралельно, об'єднання, суддя, кінець."
+    }
+  }
+}

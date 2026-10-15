@@ -1,0 +1,3107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.nexiflow.ai/v1/blueprint.schema.json",
+  "title": "Blueprint",
+  "description": "NEXUS Blueprint / DeploymentProfile. Owner NexCore (nexus://core/blueprint/<id>). Layered configuration — base → domain → regulatory → organization → project — that selects default agents, skills, flows (incl. the Goal Loop), tool allowlist, model policy, sandbox profile, ontology, policies, approvals, evaluations, retention and UX defaults for one runtime. Child layers may only TIGHTEN allowlists/limits and may replace defaults. Contains references only: no credentials, no tenant data.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "blueprint_id",
+    "uri",
+    "name",
+    "layer",
+    "version",
+    "status",
+    "defaults",
+    "tool_policy",
+    "model_policy",
+    "sandbox_profile_uri",
+    "approvals",
+    "created_at"
+  ],
+  "properties": {
+    "blueprint_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "uri": {
+      "$ref": "resource-uri.schema.json"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "layer": {
+      "$ref": "vocabulary.schema.json#/$defs/BlueprintLayer"
+    },
+    "parent_uri": {
+      "$ref": "resource-uri.schema.json",
+      "description": "Required for every layer except base (validator)."
+    },
+    "tenancy": {
+      "$ref": "tenancy-context.schema.json",
+      "description": "Required for organization / project layers; absent for base / domain / regulatory."
+    },
+    "project_id": {
+      "type": "string",
+      "description": "project layer only."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "status": {
+      "$ref": "vocabulary.schema.json#/$defs/BlueprintStatus"
+    },
+    "source_pack_uri": {
+      "$ref": "resource-uri.schema.json",
+      "description": "NexusPack that installed this layer, if any."
+    },
+    "deployment_targets": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "vocabulary.schema.json#/$defs/DeploymentTarget"
+      }
+    },
+    "defaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "System defaults inherited by new Projects ('Default capabilities inherited from: Banking EU Profile v3.2'). Admin override happens by publishing a child layer.",
+      "properties": {
+        "agents": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "$ref": "resource-uri.schema.json"
+          }
+        },
+        "skills": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "resource-uri.schema.json"
+          }
+        },
+        "flows": {
+          "type": "object",
+          "description": "role → flow template / definition URI. Reserved roles: goal_loop (the default agentic loop), ads (Agentic Data Scientist), document_review.",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          },
+          "additionalProperties": {
+            "$ref": "resource-uri.schema.json"
+          }
+        },
+        "general_agent_uri": {
+          "$ref": "resource-uri.schema.json"
+        },
+        "ontology_refs": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "$ref": "resource-uri.schema.json"
+          }
+        },
+        "suggested_capabilities": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "description": "UX defaults shown in empty states / composer suggestions."
+        },
+        "projects": {
+          "type": "array",
+          "maxItems": 10,
+          "description": "Predefined Projects every organization starts with besides General. Created as the Owner at first contact; the flows named by role come from `defaults.flows`. References only — never tenant data.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "role",
+              "name"
+            ],
+            "properties": {
+              "role": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,63}$",
+                "description": "Stable key — the idempotency key of the Project is pack:<org>:project:<role>."
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 300
+              },
+              "classification": {
+                "$ref": "vocabulary.schema.json#/$defs/DataClassification",
+                "description": "Omitted → the organization's default classification."
+              },
+              "flows": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$"
+                },
+                "description": "Roles from defaults.flows installed into this Project; omitted → the platform's project flow roles (ads)."
+              },
+              "suggested_capabilities": {
+                "type": "array",
+                "maxItems": 6,
+                "items": {
+                  "type": "string",
+                  "maxLength": 80
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tool_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowlist"
+      ],
+      "properties": {
+        "allowlist": {
+          "type": "array",
+          "maxItems": 500,
+          "items": {
+            "$ref": "resource-uri.schema.json"
+          },
+          "description": "ToolDefinition / ToolCollection URIs available in this runtime. Child layers may only remove."
+        },
+        "builder_only": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "resource-uri.schema.json"
+          },
+          "description": "Raw protocol tools (mcp.invoke, http.request) — never offered to business users."
+        },
+        "side_effect_requires_approval": {
+          "type": "boolean"
+        }
+      }
+    },
+    "model_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowed_endpoint_kinds"
+      ],
+      "properties": {
+        "allowed_endpoint_kinds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "vocabulary.schema.json#/$defs/ModelEndpointKind"
+          }
+        },
+        "allowed_model_ids": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "type": "string",
+            "maxLength": 120
+          }
+        },
+        "default_model_id": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "max_classification_for_cloud": {
+          "$ref": "vocabulary.schema.json#/$defs/DataClassification"
+        },
+        "role_bindings": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "vocabulary.schema.json#/$defs/ModelRole"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "description": "role → model_id the router must use for that role in this runtime (a binding, not a pin in the flow). Child layers may replace."
+        },
+        "default_quality_min": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "vocabulary.schema.json#/$defs/ModelRole"
+          },
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "description": "Per-role quality_min applied when an InferencePolicy omits it. Child layers may only raise."
+        },
+        "max_tier": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4,
+          "description": "Highest Inference Ladder tier this runtime may reach. Child layers may only lower."
+        },
+        "allow_explicit_model": {
+          "type": "boolean",
+          "description": "Whether strategy=explicit / model_id pins are honoured (Developer mode). Default false."
+        },
+        "pools": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "pool_id",
+              "model_ids"
+            ],
+            "properties": {
+              "pool_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_-]{1,63}$"
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 300
+              },
+              "model_ids": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 50,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "description": "Named model pools (e.g. cpu-local, gpu-local, cloud) for deployment profiles; informational for the router, authoritative for Packs."
+        }
+      }
+    },
+    "sandbox_profile_uri": {
+      "$ref": "resource-uri.schema.json"
+    },
+    "policy_bundle_ref": {
+      "$ref": "resource-uri.schema.json",
+      "description": "Signed OPA/OpenFGA bundle that enforces this layer. Enterprise mode fails closed without it."
+    },
+    "approvals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "external_write_threshold"
+      ],
+      "properties": {
+        "external_write_threshold": {
+          "$ref": "vocabulary.schema.json#/$defs/DataClassification",
+          "description": "Classification from which mutating nodes get an injected approval (UAT-2b Q12 default confidential)."
+        },
+        "goal_completion_requires_human": {
+          "type": "boolean",
+          "description": "Forces GoalSpec.human_review_required in every flow of this runtime."
+        },
+        "capability_request_approver": {
+          "$ref": "vocabulary.schema.json#/$defs/ProjectRelation"
+        },
+        "package_request_approver": {
+          "$ref": "vocabulary.schema.json#/$defs/ProjectRelation"
+        },
+        "allow_self_approval": {
+          "type": "boolean",
+          "default": false,
+          "description": "1.19.0: may the human on whose behalf an agent acts approve that agent's own side effect? Default false. Only meaningful below `dsk` — the runtime refuses it for dsk / secret / top_secret regardless of the value; dev / e2e Blueprints may set it (until the Blueprint runtime lands in S10 the same knob is read from config: APPROVALS_ALLOW_SELF_APPROVAL_BELOW_DSK)."
+        }
+      }
+    },
+    "evaluations": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "$ref": "resource-uri.schema.json"
+      },
+      "description": "Acceptance / eval suites a flow or agent must pass before publish in this runtime."
+    },
+    "retention": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "How long each kind of record lives. 1.67.0: the per-service module constants become keys here — every default is the constant it replaces; a Blueprint without the key keeps today's behaviour.",
+      "properties": {
+        "artifact_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 36500
+        },
+        "run_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 36500
+        },
+        "sandbox_output_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 36500
+        },
+        "invitation_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365,
+          "default": 7,
+          "description": "core-api organizations: an invitation link expires after this."
+        },
+        "model_invocation_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3650,
+          "default": 90,
+          "description": "core-api synapse: `ModelInvocation` rows."
+        },
+        "observability_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3650,
+          "default": 365,
+          "description": "core-api observability: run / route rows and captured payloads — the tenant's capture settings may shorten it further."
+        },
+        "notifications_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3650,
+          "default": 90,
+          "description": "chat-api notifications read model (Q-705)."
+        },
+        "capability_requests_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365,
+          "default": 14,
+          "description": "chat-api: an open `CapabilityRequest` expires after this."
+        },
+        "run_execution_hours": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8760,
+          "default": 24,
+          "description": "chat-api: `turn_events` live this long past the terminal event."
+        }
+      }
+    },
+    "guardrails": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "1.104.0: platform guardrail profiles by audience. The profile travels in the ActorContext (`guardrail_profile_ref`) set by the caller that knows the audience; the Model Gateway, the Agent Runtime and the ToolExecutor evaluate the four stages (input · retrieval · tool · output) through one GuardrailPort. A request without a profile, or with an `internal` profile whose stages are all off, takes today's path byte-for-byte. Deterministic checks decide; model-assisted checks are features that may only lower a verdict. external_* profiles FAIL CLOSED to `handoff`.",
+      "properties": {
+        "profiles": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "internal": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "One audience profile. Layers may only TIGHTEN — turning a check on, lowering a threshold, shortening an allow-list; loosening is GUARDRAIL_LAYER_DENIED. `on_error` may not be `pass` for external_* profiles (asserted by care-api / the Gateway at load, and by contract tests on the pack defaults).",
+              "properties": {
+                "stages": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "input": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "injection": {
+                          "type": "boolean",
+                          "default": false
+                        },
+                        "pii": {
+                          "$ref": "vocabulary.schema.json#/$defs/GuardrailPiiMode",
+                          "default": "off"
+                        },
+                        "languages_allowed": {
+                          "type": "array",
+                          "maxItems": 32,
+                          "uniqueItems": true,
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
+                          },
+                          "description": "empty = any"
+                        },
+                        "topics_denied": {
+                          "type": "array",
+                          "maxItems": 64,
+                          "uniqueItems": true,
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[a-z][a-z0-9_]{1,40}$"
+                          },
+                          "description": "lexicon ids"
+                        },
+                        "max_chars": {
+                          "type": "integer",
+                          "minimum": 200,
+                          "maximum": 50000,
+                          "default": 8000
+                        },
+                        "abuse_signals": {
+                          "type": "boolean",
+                          "default": false
+                        }
+                      }
+                    },
+                    "retrieval": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "verified_only": {
+                          "type": "boolean",
+                          "default": false
+                        },
+                        "audience_ceiling": {
+                          "$ref": "vocabulary.schema.json#/$defs/DataClassification",
+                          "default": "confidential"
+                        },
+                        "scope_required": {
+                          "type": "boolean",
+                          "default": false
+                        },
+                        "max_age_days": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "minimum": 1,
+                          "maximum": 3650,
+                          "default": null
+                        }
+                      }
+                    },
+                    "tool": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "allowlist": {
+                          "type": "array",
+                          "maxItems": 128,
+                          "uniqueItems": true,
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[a-z][a-z0-9_.*-]{1,80}$"
+                          },
+                          "description": "tool ids or prefixes (`care.public.*`); empty = the caller's ordinary policy"
+                        },
+                        "side_effects": {
+                          "$ref": "vocabulary.schema.json#/$defs/GuardrailSideEffectPolicy",
+                          "default": "allow"
+                        },
+                        "principal_bound": {
+                          "type": "boolean",
+                          "default": false,
+                          "description": "agent ≤ principal — the PDP result for the (external) principal caps the agent"
+                        }
+                      }
+                    },
+                    "output": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "grounding_min": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "default": 0
+                        },
+                        "leak_check": {
+                          "type": "boolean",
+                          "default": false
+                        },
+                        "citations_must_resolve": {
+                          "type": "boolean",
+                          "default": false
+                        },
+                        "tone_policy_ref": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "default": null
+                        },
+                        "forbidden_topics": {
+                          "type": "array",
+                          "maxItems": 64,
+                          "uniqueItems": true,
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[a-z][a-z0-9_]{1,40}$"
+                          }
+                        },
+                        "disclaimers": {
+                          "type": "array",
+                          "maxItems": 8,
+                          "uniqueItems": true,
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[a-z][a-z0-9_.]{1,80}$"
+                          },
+                          "description": "i18n keys that must be present in the reply (e.g. care.widget.disclosure.automated)"
+                        },
+                        "refusal_template_key": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9_]{1,60}$",
+                          "default": "guardrail_refusal",
+                          "description": "prompts/<key>.md"
+                        }
+                      }
+                    }
+                  }
+                },
+                "on_error": {
+                  "$ref": "vocabulary.schema.json#/$defs/GuardrailOnError",
+                  "default": "pass"
+                },
+                "strict": {
+                  "type": "boolean",
+                  "default": false
+                }
+              }
+            },
+            "external_authenticated": {
+              "$ref": "#/properties/guardrails/properties/profiles/properties/internal"
+            },
+            "external_public": {
+              "$ref": "#/properties/guardrails/properties/profiles/properties/internal"
+            }
+          }
+        }
+      }
+    },
+    "modules": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "1.92.0: the suite modules this layer enables or disables. A module is declared by exactly one pack resource of kind `module` (pack-module.schema.json, `nexus://core/module/<module_id>`); installing that pack writes `enabled ∋ <module_id>` on the ORGANIZATION layer; a PROJECT layer (or the enterprise policy bundle) may only add to `disabled` — tightening only, `MODULE_LAYER_DENIED` otherwise. Consumers read the effective `modules {enabled[], disabled_by[]}` from GET /blueprints/effective and FAIL CLOSED when the property is absent or core-api is unreachable: a module never has a base-pack floor. `map` (NexMap) is the first module. A Blueprint without `modules` enables nothing.",
+      "properties": {
+        "enabled": {
+          "type": "array",
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,31}$"
+          }
+        },
+        "disabled": {
+          "type": "array",
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,31}$"
+          }
+        }
+      }
+    },
+    "tuning": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "1.67.0: the governed thresholds that were module constants — routing, retrieval, prompt and runtime knobs. Every leaf's `default` is the constant it replaces; a Blueprint without a key behaves exactly as before. Services read it once per turn/run through `Tuning.from_blueprint` and record `policy_version = <uri>@<version>` plus the knob values they used as `state_features` on every decision record (rule 85). Never a Settings field, never a module global. Edited by the Organization Admin; a running FlowRun keeps the version it started with.",
+      "properties": {
+        "auto": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "NEXUS Auto — capability routing (chat-api `auto/ranking.py`, `catalog/projection.py`, `capability/search.py`).",
+          "properties": {
+            "ambiguity_margin": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 0.5,
+              "default": 0.05
+            },
+            "general_specificity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.2
+            },
+            "min_specialist_score": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.5
+            },
+            "agent_base": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.4
+            },
+            "flow_base": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.7
+            },
+            "on_topic_confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.65
+            },
+            "cue_fired_confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.5
+            },
+            "knowledge_arm": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "min_score": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.6
+                },
+                "base_question": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.45
+                },
+                "platform_cue": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.35
+                },
+                "project_question": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.15
+                },
+                "explain_intent": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.1
+                }
+              }
+            },
+            "data_arm": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "min_score": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.6
+                },
+                "base_question": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.3
+                },
+                "metric_named": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.45
+                },
+                "dimension_named": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.1
+                },
+                "period_cue": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.1
+                },
+                "data_verb": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.1
+                }
+              }
+            },
+            "capability_search": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "top_n": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 20,
+                  "default": 5
+                },
+                "min_score": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.2
+                }
+              }
+            },
+            "capability_arm": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "1.73.0: the capability arm — a sentence that names an integration product (`capability` cue set) is answered by the General agent *with* the matching Synapse tools offered (`auto/capability_arm.py`).",
+              "properties": {
+                "min_score": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.6
+                },
+                "base_cue": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.45
+                },
+                "tool_match": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.25
+                },
+                "connection_present": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.15
+                },
+                "scope_held": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.1
+                },
+                "verb_read": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.05
+                }
+              }
+            },
+            "ask_offers": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "1.137.0: how far a host's `offers[]` lift an arm in the Auto action space — a prior, never a bypass of the arm's threshold, PEP or confirmation level. A Project layer may only lower it.",
+              "properties": {
+                "prior_bonus": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.5,
+                  "default": 0.15
+                }
+              }
+            },
+            "resolver": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "1.74.0: the Auto resolver — opt-in per Blueprint; Project layer may only tighten (enabled → false, scopes ⊆, budget ≤, research_enabled → false).",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "composite_trigger": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Also hand off on IntentAnalysis.operation=analysis with unknowns."
+                },
+                "visible_in_studio": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "survey_scopes": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "maxItems": 4,
+                  "items": {
+                    "$ref": "vocabulary.schema.json#/$defs/ResolverSurveyScope"
+                  },
+                  "default": [
+                    "work",
+                    "bi",
+                    "graph",
+                    "connections"
+                  ]
+                },
+                "research_enabled": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "budget": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "max_iterations": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 20,
+                      "default": 8
+                    },
+                    "max_duration_s": {
+                      "type": "integer",
+                      "minimum": 60,
+                      "maximum": 1800,
+                      "default": 360
+                    },
+                    "max_tokens": {
+                      "type": "integer",
+                      "minimum": 1000,
+                      "maximum": 400000,
+                      "default": 60000
+                    },
+                    "max_cost_units": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1000,
+                      "default": 20
+                    },
+                    "max_drafts": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 10,
+                      "default": 3
+                    },
+                    "max_requests": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 10,
+                      "default": 3
+                    },
+                    "wait_max_s": {
+                      "type": "integer",
+                      "minimum": 60,
+                      "maximum": 2592000,
+                      "default": 604800
+                    }
+                  }
+                },
+                "dedupe_window_s": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 604800,
+                  "default": 86400
+                },
+                "trial": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "mode": {
+                      "$ref": "vocabulary.schema.json#/$defs/ResolverTrialMode",
+                      "default": "examples_through_model"
+                    },
+                    "fallback": {
+                      "$ref": "vocabulary.schema.json#/$defs/ResolverTrialFallback",
+                      "default": "schema_only"
+                    }
+                  }
+                }
+              }
+            },
+            "precedence": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 15,
+              "description": "1.127.0: the routing precedence table — ordered rows, first wins among the arms that fire; `ask_kinds` are the kinds of ask the arm may win on (an arm outside its kinds is listed `eligible: false, excluded_reason: ask_kind`). Absent = chat-api's built-in table (`nexus_app_kernel.tuning.DEFAULT_PRECEDENCE`). A layer may only tighten: remove a kind from an arm, never add one, never reorder.",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "arm",
+                  "ask_kinds"
+                ],
+                "properties": {
+                  "arm": {
+                    "$ref": "vocabulary.schema.json#/$defs/AutoArm"
+                  },
+                  "ask_kinds": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "maxItems": 11,
+                    "items": {
+                      "$ref": "vocabulary.schema.json#/$defs/AskKind"
+                    }
+                  }
+                }
+              },
+              "default": [
+                {
+                  "arm": "bound_context",
+                  "ask_kinds": [
+                    "question",
+                    "howto_platform",
+                    "command",
+                    "job",
+                    "automation",
+                    "follow_up",
+                    "correction",
+                    "pick",
+                    "confirmation",
+                    "small_talk",
+                    "attachment_first"
+                  ]
+                },
+                {
+                  "arm": "saving_act",
+                  "ask_kinds": [
+                    "command",
+                    "confirmation"
+                  ]
+                },
+                {
+                  "arm": "platform_action",
+                  "ask_kinds": [
+                    "command",
+                    "pick",
+                    "confirmation",
+                    "correction"
+                  ]
+                },
+                {
+                  "arm": "proposal",
+                  "ask_kinds": [
+                    "command",
+                    "automation",
+                    "pick",
+                    "confirmation",
+                    "correction"
+                  ]
+                },
+                {
+                  "arm": "goal",
+                  "ask_kinds": [
+                    "job",
+                    "question",
+                    "follow_up",
+                    "correction"
+                  ]
+                },
+                {
+                  "arm": "search",
+                  "ask_kinds": [
+                    "question",
+                    "job",
+                    "command",
+                    "follow_up"
+                  ]
+                },
+                {
+                  "arm": "research",
+                  "ask_kinds": [
+                    "job",
+                    "automation",
+                    "question"
+                  ]
+                },
+                {
+                  "arm": "resolver",
+                  "ask_kinds": [
+                    "job",
+                    "automation",
+                    "attachment_first",
+                    "follow_up"
+                  ]
+                },
+                {
+                  "arm": "ads",
+                  "ask_kinds": [
+                    "job",
+                    "automation",
+                    "command",
+                    "attachment_first"
+                  ]
+                },
+                {
+                  "arm": "data",
+                  "ask_kinds": [
+                    "question",
+                    "job",
+                    "follow_up",
+                    "correction",
+                    "attachment_first"
+                  ]
+                },
+                {
+                  "arm": "knowledge",
+                  "ask_kinds": [
+                    "question",
+                    "howto_platform",
+                    "follow_up",
+                    "correction"
+                  ]
+                },
+                {
+                  "arm": "capability",
+                  "ask_kinds": [
+                    "job",
+                    "question",
+                    "command",
+                    "follow_up",
+                    "correction"
+                  ]
+                },
+                {
+                  "arm": "sticky",
+                  "ask_kinds": [
+                    "follow_up",
+                    "correction",
+                    "pick",
+                    "confirmation"
+                  ]
+                },
+                {
+                  "arm": "ranker",
+                  "ask_kinds": [
+                    "question",
+                    "howto_platform",
+                    "command",
+                    "job",
+                    "automation",
+                    "follow_up",
+                    "correction",
+                    "pick",
+                    "confirmation",
+                    "small_talk",
+                    "attachment_first"
+                  ]
+                },
+                {
+                  "arm": "general",
+                  "ask_kinds": [
+                    "question",
+                    "howto_platform",
+                    "command",
+                    "job",
+                    "automation",
+                    "follow_up",
+                    "correction",
+                    "pick",
+                    "confirmation",
+                    "small_talk",
+                    "attachment_first"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "knowledge": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Knowledge answers and grounding (chat-api `knowledge_responder`, `grounding/ports.py`; graph-api `ontology/matching.py`).",
+          "properties": {
+            "k": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 8
+            },
+            "budget_ms": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 60000,
+              "default": 6000
+            },
+            "grounding_k": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20,
+              "default": 6
+            },
+            "grounding_budget_ms": {
+              "type": "integer",
+              "minimum": 50,
+              "maximum": 10000,
+              "default": 700
+            },
+            "max_item_chars": {
+              "type": "integer",
+              "minimum": 200,
+              "maximum": 100000,
+              "default": 6000
+            },
+            "max_context_chars": {
+              "type": "integer",
+              "minimum": 1000,
+              "maximum": 400000,
+              "default": 36000
+            },
+            "entity_match_threshold": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.86
+            },
+            "expand_top": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 8,
+              "default": 2,
+              "description": "S12-c: how many of the top chunk hits the knowledge pass reads as their whole chapter (every step, figures in place, Related) instead of the matching paragraph; 0 turns section completion off."
+            }
+          }
+        },
+        "thread": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "1.131.0: how a conversation is read — the thread loads its last `page_turns` turns on open and pages older ones on scroll; the composer and the in-flight state are not affected by paging.",
+          "properties": {
+            "page_turns": {
+              "type": "integer",
+              "minimum": 10,
+              "maximum": 200,
+              "default": 40,
+              "description": "Turns per page (a turn = one person message and its answer); the last page renders at once."
+            }
+          }
+        },
+        "artifacts": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "1.139.0: how a Project's artifact library pages. A Project layer may only tighten (lower).",
+          "properties": {
+            "page_size": {
+              "type": "integer",
+              "minimum": 10,
+              "maximum": 200,
+              "default": 50,
+              "description": "Rows per page of `GET /chat/projects/{id}/artifacts`; the `limit` query is capped at this value."
+            }
+          }
+        },
+        "answer": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "1.135.0: the default length of a plain answer — the first answer stays within `max_words` (a platform how-to within `max_words_howto`), ends on a complete sentence and offers the rest in one short sentence; never cut mid-sentence. Told to the executor as a brief; the bench's `word_max` class measures it on T2.",
+          "properties": {
+            "max_words": {
+              "type": "integer",
+              "minimum": 40,
+              "maximum": 2000,
+              "default": 180,
+              "description": "Words a plain first answer stays within (owner: *short explanation*)."
+            },
+            "max_words_howto": {
+              "type": "integer",
+              "minimum": 40,
+              "maximum": 4000,
+              "default": 400,
+              "description": "Words a platform how-to may take — numbered steps need room."
+            }
+          }
+        },
+        "ask": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "1.137.0: the context read an Ask surface's verified snapshot triggers — one `<app>.<kind>.describe` call as the person before the responder runs. A Project layer may only tighten.",
+          "properties": {
+            "describe_budget_ms": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 5000,
+              "default": 800,
+              "description": "The describe door's own budget; a timeout reads `unreadable` and never delays the turn past."
+            }
+          }
+        },
+        "prompts": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Prompt assembly bounds (`nexus_agent_runtime/prompt.py`, chat-api `gateway_responder`, `messages/service.py`).",
+          "properties": {
+            "history_turns": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100,
+              "default": 20
+            },
+            "history_window": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "description": "the least a turn quotes verbatim; every older block of `history_window` complete messages is folded once into a persisted thread digest (chat-api `messages/digests.py`) and quoted as a system block of data."
+            },
+            "max_history_chars": {
+              "type": "integer",
+              "minimum": 200,
+              "maximum": 100000,
+              "default": 6000
+            },
+            "max_agent_skills": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 32,
+              "default": 8
+            },
+            "max_hinted_sources": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "max_quoted_result_chars": {
+              "type": "integer",
+              "minimum": 200,
+              "maximum": 100000,
+              "default": 4000
+            }
+          }
+        },
+        "flows": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Flow engine defaults where a node did not set its own (`nexus_flow_runtime` engine / executors / loops). Loop limits (`max_iterations`, `max_duration_s`) stay required on the node — no default exists to govern.",
+          "properties": {
+            "step_timeout_s": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 86400,
+              "default": 300
+            },
+            "retry_delay_s": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 3600,
+              "default": 5
+            },
+            "max_retry_delay_s": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 86400,
+              "default": 300
+            },
+            "approval_expiry_s": {
+              "type": "integer",
+              "minimum": 60,
+              "maximum": 2592000,
+              "default": 86400
+            },
+            "loop_no_progress_after": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 3
+            }
+          }
+        },
+        "sandbox": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Only what `SandboxProfile` does not already carry (chat-api `sandbox_manager`).",
+          "properties": {
+            "concurrent_per_run": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 8,
+              "default": 1
+            },
+            "poll_grace_s": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 600,
+              "default": 30
+            }
+          }
+        },
+        "semantic": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "NexBI semantic matching (bi-api `semantic/service.py`, `studio/planner.py`).",
+          "properties": {
+            "metric_match_threshold": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.6
+            },
+            "metric_match_margin": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.15
+            },
+            "planner_min_score": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.3
+            }
+          }
+        },
+        "voice": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "1.106.0: the voice loop's timings. chat-api reads them from the effective Blueprint — the end-of-turn pause, the shortest burst that counts as speech, the hands-free idle timeout, the longest single turn.",
+          "properties": {
+            "pause_ms": {
+              "type": "integer",
+              "minimum": 300,
+              "maximum": 5000,
+              "default": 1500,
+              "description": "silence that ends a turn — a person gathering the next clause is not done"
+            },
+            "min_speech_ms": {
+              "type": "integer",
+              "minimum": 50,
+              "maximum": 2000,
+              "default": 200
+            },
+            "idle_timeout_s": {
+              "type": "integer",
+              "minimum": 30,
+              "maximum": 3600,
+              "default": 300,
+              "description": "no speech for this long ends a hands-free session"
+            },
+            "max_utterance_ms": {
+              "type": "integer",
+              "minimum": 5000,
+              "maximum": 120000,
+              "default": 60000
+            },
+            "proposal_ttl_s": {
+              "type": "integer",
+              "minimum": 60,
+              "maximum": 3600,
+              "default": 600,
+              "description": "1.108.0: how long a proposal card waits for the person's yes before it expires; a later yes says so and executes nothing"
+            },
+            "confirmation_level2": {
+              "$ref": "vocabulary.schema.json#/$defs/VoiceConfirmationLevel2",
+              "default": "preview",
+              "description": "1.108.0: level-2 actions (create a personal object) show a preview and wait — a Blueprint may set `execute` for the read-back-only form. A Project layer may only raise a level, never lower it."
+            },
+            "session_file_lifetime_s": {
+              "type": "integer",
+              "minimum": 300,
+              "maximum": 86400,
+              "default": 28800,
+              "description": "1.114.0: how long a session-only file and its extract stay in the purgeable session store before the sweep purges them (Remove now purges earlier). A layer may only shorten it — a longer value is refused."
+            },
+            "session_file_max_bytes": {
+              "type": "integer",
+              "minimum": 65536,
+              "maximum": 67108864,
+              "default": 20971520,
+              "description": "1.114.0: the largest file accepted for a session; a layer may only lower it."
+            },
+            "frames_after_stop_s": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 86400,
+              "default": 3600,
+              "description": "1.114.0: how long a stopped share's frame facts stay before the sweep (End and clear purges now); a layer may only shorten it."
+            }
+          }
+        },
+        "web_search": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "1.116.0: the `web.search` provider port as this Blueprint orders it. Providers are optional and none is mandatory; a deployment with no connected key runs on open data and its own index and says so. A Project layer may only narrow: remove or reorder providers inside the base list (a provider not in the base list is refused, TUNING_WEB_SEARCH_WIDER_REJECTED), lower `max_classification`, lower `count`, turn `model_native` off.",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "providers": {
+              "type": "array",
+              "maxItems": 9,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "vocabulary.schema.json#/$defs/WebSearchProvider"
+              },
+              "default": [
+                "tavily",
+                "langsearch",
+                "brave",
+                "mojeek",
+                "wikipedia",
+                "wikidata",
+                "osm_places",
+                "nexus_index"
+              ],
+              "description": "The order the port tries for `web` / `news`; for `places` / `facts` the open-data providers are tried first. `openrouter_web` (model-native) joins only when `model_native` is true."
+            },
+            "max_classification": {
+              "$ref": "vocabulary.schema.json#/$defs/DataClassification",
+              "default": "confidential",
+              "description": "a thread classified above this never sends a query outside the perimeter — only `nexus_index` answers and the card says why. The requirement's `internal` is `confidential` in the closed DataClassification (the same line as `max_classification_for_cloud`: `dsk` and above never leave the contour, FR-MDL-002). A layer may only lower it."
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10,
+              "default": 10
+            },
+            "model_native": {
+              "type": "boolean",
+              "default": false,
+              "description": "allow the model-native provider (OpenRouter `web` plugin through the Model Gateway) — its results are the provider's citation annotations; the same ceiling applies."
+            }
+          }
+        },
+        "goal": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "1.140.0: Goal Resolution — per Blueprint; the ladders are configuration: a Project layer may disable or reorder rungs, never add one the base pack does not declare; every knob tighten-only below the organization; pinned as `policy_version` on every goal_* decision.",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "intake_threshold": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "min_signals": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10,
+                  "default": 3
+                },
+                "or_signals": {
+                  "type": "array",
+                  "maxItems": 4,
+                  "items": {
+                    "$ref": "vocabulary.schema.json#/$defs/GoalSignal"
+                  },
+                  "default": [
+                    "long_duration",
+                    "approvals_expected"
+                  ]
+                }
+              },
+              "description": "The `goal` arm is eligible on `job` when ≥ min_signals goal_signals fire, or every `or_signals` member fires."
+            },
+            "rank_weights": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "progress": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "information_gain": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "reuse": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "cost": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "latency": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "risk": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                },
+                "human_friction": {
+                  "type": "number",
+                  "minimum": -1,
+                  "maximum": 1
+                }
+              },
+              "description": "`goal.rank` weights; their digest is part of `policy_version`."
+            },
+            "budget": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "max_duration_s": {
+                  "type": "integer",
+                  "minimum": 60,
+                  "default": 604800
+                },
+                "max_tokens": {
+                  "type": "integer",
+                  "minimum": 1000,
+                  "default": 2000000
+                },
+                "max_cost_units": {
+                  "type": "number",
+                  "minimum": 0,
+                  "default": 200
+                },
+                "max_cycles": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 500,
+                  "default": 40
+                },
+                "max_plan_revisions": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 20,
+                  "default": 5
+                },
+                "max_no_progress_cycles": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 20,
+                  "default": 3
+                },
+                "max_steps_in_flight": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10,
+                  "default": 3
+                },
+                "max_source_fetches": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "default": 10
+                },
+                "max_web_searches": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "default": 15
+                },
+                "max_ads_runs": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "default": 4
+                },
+                "max_code_runs": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "default": 20
+                },
+                "max_child_runs": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "default": 12
+                },
+                "edge_fraction": {
+                  "type": "number",
+                  "minimum": 0.5,
+                  "maximum": 0.99,
+                  "default": 0.8,
+                  "description": "1.145.0: the share of any ceiling at which the goal publishes what it has and asks *Continue · Finish with current evidence* once; a lower layer may only lower it."
+                }
+              },
+              "description": "Ceilings aggregated across child runs."
+            },
+            "max_live_goals_per_thread": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3,
+              "default": 1
+            },
+            "max_parallel_steps": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10,
+              "default": 3
+            },
+            "max_plan_depth": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4,
+              "default": 3
+            },
+            "result_min_interval_s": {
+              "type": "integer",
+              "minimum": 10,
+              "default": 60
+            },
+            "retry": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "max_attempts": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10,
+                  "default": 3
+                },
+                "backoff_s": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 30
+                }
+              }
+            },
+            "issue_threshold": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 3
+            },
+            "issue_window_s": {
+              "type": "integer",
+              "minimum": 60,
+              "default": 86400
+            },
+            "wait_expiry_days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 90,
+              "default": 14
+            },
+            "ops_project_ref": {
+              "$ref": "resource-uri.schema.json",
+              "description": "The Operations project `work.issue.upsert` writes into; unset → no item, one alert."
+            },
+            "board_ttl_days": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 30,
+              "description": "The `goal` arm's read window over a finished goal's board — not retention."
+            },
+            "min_evidence_coverage": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.8
+            },
+            "stale_alert_hours": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 72
+            },
+            "challenge": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "max_rounds": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 3,
+                  "default": 1
+                }
+              },
+              "description": "(2026-10-11): the challenger between the engine's gate and the person's Accept — a second model reads the bound plan against the objective and must see a path to the goal on every step; its gaps go back to the planner as closed problems at most `max_rounds` times per plan loop (0 = off). A proposal (llm_proposed); the engine's rules decide."
+            },
+            "situation": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "door_budget_ms": {
+                  "type": "integer",
+                  "minimum": 200,
+                  "maximum": 10000,
+                  "default": 2000
+                },
+                "max_terms": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 16,
+                  "default": 8
+                }
+              },
+              "description": "A-S8.1: the situation survey — what NEXUS already holds about the subjects of the ask (NexSales · Vibeban · NexCare · artifacts and datasets · sources), five doors in parallel **as the person**, each within `door_budget_ms`, best-effort. `max_terms` caps the subject terms the doors receive."
+            },
+            "next": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "one_turn": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "(a): the Next line also on a one-turn General/Knowledge answer whose intake extracted a party or a reference."
+                },
+                "one_turn_budget_ms": {
+                  "type": "integer",
+                  "minimum": 200,
+                  "maximum": 5000,
+                  "default": 1500
+                },
+                "max_doors": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 3,
+                  "default": 3
+                },
+                "weights": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "recency": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "default": 0.3
+                    },
+                    "relation": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "default": 0.3
+                    },
+                    "same_party": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "default": 0.25
+                    },
+                    "capability_match": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "default": 0.15
+                    }
+                  }
+                }
+              },
+              "description": "A-S8.2: the Next line — 1–3 doors drawn only from the situation's records, the installed capabilities and the creation doors, ranked by this closed weight table (a `goal_next_door` decision, rule 85), the colleague door last, one closed question."
+            },
+            "authoring": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "reuse_threshold": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.72
+                },
+                "eval_pass": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 1
+                },
+                "retire_after_days": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 3650,
+                  "default": 90
+                },
+                "max_rounds": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 3,
+                  "default": 1
+                },
+                "reuse_stem": {
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 12,
+                  "default": 4
+                },
+                "min_examples": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 20,
+                  "default": 3
+                },
+                "slug_max": {
+                  "type": "integer",
+                  "minimum": 8,
+                  "maximum": 80,
+                  "default": 40
+                }
+              },
+              "description": "A-S8.3: the authoring harness the `draft_*` rungs obey — H-02 reuse first above `reuse_threshold` (no draft when an installed or installable thing fits; a candidate word matches a requirement word on its first `reuse_stem` letters), H-03 a skill draft carries at least `min_examples` examples, H-10 a registry name's parts are slugs of at most `slug_max` characters, H-06 the examples must pass at `eval_pass` in test mode (no test mode → blocked, never a pass by absence), H-07 the challenger reads the draft at most `max_rounds` times, H-11 an unused capability is disabled after `retire_after_days` (never deleted)."
+            },
+            "code": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "max_runs_per_step": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10,
+                  "default": 5
+                },
+                "sandbox_profile_uri": {
+                  "$ref": "resource-uri.schema.json"
+                },
+                "max_cpu_s": {
+                  "type": "integer",
+                  "minimum": 10,
+                  "default": 120
+                }
+              },
+              "description": "the Sandbox code step — model-written code runs only through `sandbox.run_python` under this profile."
+            },
+            "web": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "max_queries": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "default": 15
+                },
+                "max_pages_per_query": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10,
+                  "default": 10
+                }
+              },
+              "description": "the `web_search` rung — never above classification `internal`."
+            },
+            "ladders": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "knowledge",
+                "data",
+                "capability"
+              ],
+              "properties": {
+                "knowledge": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "rung",
+                      "enabled"
+                    ],
+                    "properties": {
+                      "rung": {
+                        "$ref": "vocabulary.schema.json#/$defs/GoalLadderRung"
+                      },
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "eligibility_rule": {
+                        "type": "string",
+                        "maxLength": 80,
+                        "pattern": "^[a-z][a-z0-9_.]{0,79}$"
+                      },
+                      "budget": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "number"
+                        },
+                        "maxProperties": 8
+                      }
+                    }
+                  },
+                  "description": "board → project_docs → nexgraph → connected_systems → research_named → web_search → ask_user",
+                  "default": [
+                    {
+                      "rung": "board",
+                      "enabled": true
+                    },
+                    {
+                      "rung": "project_docs",
+                      "enabled": true
+                    },
+                    {
+                      "rung": "nexgraph",
+                      "enabled": true
+                    },
+                    {
+                      "rung": "connected_systems",
+                      "enabled": true,
+                      "eligibility_rule": "connection.usable"
+                    },
+                    {
+                      "rung": "research_named",
+                      "enabled": true,
+                      "eligibility_rule": "web_research.enabled",
+                      "budget": {
+                        "max_pages": 10
+                      }
+                    },
+                    {
+                      "rung": "web_search",
+                      "enabled": true,
+                      "eligibility_rule": "web_search.enabled",
+                      "budget": {
+                        "max_queries": 15
+                      }
+                    },
+                    {
+                      "rung": "ask_user",
+                      "enabled": true
+                    }
+                  ]
+                },
+                "data": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "rung",
+                      "enabled"
+                    ],
+                    "properties": {
+                      "rung": {
+                        "$ref": "vocabulary.schema.json#/$defs/GoalLadderRung"
+                      },
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "eligibility_rule": {
+                        "type": "string",
+                        "maxLength": 80,
+                        "pattern": "^[a-z][a-z0-9_.]{0,79}$"
+                      },
+                      "budget": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "number"
+                        },
+                        "maxProperties": 8
+                      }
+                    }
+                  },
+                  "description": "metric → data_query → ads",
+                  "default": [
+                    {
+                      "rung": "metric",
+                      "enabled": true,
+                      "eligibility_rule": "bi.metric_certified"
+                    },
+                    {
+                      "rung": "data_query",
+                      "enabled": true,
+                      "eligibility_rule": "bi.dataset_usable"
+                    },
+                    {
+                      "rung": "ads",
+                      "enabled": true,
+                      "eligibility_rule": "ads.installed",
+                      "budget": {
+                        "max_runs": 4
+                      }
+                    }
+                  ]
+                },
+                "capability": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "rung",
+                      "enabled"
+                    ],
+                    "properties": {
+                      "rung": {
+                        "$ref": "vocabulary.schema.json#/$defs/GoalLadderRung"
+                      },
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "eligibility_rule": {
+                        "type": "string",
+                        "maxLength": 80,
+                        "pattern": "^[a-z][a-z0-9_.]{0,79}$"
+                      },
+                      "budget": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "number"
+                        },
+                        "maxProperties": 8
+                      }
+                    }
+                  },
+                  "description": "pack_flow → project_agent → skill → tool → connected_capability → composition → sandbox_code → try_api → draft_tool → draft_skill → draft_agent → draft_flow",
+                  "default": [
+                    {
+                      "rung": "pack_flow",
+                      "enabled": true,
+                      "eligibility_rule": "flow.published"
+                    },
+                    {
+                      "rung": "project_agent",
+                      "enabled": true
+                    },
+                    {
+                      "rung": "skill",
+                      "enabled": true
+                    },
+                    {
+                      "rung": "tool",
+                      "enabled": true,
+                      "eligibility_rule": "tool.bound"
+                    },
+                    {
+                      "rung": "connected_capability",
+                      "enabled": true,
+                      "eligibility_rule": "connection.requestable"
+                    },
+                    {
+                      "rung": "composition",
+                      "enabled": true
+                    },
+                    {
+                      "rung": "sandbox_code",
+                      "enabled": true,
+                      "eligibility_rule": "sandbox.code_allowed",
+                      "budget": {
+                        "max_runs": 5
+                      }
+                    },
+                    {
+                      "rung": "try_api",
+                      "enabled": true,
+                      "eligibility_rule": "synapse.test_mode"
+                    },
+                    {
+                      "rung": "draft_tool",
+                      "enabled": true,
+                      "eligibility_rule": "authoring.drafts_allowed"
+                    },
+                    {
+                      "rung": "draft_skill",
+                      "enabled": true,
+                      "eligibility_rule": "authoring.drafts_allowed"
+                    },
+                    {
+                      "rung": "draft_agent",
+                      "enabled": true,
+                      "eligibility_rule": "authoring.drafts_allowed"
+                    },
+                    {
+                      "rung": "draft_flow",
+                      "enabled": true,
+                      "eligibility_rule": "authoring.drafts_allowed"
+                    }
+                  ]
+                }
+              },
+              "description": "`goal.bind` reads the rungs from here — never from code."
+            }
+          }
+        },
+        "web_research": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "1.121.0: the `web-research` Flow's reading budgets, enforced in the `browser.open` / `browser.follow` tools (never by the prompt — the owner's *not DDoS-ing sites*). A Project layer may only tighten: lower every number, turn research off, keep `render` at or below the base (TUNING_WEB_RESEARCH_WIDER_REJECTED).",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true,
+              "description": "False removes the `research` door: the Resolver records `cannot · research_disabled` and the research cue does not route."
+            },
+            "max_pages": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 60,
+              "default": 30,
+              "description": "Pages one run may read."
+            },
+            "max_depth": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 3,
+              "default": 2,
+              "description": "Link hops from a search result."
+            },
+            "per_host_pages": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20,
+              "default": 8
+            },
+            "per_host_inflight": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1,
+              "default": 1,
+              "description": "One request at a time per host — constant in S6b."
+            },
+            "per_host_delay_ms": {
+              "type": "integer",
+              "minimum": 1000,
+              "maximum": 30000,
+              "default": 2000,
+              "description": "Minimum spacing between two requests to one host (jittered up to +50 %); a `Retry-After` is honoured, then the host is stopped."
+            },
+            "max_minutes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30,
+              "default": 6
+            },
+            "max_bytes": {
+              "type": "integer",
+              "minimum": 1048576,
+              "maximum": 134217728,
+              "default": 25165824,
+              "description": "Bytes read by one run (24 MiB)."
+            },
+            "render": {
+              "$ref": "vocabulary.schema.json#/$defs/WebRenderer",
+              "default": "http",
+              "description": "`http` = the egress GET + extraction plane; `browser` = Playwright in the Sandbox Runtime (S6c, OSS-SYN-03) — a layer may not raise `http` to `browser`."
+            }
+          }
+        },
+        "map": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "1.103.0: NexMap read-model knobs. map-api reads them from the service-effective Blueprint through its module gate — never a Settings field.",
+          "properties": {
+            "min_cell_count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 1,
+              "description": "Small-group suppression: an H3 cell with fewer permitted entities than this is not returned by `/map/view`, and `/map/cells/{h3}` answers 404 for it. 1 = off."
+            }
+          }
+        },
+        "care": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "1.104.0: NexCare's governed knobs. care-api reads them from the service-effective Blueprint through its module gate — never a Settings field — and repeats the values it used as `state_features` on every CareDecisionKind record (rule 85). Every default is the constant it replaces; a Blueprint without a key behaves as the default.",
+          "properties": {
+            "public": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "The public edge.",
+              "properties": {
+                "session_ttl_min": {
+                  "type": "integer",
+                  "minimum": 5,
+                  "maximum": 1440,
+                  "default": 60,
+                  "description": "care_session sliding TTL; hard max 24 h."
+                },
+                "turns_per_min": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 600,
+                  "default": 20,
+                  "description": "Per installation; per-session and per-hashed-IP limits are derived (÷4)."
+                },
+                "max_turn_chars": {
+                  "type": "integer",
+                  "minimum": 200,
+                  "maximum": 20000,
+                  "default": 4000
+                }
+              }
+            },
+            "handoff": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "handoff triggers; sentiment is an llm_proposed FEATURE — its trigger is off unless set.",
+              "properties": {
+                "grounding_min": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.6
+                },
+                "negative_sentiment": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": null,
+                  "description": "null = trigger off (default)."
+                },
+                "repeat_contact_hours": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 720,
+                  "default": 72
+                }
+              }
+            },
+            "conversation_reopen_hours": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 720,
+              "default": 24,
+              "description": "find-or-create window per (installation/connection, channel identity)."
+            },
+            "auto_close_hours": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 720,
+              "default": 48,
+              "description": "a waiting_customer conversation closes after this with a closing message."
+            },
+            "reopen_window_days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 90,
+              "default": 7,
+              "description": "NexBI: `AI resolved` requires no reopen inside this window; `AI contained` does not."
+            },
+            "proactive": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "background automations.",
+              "properties": {
+                "max_per_customer_per_day": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 20,
+                  "default": 1
+                },
+                "quiet_hours": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "description": "1.107.0: keys `start` · `end` (were `from` · `to` in 1.104.0 — a Python keyword cannot be a resolver field; nothing had read them yet).",
+                  "properties": {
+                    "start": {
+                      "type": "string",
+                      "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+                      "default": "21:00"
+                    },
+                    "end": {
+                      "type": "string",
+                      "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+                      "default": "08:00"
+                    }
+                  }
+                }
+              }
+            },
+            "budget": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "exhausting the daily model budget switches the workspace to human-first (nexus.care.budget.exhausted.v1) — never silent degradation.",
+              "properties": {
+                "daily_cost_units": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "default": null,
+                  "description": "null = no budget."
+                }
+              }
+            },
+            "survey": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "csat_delay_min": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1440,
+                  "default": 10
+                },
+                "min_hours_between_surveys": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 8760,
+                  "default": 168
+                }
+              }
+            },
+            "retention": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "defaults; care-worker purges only after the decision-dataset export.",
+              "properties": {
+                "transcripts_days": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 3650,
+                  "default": 365
+                },
+                "recordings_days": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 3650,
+                  "default": 90
+                },
+                "anonymous_sessions_days": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 365,
+                  "default": 30
+                },
+                "survey_days": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 3650,
+                  "default": 730
+                },
+                "recording_policy": {
+                  "$ref": "vocabulary.schema.json#/$defs/CareRetentionRecordingPolicy",
+                  "default": "never"
+                }
+              }
+            },
+            "publish": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "1.126.0: the Care Studio publish gate. `min_eval_score` is the lowest per-dimension score of the pack's `support-quality` evaluation run that still allows *Publish*; below it the draft stays a draft and the Restriction names the failing dimension.",
+              "properties": {
+                "min_eval_score": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.8
+                }
+              }
+            }
+          }
+        },
+        "forge": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "1.111.0: NexForge's governed knobs. forge-api reads them from the service-effective Blueprint through its module gate — never a Settings field — and repeats the values it used as `state_features` on every ForgeDecisionKind record (rule 85). Every default is the constant it replaces; a Blueprint without a key behaves as the default. `confirmation` may only RAISE a level (a lower value than the pack default is CONFIRMATION_LAYER_DENIED at Blueprint validation).",
+          "properties": {
+            "undo_depth": {
+              "type": "integer",
+              "minimum": 10,
+              "maximum": 1000,
+              "default": 100,
+              "description": "Undo stack depth per person per scene."
+            },
+            "proposal_ttl_min": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1440,
+              "default": 30,
+              "description": "A pending SceneProposal expires after this many minutes → outcome `expired` (engine_deterministic)."
+            },
+            "max_objects": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 100000,
+              "default": 5000,
+              "description": "Objects per scene; the op engine rejects `add` beyond it (SCENE_LIMIT_EXCEEDED)."
+            },
+            "ops_per_batch": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5000,
+              "default": 500,
+              "description": "Ops per POST /forge/scenes/{id}/ops batch (OPS_BATCH_TOO_LARGE)."
+            },
+            "turn_rpm": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 600,
+              "default": 30,
+              "description": "POST /forge/scenes/{id}/turns per person per minute (RATE_LIMITED)."
+            },
+            "undo_outcome_window_min": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 120,
+              "default": 10,
+              "description": "An undo within this window after Apply writes outcome `undone` (human_implicit) to the proposal's decision (rule 85)."
+            },
+            "floor_height_m": {
+              "type": "number",
+              "minimum": 2,
+              "maximum": 10,
+              "default": 3,
+              "description": "Default floor height in metres for 3D extrusion when a scene lists no height."
+            },
+            "image_max_mb": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "description": "Max image upload size (IMAGE_TOO_LARGE)."
+            },
+            "import_max_mb": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 5,
+              "description": "Max import file size (LikeC4 · C4 DSL · Mermaid · OpenAPI · CSV · GeoJSON, IMPORT_TOO_LARGE)."
+            },
+            "export_max_mb": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 25,
+              "description": "Max export blob size (EXPORT_TOO_LARGE)."
+            },
+            "voice": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "Voice-in-scene.",
+              "properties": {
+                "max_clip_s": {
+                  "type": "integer",
+                  "minimum": 5,
+                  "maximum": 120,
+                  "default": 30,
+                  "description": "Longest accepted utterance clip in seconds; the clip is transcribed and discarded — never stored."
+                },
+                "clip_ttl_s": {
+                  "type": "integer",
+                  "minimum": 10,
+                  "maximum": 600,
+                  "default": 60,
+                  "description": "Server-side lifetime of an in-flight clip before it is dropped unprocessed."
+                },
+                "level1_preview_ms": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10000,
+                  "default": 0,
+                  "description": "How long a level-1 proposal is previewed before auto-apply; 0 = apply immediately with the undo toast."
+                }
+              }
+            },
+            "models": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "Model-policy references per role, resolved through the Model Gateway under the person's classification. null = the workspace default policy.",
+              "properties": {
+                "asr": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 200,
+                  "default": null
+                },
+                "chat_response": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 200,
+                  "default": null
+                },
+                "classifier": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 200,
+                  "default": null
+                }
+              }
+            },
+            "confirmation": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "Confirmation level per SceneOpKind: 1 apply + undo toast · 2 preview + Apply · 3 explicit confirm with the affected objects listed · 4 ActionPanel / target-app approval. The Blueprint may only raise a level above the pack default.",
+              "properties": {
+                "move": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 1
+                },
+                "resize": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 1
+                },
+                "transform": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 1
+                },
+                "set_style": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 1
+                },
+                "set_color_key": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 1
+                },
+                "set_layer": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 1
+                },
+                "set_visibility": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 1
+                },
+                "set_lock": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 1
+                },
+                "set_camera": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 1
+                },
+                "add": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 2
+                },
+                "update": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 2
+                },
+                "connect": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 2
+                },
+                "group": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 2
+                },
+                "set_semantic": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 2
+                },
+                "set_property": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 2
+                },
+                "add_track_step": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 2
+                },
+                "layout": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 2
+                },
+                "reorder": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 1
+                },
+                "set_relation": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 1
+                },
+                "delete": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 3
+                },
+                "ungroup": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 3
+                },
+                "disconnect": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 3
+                },
+                "bind": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 3
+                },
+                "unbind": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 3
+                },
+                "restore": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 3
+                },
+                "undo": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 1
+                },
+                "redo": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4,
+                  "default": 1
+                }
+              }
+            },
+            "retention": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "Retention.",
+              "properties": {
+                "proposals_days": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 3650,
+                  "default": 90,
+                  "description": "Resolved and expired SceneProposals (with their snapshots) are purged after this many days."
+                },
+                "versions": {
+                  "$ref": "vocabulary.schema.json#/$defs/ForgeRetentionVersions",
+                  "default": "until_scene_deletion",
+                  "description": "Scene versions live until the scene is deleted, or for `versions_days`."
+                },
+                "versions_days": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 30,
+                  "maximum": 3650,
+                  "default": null,
+                  "description": "Only read when versions = days; published versions are never purged before the scene."
+                },
+                "presence_ttl_s": {
+                  "type": "integer",
+                  "minimum": 5,
+                  "maximum": 300,
+                  "default": 30,
+                  "description": "scene_presence rows expire after this many seconds without a heartbeat."
+                }
+              }
+            }
+          }
+        },
+        "sales": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "1.146.0: NexSales's governed knobs. sales-api reads them from the service-effective Blueprint through its module gate — never a Settings field — and repeats the values it used as `state_features` on every SalesDecisionKind record (rule 85). Every default is the constant it replaces; a Blueprint without a key behaves as the default.",
+          "properties": {
+            "ai": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "false ⇒ no door calls a model; AI-only surfaces read *AI is off*; every CRUD, search, import/export, pipeline and dataset door works unchanged"
+                }
+              }
+            },
+            "quiet_days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 30,
+              "description": "a customer with no done interaction for this many days is *going quiet* on Today; prospects never are"
+            },
+            "handover_days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 60,
+              "description": "a prospect with no request or booking for this many days is *eligible for hand-over* on Today — the manual's two-month rule; the transfer itself stays 's approval, never automatic"
+            },
+            "duplicate": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "normalised-name similarity at or above which a candidate is `possible`; identifier equality is `exact` regardless",
+              "properties": {
+                "threshold": {
+                  "type": "number",
+                  "minimum": 0.5,
+                  "maximum": 1,
+                  "default": 0.85
+                }
+              }
+            },
+            "transfer": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "the relation whose holders decide an account.transfer ApprovalRequest",
+              "properties": {
+                "approver_role": {
+                  "$ref": "vocabulary.schema.json#/$defs/SalesRelation",
+                  "default": "sales.lead"
+                }
+              }
+            },
+            "quote": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "1.153.0: a quote's `draft → approved` at or above `approval_above` (the header's `amount.value`, in the amount's currency) goes through the approval door (`APPROVAL_REQUIRED`, decided by `transfer.approver_role`'s holders); below it the owner approves their own. 0 = every quote needs the approval (the default — the manual's rule: the head signs every offer)",
+              "properties": {
+                "approval_above": {
+                  "type": "number",
+                  "minimum": 0,
+                  "default": 0
+                }
+              }
+            },
+            "contract": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "1.155.0: Today lists an account's active contract under *contracts ending* `ending_days` before `valid_until`; the hand-over and concentration views judge per group",
+              "properties": {
+                "ending_days": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 365,
+                  "default": 30
+                }
+              }
+            },
+            "ownership": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "the rule sales-ownership-review applies; it proposes, never transfers",
+              "properties": {
+                "inactive_days": {
+                  "type": "integer",
+                  "minimum": 7,
+                  "maximum": 730,
+                  "default": 90
+                }
+              }
+            },
+            "external": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "the connected-mode clocks — *waiting for ‹provider›* after slow_after_ms; the adapter's per-call timeout; reconcile an `unknown` by key after reconcile_after_s (no retry before); alert on an `unknown` older than unknown_alert_s; the circuit breaker per connection",
+              "properties": {
+                "slow_after_ms": {
+                  "type": "integer",
+                  "minimum": 500,
+                  "maximum": 30000,
+                  "default": 2000
+                },
+                "timeout_ms": {
+                  "type": "integer",
+                  "minimum": 1000,
+                  "maximum": 120000,
+                  "default": 15000
+                },
+                "reconcile_after_s": {
+                  "type": "integer",
+                  "minimum": 10,
+                  "maximum": 3600,
+                  "default": 60
+                },
+                "unknown_alert_s": {
+                  "type": "integer",
+                  "minimum": 60,
+                  "maximum": 86400,
+                  "default": 900
+                },
+                "sync_stall_s": {
+                  "type": "integer",
+                  "minimum": 300,
+                  "maximum": 86400,
+                  "default": 3600
+                },
+                "sync_interval_s": {
+                  "type": "integer",
+                  "minimum": 60,
+                  "maximum": 86400,
+                  "default": 300,
+                  "description": "S4-A: how often sales-worker pages `delta` for every `projection` type of a connection"
+                },
+                "projection_max_age_s": {
+                  "type": "integer",
+                  "minimum": 300,
+                  "maximum": 604800,
+                  "default": 86400,
+                  "description": "S4-A: a projection older than this is still searchable but answers `stale`; the sync is reported as stalled"
+                },
+                "unknown_max_age_s": {
+                  "type": "integer",
+                  "minimum": 600,
+                  "maximum": 604800,
+                  "default": 86400,
+                  "description": "S4-B: an `unknown` write older than this is closed `reconciled_not_saved` and offered as a hand-off draft"
+                },
+                "breaker": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "failures": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 100,
+                      "default": 5
+                    },
+                    "window_s": {
+                      "type": "integer",
+                      "minimum": 10,
+                      "maximum": 3600,
+                      "default": 60
+                    }
+                  }
+                }
+              }
+            },
+            "import": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "file and row caps; a file beyond them is FILE_REJECTED",
+              "properties": {
+                "max_mb": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 500,
+                  "default": 20
+                },
+                "max_rows": {
+                  "type": "integer",
+                  "minimum": 100,
+                  "maximum": 1000000,
+                  "default": 50000
+                }
+              }
+            },
+            "export": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "1.157.0: the row cap of one export; above it EXPORT_TOO_LARGE — the person narrows the scope",
+              "properties": {
+                "max_rows": {
+                  "type": "integer",
+                  "minimum": 100,
+                  "maximum": 1000000,
+                  "default": 50000
+                }
+              }
+            },
+            "decisions": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "the sampling rate of source_resolution records (1.0 in S3; the owner lowers it here)",
+              "properties": {
+                "source_resolution_sample": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 1
+                }
+              }
+            },
+            "retention": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "defaults; sales-worker purges only after the decision-dataset export",
+              "properties": {
+                "archived_days": {
+                  "type": "integer",
+                  "minimum": 30,
+                  "maximum": 3650,
+                  "default": 730
+                },
+                "write_intents_days": {
+                  "type": "integer",
+                  "minimum": 30,
+                  "maximum": 3650,
+                  "default": 365
+                },
+                "import_batches_days": {
+                  "type": "integer",
+                  "minimum": 7,
+                  "maximum": 3650,
+                  "default": 90
+                },
+                "import_files_days": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 365,
+                  "default": 7
+                },
+                "exports_days": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 365,
+                  "default": 30
+                }
+              }
+            },
+            "models": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "inference policy for customer data of a `confidential` tenant — local_only by default",
+              "properties": {
+                "confidential_inference": {
+                  "$ref": "vocabulary.schema.json#/$defs/SalesInferencePolicy",
+                  "default": "local_only"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "1.52.0: the Agentic Data Scientist's knobs. `datasets_enabled` (Q-743, default true) — the Project data memory: off makes every plan row first contact (`blueprint_forbids` on every reuse record): Datasets are still kept as Project sources but never answer for a stage. `merges_gate` (TBD-725 / Q-723): whether the C6 *Merge n probable duplicate names?* approval may open on its own when a run's uncertain pairs reach `uncertain_pairs_threshold`; the person's explicit ask (`inputs.confirm_merges`) opens it regardless.",
+      "properties": {
+        "datasets_enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "merges_gate": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "uncertain_pairs_threshold": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 20
+            }
+          }
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "$ref": "vocabulary.schema.json#/$defs/GovernanceState"
+        },
+        "record_uri": {
+          "$ref": "resource-uri.schema.json"
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "created_by": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "layer": {
+            "pattern": "^(domain|regulatory|organization|project)$"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "parent_uri"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "layer": {
+            "pattern": "^(organization|project)$"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "tenancy"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "layer": {
+            "const": "project"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "project_id"
+        ]
+      }
+    }
+  ]
+}

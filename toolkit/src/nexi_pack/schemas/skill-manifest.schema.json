@@ -1,0 +1,266 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.nexiflow.ai/v1/skill-manifest.schema.json",
+  "title": "SkillManifest",
+  "description": "Portable Skill package manifest: a versioned, tested *instruction package* — SKILL.md + input/output JSON Schema + examples + evaluation. A skill teaches; it never owns tools, model, knowledge, credentials, connections or permissions (those live on the Agent that applies it). Created/published in NexChat (owner: apps/chat; URI nexus://skill/<id>); NexCore attaches a governance record and can block. Publishing requires a human review of the exact version (evaluation.human_review) — FR-SKL-007. Platform skills are first-party signed; installed skills fail closed until security review.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "skill_id",
+    "uri",
+    "name",
+    "description",
+    "origin",
+    "status",
+    "version",
+    "entry"
+  ],
+  "properties": {
+    "skill_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "uri": {
+      "$ref": "resource-uri.schema.json"
+    },
+    "tenancy": {
+      "$ref": "tenancy-context.schema.json"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 300
+    },
+    "shortcut": {
+      "type": "string",
+      "pattern": "^/[a-z0-9-]{1,24}$",
+      "description": "Slash command; shown as a subtle hint, not part of the name."
+    },
+    "origin": {
+      "$ref": "vocabulary.schema.json#/$defs/SkillOrigin"
+    },
+    "status": {
+      "$ref": "vocabulary.schema.json#/$defs/SkillStatus"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "entry": {
+      "type": "string",
+      "const": "SKILL.md"
+    },
+    "input_schema": {
+      "type": "object",
+      "description": "JSON Schema (draft 2020-12) of the inputs the skill expects from the applying agent. Object schemas only.",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "object"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "output_schema": {
+      "type": "object",
+      "description": "JSON Schema (draft 2020-12) of the structured result the skill teaches the agent to produce (summary / evidence / risks / confidence / next steps …).",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "object"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "examples": {
+      "type": "array",
+      "maxItems": 20,
+      "description": "Worked examples (few-shot material and regression fixtures for the evaluation suite).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "input": {
+            "type": "object"
+          },
+          "expected_output": {
+            "type": "string",
+            "maxLength": 8000
+          },
+          "ref": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Package-relative path (examples/<file>.md) for packed skills."
+          }
+        }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "human_review"
+      ],
+      "description": "How the skill is judged before it may teach an agent. `human_review` is mandatory for project skills: publish is refused unless the current version was reviewed by a human (FR-SKL-007); any content change resets it to `pending`.",
+      "properties": {
+        "suite_ref": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Package-relative evaluation suite (evals/<name>.yaml) run by the eval_suite evaluator."
+        },
+        "human_review": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state"
+          ],
+          "properties": {
+            "state": {
+              "$ref": "vocabulary.schema.json#/$defs/SkillReviewState"
+            },
+            "reviewed_by": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Human actor id; never an agent or service identity."
+            },
+            "reviewed_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "reviewed_version": {
+              "type": "string",
+              "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+            },
+            "notes": {
+              "type": "string",
+              "maxLength": 2000
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tags": {
+          "type": "array",
+          "maxItems": 20,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{0,31}$"
+          }
+        }
+      }
+    },
+    "instructions": {
+      "type": "string",
+      "maxLength": 40000,
+      "description": "SKILL.md body (S5 authoring). Served inline for project skills; platform skills ship it inside the signed package and may omit it here."
+    },
+    "created_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "origin_intent": {
+      "type": "string",
+      "maxLength": 4000,
+      "description": "AI-first creation: the natural-language intent the draft was generated from."
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "alg",
+        "key_id",
+        "value"
+      ],
+      "properties": {
+        "alg": {
+          "type": "string",
+          "const": "ed25519"
+        },
+        "key_id": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "description": "Read-only projection of the NexCore governance record; `blocked` ⇒ skill hidden from `/` picker and denied on invoke.",
+      "properties": {
+        "state": {
+          "$ref": "vocabulary.schema.json#/$defs/GovernanceState"
+        },
+        "record_uri": {
+          "$ref": "resource-uri.schema.json"
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "user_message_key": {
+          "type": "string"
+        }
+      }
+    },
+    "security_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "$ref": "vocabulary.schema.json#/$defs/SecurityReviewState"
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "record_uri": {
+          "$ref": "resource-uri.schema.json"
+        }
+      }
+    }
+  }
+}

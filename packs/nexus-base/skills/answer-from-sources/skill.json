@@ -1,0 +1,185 @@
+{
+  "skill_id": "skl_answer_from_sources",
+  "uri": "nexus://skill/skl_answer_from_sources",
+  "name": "Answer from sources",
+  "description": "Grounded Q&A over the given sources only — every statement cited, coverage and gaps declared, conflicts reported instead of resolved.",
+  "origin": "platform",
+  "status": "published",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "shortcut": "/ask",
+  "metadata": {
+    "tags": [
+      "qa",
+      "grounded"
+    ]
+  },
+  "evaluation": {
+    "human_review": {
+      "state": "approved",
+      "reviewed_by": "Nexi maintainers",
+      "reviewed_at": "2026-09-17T00:00:00Z",
+      "reviewed_version": "1.0.0"
+    }
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-17T00:00:00Z"
+  },
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-17T00:00:00Z",
+  "published_at": "2026-09-17T00:00:00Z",
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "question": {
+        "type": "string"
+      },
+      "sources": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "text"
+          ]
+        },
+        "maxItems": 50
+      }
+    },
+    "required": [
+      "question",
+      "sources"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "answer": {
+        "type": "string"
+      },
+      "citations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "marker": {
+              "type": "string"
+            },
+            "source_id": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "quote": {
+              "type": "string",
+              "maxLength": 240
+            }
+          },
+          "required": [
+            "marker",
+            "source_id",
+            "quote"
+          ]
+        }
+      },
+      "coverage": {
+        "type": "string",
+        "enum": [
+          "full",
+          "partial",
+          "none"
+        ]
+      },
+      "gaps": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 10
+      },
+      "conflicts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "topic": {
+              "type": "string"
+            },
+            "positions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "source_id": {
+                    "type": "string"
+                  },
+                  "quote": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "source_id",
+                  "quote"
+                ]
+              }
+            }
+          },
+          "required": [
+            "topic",
+            "positions"
+          ]
+        },
+        "maxItems": 10
+      }
+    },
+    "required": [
+      "answer",
+      "citations",
+      "coverage",
+      "gaps",
+      "conflicts"
+    ]
+  },
+  "examples": [
+    {
+      "title": "Notice period",
+      "input": {
+        "question": "What is the notice period?",
+        "sources": [
+          {
+            "id": "s1",
+            "title": "Contract",
+            "text": "…30 days…"
+          }
+        ]
+      },
+      "expected_output": "{\"answer\": \"The notice period is 30 days [1].\", \"citations\": [{\"marker\": \"[1]\", \"source_id\": \"s1\", \"location\": \"§7\", \"quote\": \"…30 days…\"}], \"coverage\": \"full\", \"gaps\": [], \"conflicts\": []}"
+    }
+  ]
+}

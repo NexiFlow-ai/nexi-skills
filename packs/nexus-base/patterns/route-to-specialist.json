@@ -1,0 +1,100 @@
+{
+  "api_version": "nexus/v1",
+  "kind": "FlowPattern",
+  "metadata": {
+    "id": "route-to-specialist",
+    "name": "Route to specialist",
+    "version": "1.0",
+    "category": "orchestration",
+    "layer": "flow_pattern",
+    "human_reviewed_by": "Nexi maintainers",
+    "reviewed_at": "2026-09-17T12:00:00Z"
+  },
+  "description": "A classifier decides which kind of request this is; the matching specialist handles it.",
+  "use_when": [
+    "several_request_categories",
+    "distinct_expertise_per_category",
+    "one_request_one_specialist"
+  ],
+  "examples": [
+    "Legal / procurement / finance / HR requests",
+    "Bug report vs feature request vs question"
+  ],
+  "characteristics": {
+    "autonomy": "medium",
+    "cost": "low",
+    "latency": "low",
+    "reliability": "high"
+  },
+  "diagram": {
+    "columns": [
+      [
+        "trigger"
+      ],
+      [
+        "classifier"
+      ],
+      [
+        "agent",
+        "agent",
+        "agent"
+      ],
+      [
+        "end"
+      ]
+    ],
+    "aria": "Trigger, classifier, one of three specialists, end."
+  },
+  "template": {
+    "workflow_uri": "nexus://workflow/template/route-to-specialist",
+    "version": "1.1.0",
+    "file": "templates/route-to-specialist.json"
+  },
+  "requires": {
+    "node_types": [
+      "agent",
+      "condition"
+    ]
+  },
+  "placeholders": [
+    {
+      "node_id": "classify",
+      "role": "classifier"
+    },
+    {
+      "node_id": "specialist_a",
+      "role": "reasoner"
+    },
+    {
+      "node_id": "specialist_b",
+      "role": "reasoner"
+    },
+    {
+      "node_id": "specialist_c",
+      "role": "reasoner"
+    }
+  ],
+  "recommended": {
+    "model_strategy": "cheapest_qualified"
+  },
+  "learn_more": [
+    {
+      "term": "Routing / handoff",
+      "note": "Classification with structured output, then a deterministic branch. Never a keyword match."
+    }
+  ],
+  "ui": {
+    "icon": "git-fork"
+  },
+  "i18n": {
+    "uk": {
+      "name": "Маршрутизація до спеціаліста",
+      "description": "Класифікатор визначає тип запиту; його обробляє відповідний спеціаліст.",
+      "examples": [
+        "Юридичні / закупівельні / фінансові / HR-запити",
+        "Баг, побажання чи запитання"
+      ],
+      "diagram_aria": "Тригер, класифікатор, один із трьох спеціалістів, кінець."
+    }
+  }
+}

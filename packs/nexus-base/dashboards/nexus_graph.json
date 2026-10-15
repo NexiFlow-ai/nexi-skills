@@ -1,0 +1,241 @@
+{
+  "uri": "nexus://bi/template/nexus_graph",
+  "id": "nexus_graph",
+  "title": [
+    {
+      "text": "NexGraph knowledge",
+      "lang": "en"
+    },
+    {
+      "text": "Знання NexGraph",
+      "lang": "uk"
+    }
+  ],
+  "decision_kinds": [
+    "knowledge_quality",
+    "verification_backlog"
+  ],
+  "platform": true,
+  "pack_ref": "nexus://core/pack/nexus-base",
+  "version": "1.0.0",
+  "slots": [
+    {
+      "id": "sec_sources",
+      "kind": "section",
+      "role": "sources",
+      "required": true,
+      "recommended_size": {
+        "w": 12,
+        "h": 1
+      }
+    },
+    {
+      "id": "sources",
+      "kind": "metric",
+      "role": "volume",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "graph_sources_total",
+      "metric_hint": "volume"
+    },
+    {
+      "id": "sources_failed",
+      "kind": "metric",
+      "role": "risk",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "graph_sources_failed",
+      "metric_hint": "risk"
+    },
+    {
+      "id": "runs_failed",
+      "kind": "metric",
+      "role": "risk",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "graph_runs_failed_24h"
+    },
+    {
+      "id": "sources_trend",
+      "kind": "chart",
+      "role": "trend_over_days",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "graph_sources_history",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "runs_failed_trend",
+      "kind": "chart",
+      "role": "trend_over_days",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "graph_runs_failed_history",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "sec_claims",
+      "kind": "section",
+      "role": "claims",
+      "required": true,
+      "recommended_size": {
+        "w": 12,
+        "h": 1
+      }
+    },
+    {
+      "id": "verified",
+      "kind": "metric",
+      "role": "outcome",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "graph_claims_verified",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "proposed",
+      "kind": "metric",
+      "role": "volume",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "graph_claims_proposed"
+    },
+    {
+      "id": "verif_rate",
+      "kind": "metric",
+      "role": "outcome",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "graph_verification_rate",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "verified_trend",
+      "kind": "chart",
+      "role": "trend_over_days",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "graph_claims_verified_history",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "rate_trend",
+      "kind": "chart",
+      "role": "trend_over_days",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "graph_verification_rate_history",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "sec_bench",
+      "kind": "section",
+      "role": "retrieval_benchmark",
+      "required": true,
+      "recommended_size": {
+        "w": 12,
+        "h": 1
+      }
+    },
+    {
+      "id": "fact_cov",
+      "kind": "metric",
+      "role": "outcome",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "bench_fact_coverage"
+    },
+    {
+      "id": "cite_hit",
+      "kind": "metric",
+      "role": "outcome",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "bench_citation_hit"
+    },
+    {
+      "id": "false_ev",
+      "kind": "metric",
+      "role": "risk",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "bench_false_evidence_rate"
+    },
+    {
+      "id": "bench_p95",
+      "kind": "metric",
+      "role": "driver",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "bench_latency_p95_ms"
+    },
+    {
+      "id": "bench_trend",
+      "kind": "chart",
+      "role": "trend_over_runs",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "bench_fact_coverage",
+      "metric_hint": "outcome",
+      "series_by": "arm"
+    },
+    {
+      "id": "bench_p95_trend",
+      "kind": "chart",
+      "role": "trend_over_runs",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "bench_latency_p95_ms",
+      "metric_hint": "outcome",
+      "series_by": "arm"
+    }
+  ]
+}

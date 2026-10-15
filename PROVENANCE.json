@@ -1,0 +1,650 @@
+{
+  "unit": "skills",
+  "repository": "NexiFlow-ai/nexi-skills",
+  "source_tag": "public/skills/v0.1.0",
+  "source_commit": "5d56559a47e57efc65ce5e3b2fdf03720c02f71b",
+  "version": "0.1.0",
+  "exported_at": "2026-10-15T11:57:10.567Z",
+  "guard_version": "2026.10.15-1",
+  "allowlist_entries": 2,
+  "license": "Apache-2.0",
+  "files": [
+    {
+      "path": ".github/workflows/dco.yml",
+      "sha256": "d28c14bffb65892f16b226fb48b1f66aaa1d56c8d574efe1fbc54647b9154db0"
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "NOTICE",
+      "sha256": "7a35531f4aea5f26b71e7f108742bcaef34f330d6545ba7446aa8b7686843a8d"
+    },
+    {
+      "path": "README.md",
+      "sha256": "f4948204cd8bfb1348ce059c8415b5daae6de49845bcd40155c7dae60b049582"
+    },
+    {
+      "path": "REGISTRY.md",
+      "sha256": "cc465479b32009e5a948113db5c98eb6bbe991da4f740b86a6bb0d91a6bfa0e4"
+    },
+    {
+      "path": "SPEC.md",
+      "sha256": "f26a5ddc06dd2985d50fa40218edde5f3ca63d3879f8546ad66d7cabe5d6fa03"
+    },
+    {
+      "path": "TRADEMARKS.md",
+      "sha256": "59f1beb949bdf802a79bb802792af5ea0a4a4ce921c90847fd5b25b4d0838088"
+    },
+    {
+      "path": "guide/01-what-a-pack-is.md",
+      "sha256": "c71548fb495219bda7dac3d45fb552221090a1878df74854c35ba7770a364256"
+    },
+    {
+      "path": "guide/02-skills.md",
+      "sha256": "7da23f9c38dd8465eefe5562e1440bc9b42c534cf4e5a19f686b6a0e3613f62d"
+    },
+    {
+      "path": "guide/03-agents.md",
+      "sha256": "f4cec0382b6edf9822eb561ed8c8634f0c435b2277b82fdcd2526f236dc411b8"
+    },
+    {
+      "path": "guide/04-flows.md",
+      "sha256": "5223d48b9d5356afed1d45e5914d1888e421f68ea6be5e61fa336a27ade0ec34"
+    },
+    {
+      "path": "guide/05-blueprint-and-policies.md",
+      "sha256": "ebb98027b5be0b1c34156635c2d9cacad38202abd1653c6cb1108f08c248428a"
+    },
+    {
+      "path": "guide/06-sandbox-and-tools.md",
+      "sha256": "f824ef4009b7e9b171f14287aa84cd47d252c19a0aa1cb9a996cc26154a3d87d"
+    },
+    {
+      "path": "guide/07-your-first-pack.md",
+      "sha256": "94163c4d06ba52eff1409ce3369e2f295625f43c95eb30dd50f7218ff7ab20fd"
+    },
+    {
+      "path": "guide/08-review-sign-register.md",
+      "sha256": "a4061e57d567fba5f9615bbf4e4af3ae9e42bb3449c8f2caf1536d5e81f9e8d3"
+    },
+    {
+      "path": "guide/09-best-practices.md",
+      "sha256": "c2af6659c2a76c948ce06949b6b8d5c714814a00c667a32cc5b1c60fd6740b56"
+    },
+    {
+      "path": "guide/10-testing.md",
+      "sha256": "6c48ed3679d5e63fb20b0fbc86285b34f0ee0abb3b412473b1f784ed305958ca"
+    },
+    {
+      "path": "guide/README.md",
+      "sha256": "396c48d5bfb701dc4f24112021b0031ac6652538d981fa76d9af548f4b1198f9"
+    },
+    {
+      "path": "packs/nexus-base/CATALOGUE.md",
+      "sha256": "97b191629c99254d6c6f677523df4fedc555bcc1f808b15d91512f886e9371b9"
+    },
+    {
+      "path": "packs/nexus-base/README.md",
+      "sha256": "87057c83a5a0ec16b8e30b0e09f31a2517b6d72b4689cfa6f749efeb69e8c089"
+    },
+    {
+      "path": "packs/nexus-base/agents/analyst.json",
+      "sha256": "8adfaf22fce4cd70f4a1eca6f362e216999bd6b30d1ecef4c2f3777357f16731"
+    },
+    {
+      "path": "packs/nexus-base/agents/analyst.md",
+      "sha256": "ea347a803a8948ebf33ac3588a0b26ed51b82ef55d5b3e992bae609184823cb0"
+    },
+    {
+      "path": "packs/nexus-base/agents/ds-planner.json",
+      "sha256": "c41538e34c0ae3d92cec75cd19158db5530098fa03bfaa83e13fc932e96f03fc"
+    },
+    {
+      "path": "packs/nexus-base/agents/ds-planner.md",
+      "sha256": "f7beffb2438d75bb746f873705be85f57c8f41296ee53d5f33ba38e7b920eace"
+    },
+    {
+      "path": "packs/nexus-base/agents/general.json",
+      "sha256": "fe77109e95b51b94033938e84780f251a28bcbaf30b181229282ba15c1a65e01"
+    },
+    {
+      "path": "packs/nexus-base/agents/general.md",
+      "sha256": "42dead6172debf898390b580e1febc01ff70ed57132c5ad67a1b311b9755c9eb"
+    },
+    {
+      "path": "packs/nexus-base/agents/governance.json",
+      "sha256": "4e778ad128c5f09b1b0ae6694ab9334c17e1313235fca1ccf7d87e5a122cd831"
+    },
+    {
+      "path": "packs/nexus-base/agents/governance.md",
+      "sha256": "75f693392d593b9cb68384866698422f6728c37ff1fb4ee4295f7380754b0be2"
+    },
+    {
+      "path": "packs/nexus-base/agents/reviewer.json",
+      "sha256": "8a1017e47d862025d137d1674ccc862b81a2e6cc600e154ee64e6d84fcb55427"
+    },
+    {
+      "path": "packs/nexus-base/agents/reviewer.md",
+      "sha256": "b5caec1d147d6913051e41402d5c6f3d603f83ca5cc1f2a09039ebb0d42bd841"
+    },
+    {
+      "path": "packs/nexus-base/agents/web-source-curator.json",
+      "sha256": "dcbd23a03ebf241030dbb24022a944d11c1fb9c7c2059751f0278758abcefe7a"
+    },
+    {
+      "path": "packs/nexus-base/agents/web-source-curator.md",
+      "sha256": "2dd9c205641671fed65622f20d10ad9b78fdef43290a14b5e687220ba4686209"
+    },
+    {
+      "path": "packs/nexus-base/agents/writer.json",
+      "sha256": "bc82ad76e807ca128db4f0b207703638f4c308daf8f7bee88628e3f615af9ee0"
+    },
+    {
+      "path": "packs/nexus-base/agents/writer.md",
+      "sha256": "b1e68d07dc56ab52a56c8fb6ae6ceee1fb1def2c52ebb786e054205ab53a1636"
+    },
+    {
+      "path": "packs/nexus-base/blueprints/nexus-base.json",
+      "sha256": "c62a7f8faf9b9770269cea7a71f1035de3e8975444d66bdc059e76978c33da4e"
+    },
+    {
+      "path": "packs/nexus-base/dashboards/data_overview.json",
+      "sha256": "886ceddc6e6c621a60db25052c8192a264a6761c8311dc7753acc8d5c442ac20"
+    },
+    {
+      "path": "packs/nexus-base/dashboards/executive_overview.json",
+      "sha256": "9417a6989113d98c10019194b6855cf65e01fea18dc09ef87ede6a1b134c3e79"
+    },
+    {
+      "path": "packs/nexus-base/dashboards/nexus_graph.json",
+      "sha256": "087d2e3627bed9c3098c47c263eb49c404bf90e2384ca543a9ed7f31257627c5"
+    },
+    {
+      "path": "packs/nexus-base/dashboards/nexus_infrastructure.json",
+      "sha256": "2afe6490e39646958022550b7b2298633d02f7dfe3d295e3c2b210a1370a267d"
+    },
+    {
+      "path": "packs/nexus-base/dashboards/nexus_quality.json",
+      "sha256": "551bf316f835088dc3975ee55808485ba210c0874c435a5b64280bb29433f16c"
+    },
+    {
+      "path": "packs/nexus-base/dashboards/nexus_usage.json",
+      "sha256": "43f54f4217b422406392b02a77ee276c2defc16cf17537004fa8e798ad089a44"
+    },
+    {
+      "path": "packs/nexus-base/dashboards/nexus_vibeban.json",
+      "sha256": "7ab4693d33b898f80ab7c7a2f403f1bb3e1098dd11612282d10283a198c1a8db"
+    },
+    {
+      "path": "packs/nexus-base/dashboards/operational_control.json",
+      "sha256": "0b3861492ffafe4151256a0aab7bac59197b025e2e57d649b13a76cab9470819"
+    },
+    {
+      "path": "packs/nexus-base/dashboards/performance_vs_target.json",
+      "sha256": "49611df227d7e8e3dbc2d43e5c37a7f5b123519344cc6364890a44fc25bbc3e5"
+    },
+    {
+      "path": "packs/nexus-base/dashboards/risk_exceptions.json",
+      "sha256": "a124431ad6f6cb8ce400bb0b8a84b3162734033cb7714fd0c1863cfe89c46ffb"
+    },
+    {
+      "path": "packs/nexus-base/flows/admin-governance.json",
+      "sha256": "5a3460e8d169eda1c2afce00003a4d73196cfa3468d482b7b6cdf10648670c0b"
+    },
+    {
+      "path": "packs/nexus-base/flows/bi-metric-alert.json",
+      "sha256": "c28b4be019deb8c86649caaaccc86b712839c6f3c6c544110702d14af60a6e44"
+    },
+    {
+      "path": "packs/nexus-base/flows/bi-refresh.json",
+      "sha256": "2fcb31b1d67d2d8cfd2c449b676e310519f32b8214d8ed31075038da7a2b2b43"
+    },
+    {
+      "path": "packs/nexus-base/flows/bi-subscription.json",
+      "sha256": "d9ea592232baf5e8749b3ee698601548d2471d9f202c23e02f0e9c6f1376b433"
+    },
+    {
+      "path": "packs/nexus-base/flows/data-extraction.json",
+      "sha256": "020a08e7f8657e0c7329e9f44c58355ab12440b50bdb477b47e62659f8cee145"
+    },
+    {
+      "path": "packs/nexus-base/flows/document-review.json",
+      "sha256": "c12a7f7784f9ff5b3c73541f71fb22dd0f5151ee056d2c35246ff6839d4b58e1"
+    },
+    {
+      "path": "packs/nexus-base/flows/mail-triage.json",
+      "sha256": "bc381cf199bc8b1d35b6efb0357d6d5954848c2e0f365f9634d4ae97185d99d3"
+    },
+    {
+      "path": "packs/nexus-base/flows/member-onboarding.json",
+      "sha256": "6c184f3609e86b0c0a6b3ea055e80bbfdf5b6dfe3eab59b6454b1eb4d18db7da"
+    },
+    {
+      "path": "packs/nexus-base/flows/web-source.json",
+      "sha256": "a71815592f5da91c52b0b2cdd438c777c5ee9ae9ced9d0f9aad736154d4ceb75"
+    },
+    {
+      "path": "packs/nexus-base/flows/weekly-digest.json",
+      "sha256": "a3e00b731d41c90eb0cb415b1c114e73565bbb172e7cf62c076a7250997a6a71"
+    },
+    {
+      "path": "packs/nexus-base/manifest.json",
+      "sha256": "f3f859e3d86f47b5132977d3a4b04577d050abe15c85b6da4a2411f5d320ad79"
+    },
+    {
+      "path": "packs/nexus-base/patterns/ensemble-judge.json",
+      "sha256": "bf5328dffa7843474ccccec1d48a558ee2b279bc1d8d81174668cf996a02bf80"
+    },
+    {
+      "path": "packs/nexus-base/patterns/execute-test-repair.json",
+      "sha256": "35688c4cbc334c5cfe20319ef76cfc96abd6d7fa44e9ea6fa085c8d30373cd72"
+    },
+    {
+      "path": "packs/nexus-base/patterns/goal-evaluator-loop.json",
+      "sha256": "00a60bbc7f026d0a63f57158554d22f78cae497fa2879172e859879dddc19584"
+    },
+    {
+      "path": "packs/nexus-base/patterns/human-review-gate.json",
+      "sha256": "7b52141f412c74fb29ee9f3a097c370f0374ca3f1d361611b18d45fba4330e8e"
+    },
+    {
+      "path": "packs/nexus-base/patterns/model-cascade.json",
+      "sha256": "f12dfb3bbf55ad7c25b30162c1f6bc4ed2977767d138f3eae3e066b4fdfc3092"
+    },
+    {
+      "path": "packs/nexus-base/patterns/parallel-workers.json",
+      "sha256": "9058a9a94e5d4fa02f4d738ddde97c3e4c4851cac17e4adb622d3bba9e6dadd0"
+    },
+    {
+      "path": "packs/nexus-base/patterns/plan-execute.json",
+      "sha256": "5a3f2bf5abed00c2d838e3ea46b236e508898496580cdef9612d1e7530a20861"
+    },
+    {
+      "path": "packs/nexus-base/patterns/route-to-specialist.json",
+      "sha256": "8fa8f8fe60d4e2669e88bdb767d403ade222389a8668ae35c31a938f66b6899c"
+    },
+    {
+      "path": "packs/nexus-base/patterns/sequential-chain.json",
+      "sha256": "a3d4dc4799ee59fded44993257b8d516494b7395de21a3fee6023a1ff1c89bf1"
+    },
+    {
+      "path": "packs/nexus-base/patterns/templates/ensemble-judge.json",
+      "sha256": "97107d2a514af39892e670da3990331108c5dec931f60a0407ad9932c3248b53"
+    },
+    {
+      "path": "packs/nexus-base/patterns/templates/execute-test-repair.json",
+      "sha256": "b17800ed9fa981e67d9d22b3005d33067e49b98299c3ad94531659e362dd3698"
+    },
+    {
+      "path": "packs/nexus-base/patterns/templates/goal-evaluator-loop.json",
+      "sha256": "34d8d313f8ac48243479fd7132a64c70470bc9d4db9443c06bff064c7459b877"
+    },
+    {
+      "path": "packs/nexus-base/patterns/templates/human-review-gate.json",
+      "sha256": "5dd5de70dff779e0e575dedb90c8764161dd586cd5f27f14b43af4af118e8657"
+    },
+    {
+      "path": "packs/nexus-base/patterns/templates/model-cascade.json",
+      "sha256": "78375490d2a7e1528f629b52a84024dc0da6f76015760451a2d3bcc60dcb0be4"
+    },
+    {
+      "path": "packs/nexus-base/patterns/templates/parallel-workers.json",
+      "sha256": "4b93ab2df2ee25d7be72b692de756e27bcd32534134cb01092091d26b4fa3f22"
+    },
+    {
+      "path": "packs/nexus-base/patterns/templates/plan-execute.json",
+      "sha256": "7cfb7a6f46258607035b0787bdae4cfa0a3328136aa68b6c4c69b1c224488229"
+    },
+    {
+      "path": "packs/nexus-base/patterns/templates/route-to-specialist.json",
+      "sha256": "e6d729d395c6f1a3c52c6703b937cb4d635d0c799f165cf19b7f97c4e2e420f8"
+    },
+    {
+      "path": "packs/nexus-base/patterns/templates/sequential-chain.json",
+      "sha256": "3c7dbdf09e9e65378215023d945d1016c931fdb0b0b59a65cc577f25039ef167"
+    },
+    {
+      "path": "packs/nexus-base/policies/connector-kinds.json",
+      "sha256": "d679217f57048ab57ea333a4b7113c748c82b00e3f99396c4481b70dc1e92f71"
+    },
+    {
+      "path": "packs/nexus-base/policies/kpis.json",
+      "sha256": "f439802134f4f20e6adf7a84f591a40920fd3acc3215822bcec29fb60e85e228"
+    },
+    {
+      "path": "packs/nexus-base/policies/model-roles.json",
+      "sha256": "5192f0bcb65766469357f5c807c53e2ef77fcb0f08f5642aa2a8039d38a74039"
+    },
+    {
+      "path": "packs/nexus-base/policies/skill-sensitivity.json",
+      "sha256": "c168057a9612b824120e57efb56df245197c097e50401da1b086315bfd85c280"
+    },
+    {
+      "path": "packs/nexus-base/policies/tool-groups.json",
+      "sha256": "bac5e604b4c86e1a167396cef0da97f2ad55dffe91a71475489feedff2bef6ec"
+    },
+    {
+      "path": "packs/nexus-base/sandbox/confidential-analytics.json",
+      "sha256": "62277c37cfdd2b77d666ae9f90158cf2b3b3a32a73788439356e41803814509c"
+    },
+    {
+      "path": "packs/nexus-base/sandbox/dsk-analytics.json",
+      "sha256": "1376a83ae2ec866d59f49d5354e865d32c686dffe5c1d47c73cd5a539d3adc71"
+    },
+    {
+      "path": "packs/nexus-base/sandbox/public-dev.json",
+      "sha256": "ad81824521844e1c903e17f8c7b5b75ffe394f3a2ee39f2dc3b3d2efe6573fc9"
+    },
+    {
+      "path": "packs/nexus-base/sandbox/skill-trial.json",
+      "sha256": "6cde24820a1769e01d90e528bd7b42bcd24c6d8f3ee20f7685c157fe9d355da8"
+    },
+    {
+      "path": "packs/nexus-base/skills/analysis-report/SKILL.md",
+      "sha256": "392eba6c312ad48cd3fcdbbba087f499ffe10dafeed4880a3efebc48dce6732e"
+    },
+    {
+      "path": "packs/nexus-base/skills/analysis-report/skill.json",
+      "sha256": "3d4fe623667f1d1f114215ae48c503f9feb8822075d38839e7a2ef854a111d5f"
+    },
+    {
+      "path": "packs/nexus-base/skills/answer-from-sources/SKILL.md",
+      "sha256": "3c9697177fa95dfb0ab038da69ed6e59ae1c8167084abfdaa60cdb4fe591669b"
+    },
+    {
+      "path": "packs/nexus-base/skills/answer-from-sources/skill.json",
+      "sha256": "61f21215b9a4b357877303002d2903eade8ba94259f65758f4fe4baf6e603ecf"
+    },
+    {
+      "path": "packs/nexus-base/skills/assess-governance-risk/SKILL.md",
+      "sha256": "34c48fd77d73db39e26b3b72803a051e4d86b40e9577ad10af7b0833c3c34e40"
+    },
+    {
+      "path": "packs/nexus-base/skills/assess-governance-risk/skill.json",
+      "sha256": "087ba95aeacf5f04a43648341178f6437899caeed03ce8134e224c7925bcee7c"
+    },
+    {
+      "path": "packs/nexus-base/skills/chart-recommendation/SKILL.md",
+      "sha256": "0dcf9eeeb086d042e5eda074acc7b27fe2b55d582e104b06275dd47037a45d87"
+    },
+    {
+      "path": "packs/nexus-base/skills/chart-recommendation/skill.json",
+      "sha256": "687b0dff9a4ec95732ed4e43dba19c8aeb5f7faa7e0e0f428ec2b91e5529c1b1"
+    },
+    {
+      "path": "packs/nexus-base/skills/classify-sensitivity/SKILL.md",
+      "sha256": "5b95024257a462b54b2cfa9902fb0bb7b3638a57dbc248eb09817eec5a25942b"
+    },
+    {
+      "path": "packs/nexus-base/skills/classify-sensitivity/skill.json",
+      "sha256": "8a43b1179e61f2aa2df1fb45e9707083878442384d212bfa2e6479b6f34bbe55"
+    },
+    {
+      "path": "packs/nexus-base/skills/compare-documents/SKILL.md",
+      "sha256": "43807e44f9dc015d3169c229775ccfe47fca97e6c3e12b034857c70278929c21"
+    },
+    {
+      "path": "packs/nexus-base/skills/compare-documents/skill.json",
+      "sha256": "918c22b30d81583b22688c75c7e09d29f66e217114e2a7a20ad02d337657483b"
+    },
+    {
+      "path": "packs/nexus-base/skills/create-flow/SKILL.md",
+      "sha256": "9a08c6f7d512dbd82302d7fb390e75277b6eb501f62bccfc6f9335fde3fdf9f4"
+    },
+    {
+      "path": "packs/nexus-base/skills/create-flow/skill.json",
+      "sha256": "9556c278c0610cf6b829d38cd0ec7d0a0ab1e7651ebcb03355458899ace89a22"
+    },
+    {
+      "path": "packs/nexus-base/skills/dataset-profile/SKILL.md",
+      "sha256": "f8fa108c0501fc8f5714ba90517deb004ce9601e4f2efcf44255fb1dc2989426"
+    },
+    {
+      "path": "packs/nexus-base/skills/dataset-profile/skill.json",
+      "sha256": "b47f4a7ef9c0c2b4ff8aa8812c459e6158f304ff2eca4e0f31072541f49d7766"
+    },
+    {
+      "path": "packs/nexus-base/skills/draft-and-rewrite/SKILL.md",
+      "sha256": "dcbec56287c2157daf5034bca6476c81c0a16031d11be756ab85a23daf8bc3c1"
+    },
+    {
+      "path": "packs/nexus-base/skills/draft-and-rewrite/skill.json",
+      "sha256": "77986e90bc0bb0c4cc0f61d40cfa41701212554492a92c8a101aac209df7ab5e"
+    },
+    {
+      "path": "packs/nexus-base/skills/eda-plan/SKILL.md",
+      "sha256": "5d527955cb0d479aa171f31446b740d5c859815459036fef5c92dcef6a6332ac"
+    },
+    {
+      "path": "packs/nexus-base/skills/eda-plan/skill.json",
+      "sha256": "2616684d03925b793cfef216f7f90152de5e20511990ed0f54768c03c3f9d7ae"
+    },
+    {
+      "path": "packs/nexus-base/skills/extract-structured-data/SKILL.md",
+      "sha256": "66257cda0693912cfc5bc933b8ccd8237117382f81a482434ca99570943b2597"
+    },
+    {
+      "path": "packs/nexus-base/skills/extract-structured-data/skill.json",
+      "sha256": "5508635b3177f5ec147794b26c81f70133ed79217fec94b215234be34460d02f"
+    },
+    {
+      "path": "packs/nexus-base/skills/mail-triage/SKILL.md",
+      "sha256": "96897e0ae588410ad184221542cf5a0f38772953d8187147119c9e1bfd0c1d79"
+    },
+    {
+      "path": "packs/nexus-base/skills/mail-triage/skill.json",
+      "sha256": "e667aff3fe81195c12ae717a59c112a4c2d578f39f9725fd859ca0ee455ff57e"
+    },
+    {
+      "path": "packs/nexus-base/skills/meeting-notes-to-actions/SKILL.md",
+      "sha256": "2b9e636ddb33e84b44045eb0bd6dceddee51d180b79ec11bdf353d67d03c3e93"
+    },
+    {
+      "path": "packs/nexus-base/skills/meeting-notes-to-actions/skill.json",
+      "sha256": "7c9c7dbc7c6422af2d50fd016f3de3d70afa4bb64e0859379a98e954a89412d3"
+    },
+    {
+      "path": "packs/nexus-base/skills/pin-context/SKILL.md",
+      "sha256": "004c29c83bfcffd5154713c657544e5dbe98810402098128e220f02efc9ceab8"
+    },
+    {
+      "path": "packs/nexus-base/skills/pin-context/skill.json",
+      "sha256": "4dbceb5b04cc30582ff45b4b0d9ae76b76bec69e7af0c45442a9eadb5ff85c1b"
+    },
+    {
+      "path": "packs/nexus-base/skills/recommend-pattern/SKILL.md",
+      "sha256": "f2d9d1cebf3d404dee6b8290fc8aa48599f0a93ce0093b6a2e9327c6c9d24f84"
+    },
+    {
+      "path": "packs/nexus-base/skills/recommend-pattern/skill.json",
+      "sha256": "a667dc7ce139067a25d180f1747ded7dd2005d80bf792b6d9327592e9f054843"
+    },
+    {
+      "path": "packs/nexus-base/skills/summarize/SKILL.md",
+      "sha256": "fc05df1fa241f18b8d397d90876ea841b81e82273bc72ae46b3013e67dac8df7"
+    },
+    {
+      "path": "packs/nexus-base/skills/summarize/skill.json",
+      "sha256": "ba223f28f81aaaebb0e6a32fb8edc350356caced761fdca8d19cbca3d837c17f"
+    },
+    {
+      "path": "packs/nexus-base/skills/translate/SKILL.md",
+      "sha256": "d28e6b3bf7adecf855e638be21c1ab3d03076978c30c961a04eb3f0ca4882474"
+    },
+    {
+      "path": "packs/nexus-base/skills/translate/skill.json",
+      "sha256": "e2af7a28e59d2d8d5688e0d30c0c12a5d9027f23516f957f37c8d2c6b1d54864"
+    },
+    {
+      "path": "packs/nexus-base/skills/web-source-curation/SKILL.md",
+      "sha256": "d1a60636f3782c339f3b8c65367482b6ea897822c86b94c6d2eb421901637bf8"
+    },
+    {
+      "path": "packs/nexus-base/skills/web-source-curation/skill.json",
+      "sha256": "d599574a64cd4c7eb872f5a32bb7d5067b3dab9a5f12e4450fc04ddb08d2236f"
+    },
+    {
+      "path": "publishers.yaml",
+      "sha256": "83e6e71d86734e70a8a4d9ae488e4bf242c169ed9f59cb73c8e673e025e39797"
+    },
+    {
+      "path": "toolkit/README.md",
+      "sha256": "9184b4a6b94c9d83cb6ca87bf357eeebad3f640fee93124f20f336a4b7f463ca"
+    },
+    {
+      "path": "toolkit/pyproject.toml",
+      "sha256": "2b77aea020344e3443cfa2db32fd42cfc978df400ffc54d1a21c23b1944ed753"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/__init__.py",
+      "sha256": "e7cedb5124d503c2b06e954d02fd6e14e71b1b1fce933af2d2c852dce2b09f80"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/cli.py",
+      "sha256": "9386ac2e862ed5cdc695c93eb7f399382d88e4a91e9043a53a8dcdd26ee4c85b"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/pack.py",
+      "sha256": "4c14f6666f4bcbe1fc69069c612c40812df0bb49686da6f3a7a70f5ef952ec42"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/scaffold.py",
+      "sha256": "66d2c25e282d34642bf542e2a50bcaf897672eefa4af5e1df66014c6ec4d4fc0"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/schemas/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/schemas/agent-definition.schema.json",
+      "sha256": "bb489ad588892fae3564549da449567c208b1f516c2508686a9ce40e123a09b6"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/schemas/bi-dashboard-template.schema.json",
+      "sha256": "edc9f932c88ec0503c92d5f2318c8c3cd432180972673a9a1b6b72854bce8c5a"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/schemas/blueprint.schema.json",
+      "sha256": "735dc8220d16687db097dc6b6e306e39ab893b2d38d234060780a062a3384fb7"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/schemas/goal-spec.schema.json",
+      "sha256": "6622e47b5ff5938697553d7872411605125f9d622b902b3cfa89f9c1084be6d4"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/schemas/graph-common.schema.json",
+      "sha256": "cd4bc41d0c533c277cc103383defaef78cd9d57662bf86dff9d07d9d67b7f89a"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/schemas/inference-policy.schema.json",
+      "sha256": "6f2a6fbe31c765cd883b110f7ceeb7543c3ca86af6b5d338c9e3b5d9a4dc8202"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/schemas/nexus-pack-manifest.schema.json",
+      "sha256": "a8e19cebd805b49019280fd0b9a7b81757852359a4c32b6ec94fdbd538183633"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/schemas/pattern-definition.schema.json",
+      "sha256": "f837e83e53cfaf4de03d12d9d130d8445621ef94419625333540f953e5cd48e6"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/schemas/resource-uri.schema.json",
+      "sha256": "c8841c896d376eb81a674f836f06bd3f95e12a8598f7c6b2443e9e3317d44a64"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/schemas/sandbox-profile.schema.json",
+      "sha256": "3922ac5a43f09246f2ff0abc4566238d514e2995031a79779b7a51da174126a5"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/schemas/skill-manifest.schema.json",
+      "sha256": "fa6b494e7d0c97e0e2fa6a82ef98e809d87304c59336ce5ec117000c43641f11"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/schemas/tenancy-context.schema.json",
+      "sha256": "e780fffb8c5fe84ee4146b86fcd25a5120b9d19c77f2422fa1dac7709308e4b6"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/schemas/tool-binding.schema.json",
+      "sha256": "c714e331f913ddf87247449a09bd0171db0ad3a336a02bf062f05552e29d2d2f"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/schemas/vocabulary.schema.json",
+      "sha256": "e96311a7b3d976f504e9e8569079773dbd8de5fa006bf6a73946f98b4b132dbb"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/schemas/workflow-spec.schema.json",
+      "sha256": "b7507abb5fe0b873dc01715477948bcdb9959adf810be0919b32a4b5f16eeb57"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/signing.py",
+      "sha256": "b6c72921dfeb7ab8e16ee034d008bc0d699ef9964bb7c6e439de80db44d9b673"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/validate.py",
+      "sha256": "05d0dc84858dca57093b0187fa5d8d12ffc2adbce72dbfca19016e7635455c61"
+    },
+    {
+      "path": "toolkit/tests/test_toolkit.py",
+      "sha256": "5b964f90fc51654b77beec19e607ba8bdb014099895965263bbf0fabe53ca162"
+    },
+    {
+      "path": "uk/README.md",
+      "sha256": "3f52272df2978d192f156bd43199a2cfbafe54a586b4ab2682870c70fc7345cb"
+    },
+    {
+      "path": "uk/REGISTRY.md",
+      "sha256": "63643c5d210ec77cddcc03a4cca790761271fed3eebc3a149b2711917c1cdf6b"
+    },
+    {
+      "path": "uk/SPEC.md",
+      "sha256": "81ac27d621a271a465f1e5b3eb6957a45163fe1eb253f5392d897757f77f67c8"
+    },
+    {
+      "path": "uk/guide/01-what-a-pack-is.md",
+      "sha256": "2ec27e414a3dbaa6e0a9cfd58a4f0e1d2bf0458edf9acfdc5b952774baefbef4"
+    },
+    {
+      "path": "uk/guide/02-skills.md",
+      "sha256": "f59c1f80d08facca73e0044ea1d6f973ddfb0fcec043155f233647a5b5c99672"
+    },
+    {
+      "path": "uk/guide/03-agents.md",
+      "sha256": "b34c6067a326f513ce997db793b870d1ac799d0f6921d88b027bd513a63aa85a"
+    },
+    {
+      "path": "uk/guide/04-flows.md",
+      "sha256": "cef33cf1b5c2888f8972e820fbe716302f1def9dcd40eeb5f0b07dd1fa438e4c"
+    },
+    {
+      "path": "uk/guide/05-blueprint-and-policies.md",
+      "sha256": "7a2ed9f0b96154c75c80bf39da3996af4aaffe03f48560bde35947eb955563c5"
+    },
+    {
+      "path": "uk/guide/06-sandbox-and-tools.md",
+      "sha256": "ecf5da318cd2befc96629d5dd5f0de70d30cd3478573c20a4d97b55ee1216c98"
+    },
+    {
+      "path": "uk/guide/07-your-first-pack.md",
+      "sha256": "4836f6335f2d2de8e77d0f8d8debb33f96cec8d8befa2c392e6e194b08e26df1"
+    },
+    {
+      "path": "uk/guide/08-review-sign-register.md",
+      "sha256": "75382b4ad2845582e361c2d6d415d8b2a490cf33748430355519b70d3750dfd5"
+    },
+    {
+      "path": "uk/guide/09-best-practices.md",
+      "sha256": "dbb39d7de829769548cdbc1cfa6e2ff2eb59c6186cefae4b6a41bc21906d1314"
+    },
+    {
+      "path": "uk/guide/10-testing.md",
+      "sha256": "29b05ec8e70c9f1682a011edf7b872abd539d9ffd43b1d1bfbe75a784af20138"
+    },
+    {
+      "path": "uk/guide/README.md",
+      "sha256": "fcad2922bec699879a1df305aae51facf4878625f4399953777f39c4c2ce3f1d"
+    }
+  ],
+  "export_digest": "c1c1419fe67f05994f24ffa0fc45074b22f77d5a8410f10e018097d4bfe9d32a"
+}

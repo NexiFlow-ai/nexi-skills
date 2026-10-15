@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.nexiflow.ai/v1/graph-common.schema.json",
+  "title": "GraphCommon",
+  "description": "1.33.0: shared $defs of the NexGraph contracts. KnowledgeObjectBase = the fields every knowledge object carries. LangText = a label with a language tag (ids are language-neutral, DATA-973). Bbox = a page region with its coordinate system and page version.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [],
+  "properties": {},
+  "$defs": {
+    "LangText": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "lang"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "lang": {
+          "type": "string",
+          "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})?$"
+        }
+      }
+    },
+    "Bbox": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y",
+        "w",
+        "h",
+        "system",
+        "page_version"
+      ],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "w": {
+          "type": "number",
+          "minimum": 0
+        },
+        "h": {
+          "type": "number",
+          "minimum": 0
+        },
+        "system": {
+          "$ref": "vocabulary.schema.json#/$defs/BboxSystem"
+        },
+        "page_version": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "AllowedActions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "vocabulary.schema.json#/$defs/GraphPepAction"
+      },
+      "description": "Server-decided; absent on write payloads."
+    },
+    "Coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "n",
+        "N"
+      ],
+      "properties": {
+        "n": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "N": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "KnowledgeObjectBase": {
+      "type": "object",
+      "required": [
+        "uri",
+        "tenant_id",
+        "project_id",
+        "tier",
+        "classification",
+        "created_at"
+      ],
+      "properties": {
+        "uri": {
+          "$ref": "resource-uri.schema.json"
+        },
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "project_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tier": {
+          "$ref": "vocabulary.schema.json#/$defs/KnowledgeTier"
+        },
+        "classification": {
+          "$ref": "vocabulary.schema.json#/$defs/DataClassification"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "allowed_actions": {
+          "$ref": "graph-common.schema.json#/$defs/AllowedActions"
+        }
+      }
+    },
+    "Period": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from",
+        "to"
+      ],
+      "properties": {
+        "from": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "to": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "api_version": "nexus/v1",
+  "kind": "FlowPattern",
+  "metadata": {
+    "id": "model-cascade",
+    "name": "Model cascade",
+    "version": "1.0",
+    "category": "quality",
+    "layer": "model_strategy",
+    "human_reviewed_by": "Nexi maintainers",
+    "reviewed_at": "2026-09-17T12:00:00Z"
+  },
+  "description": "Try the smallest qualified model first; escalate to a stronger one only when the check says it is not good enough.",
+  "use_when": [
+    "classification",
+    "extraction",
+    "summarisation",
+    "cost_sensitive",
+    "structured_output"
+  ],
+  "examples": [
+    "Ticket triage",
+    "Field extraction from invoices"
+  ],
+  "characteristics": {
+    "autonomy": "low",
+    "cost": "low",
+    "latency": "low",
+    "reliability": "medium"
+  },
+  "diagram": {
+    "columns": [
+      [
+        "trigger"
+      ],
+      [
+        "agent"
+      ],
+      [
+        "evaluator"
+      ],
+      [
+        "condition"
+      ],
+      [
+        "agent"
+      ],
+      [
+        "end"
+      ]
+    ],
+    "aria": "Trigger, small model, check, sufficient or escalate to a stronger model, end."
+  },
+  "template": {
+    "workflow_uri": "nexus://workflow/template/model-cascade",
+    "version": "1.1.0",
+    "file": "templates/model-cascade.json"
+  },
+  "requires": {
+    "node_types": [
+      "agent",
+      "evaluator",
+      "condition"
+    ]
+  },
+  "placeholders": [
+    {
+      "node_id": "first",
+      "role": "classifier"
+    },
+    {
+      "node_id": "second",
+      "role": "reasoner"
+    }
+  ],
+  "recommended": {
+    "model_strategy": "cheapest_qualified"
+  },
+  "learn_more": [
+    {
+      "term": "Cascading / escalation",
+      "note": "Complements Synapse: Synapse picks compute within a tier; the cascade is the semantic escalation between tiers."
+    }
+  ],
+  "ui": {
+    "icon": "stairs"
+  },
+  "i18n": {
+    "uk": {
+      "name": "Каскад моделей",
+      "description": "Спершу найменша придатна модель; сильніша — лише коли перевірка каже, що результату недостатньо.",
+      "examples": [
+        "Тріаж звернень",
+        "Витяг полів із рахунків"
+      ],
+      "diagram_aria": "Тригер, мала модель, перевірка, достатньо або ескалація до сильнішої моделі, кінець."
+    }
+  }
+}

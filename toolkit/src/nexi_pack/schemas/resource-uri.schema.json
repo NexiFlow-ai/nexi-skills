@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.nexiflow.ai/v1/resource-uri.schema.json",
+  "title": "ResourceUri",
+  "description": "Stable NEXUS resource URI (v1). Tenant/workspace carried in ActorContext, not in URI. Platform domains allow an optional sub-type segment matching vocabulary uri_segment (e.g. agent/run, skill/binding, workflow/run, workflow/template, tool/connection, tool/record, sandbox/profile, model/provider, model/invocation, integration/connection, integration/connection-request).",
+  "anyOf": [
+    {
+      "type": "string",
+      "pattern": "^nexus://(chat|spin|tasks|bi|graph|core|map|care|forge|sales)/[a-z0-9._-]+/[A-Za-z0-9._:-]+$"
+    },
+    {
+      "type": "string",
+      "pattern": "^nexus://(agent|skill|workflow|integration|tool|sandbox|model)(/(run|delegation|binding|invocation|step|credential_binding|connection|collection|template|iteration|evaluation|profile|execution|provider|connection-request|record))?/[A-Za-z0-9._:-]+$"
+    }
+  ]
+}

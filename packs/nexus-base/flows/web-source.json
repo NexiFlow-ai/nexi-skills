@@ -1,0 +1,546 @@
+{
+  "spec_version": "1.1",
+  "workflow_id": "flw_tpl_web_source",
+  "uri": "nexus://workflow/template/flw_tpl_web_source",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "project_id": null,
+  "name": "Web source",
+  "description": "When a web source of this Project is due (its schedule, or *Check now*): map the site politely — robots first, then sitemaps, then one link pass inside the confirmed hosts and section — let the curator choose, from the map's short candidate list (the delta, noise dropped), the pages the goal asks for — or, when the curator cannot answer in time, crawl that shortlist as it is — fetch them in small conditional batches, extract the main content, and pin only what changed as new source versions; then report the run so the source shows its state, its next check and — when the site asked for a login — what credentials it needs. The agent never signs in and never widens the scope.",
+  "version": 2,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.2.0",
+    "parameters": [
+      {
+        "name": "project_id",
+        "type": "string",
+        "required": true,
+        "description": "The Project whose web sources this Flow serves — one instance per Project, installed by graph-worker when the first web source becomes due."
+      }
+    ]
+  },
+  "requires": {
+    "models": [
+      {
+        "role": "classifier",
+        "capabilities": [
+          "structured_output"
+        ]
+      }
+    ],
+    "tools": [
+      "nexus://tool/web.map",
+      "nexus://tool/web.fetch",
+      "nexus://tool/web.extract",
+      "nexus://tool/graph.source.pin",
+      "nexus://tool/graph.source.report"
+    ]
+  },
+  "trigger": {
+    "kind": "event",
+    "event_subject": "nexus.graph.binding.sync.requested.v1",
+    "event_filter": {
+      "language": "nexus-expr-v1",
+      "source": "$.event.payload.project_id == '{{param.project_id}}' and $.event.payload.kind == 'web'"
+    }
+  },
+  "inputs": [],
+  "outputs": [
+    {
+      "name": "binding_ref",
+      "type": "string"
+    },
+    {
+      "name": "states",
+      "type": "object"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "A web source is due"
+    },
+    {
+      "id": "map",
+      "kind": "tool",
+      "label": "Map the site",
+      "description": "robots.txt first, then the sitemaps, then one link pass from the start URLs — inside the allowed hosts and the section only. Per page: where it was found, its lastmod, whether the graph knows it and a hint (new · maybe_changed · unchanged_hint). Bodies are read for links only and never returned.",
+      "timeout_s": 120,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 10
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "knowledge_sync"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/web.map",
+        "operation": "map",
+        "mutating": false
+      },
+      "input_mapping": {
+        "binding_ref": "$.event.payload.binding_ref"
+      }
+    },
+    {
+      "id": "curate",
+      "kind": "agent",
+      "label": "Choose the pages",
+      "description": "The curator reads the goal and the map's candidates — the delta only (new · maybe_changed), noise shapes dropped, at most 80 — and answers with the pages worth fetching this run (most important first), optionally a class for the ones it leaves out (navigation · noise · duplicate · out_of_scope) and a note. It never adds a URL that is not on the map. If it fails or times out, the Flow crawls the map's shortlist unchanged.",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 1,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "knowledge_sync"
+      },
+      "input_mapping": {
+        "goal": "$.node.map.output.goal",
+        "candidates": "$.node.map.output.candidates",
+        "candidates_count": "$.node.map.output.candidates_count",
+        "max_pages": "$.node.map.output.max_pages"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_web_source_curator",
+        "context_scope": "project",
+        "skill_uris": [
+          "nexus://skill/skl_web_source_curation"
+        ],
+        "inference": {
+          "role": "classifier"
+        },
+        "output_schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "urls"
+          ],
+          "properties": {
+            "urls": {
+              "type": "array",
+              "maxItems": 80,
+              "items": {
+                "type": "string"
+              }
+            },
+            "classes": {
+              "type": "array",
+              "maxItems": 80,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "url",
+                  "page_class"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "page_class": {
+                    "type": "string",
+                    "enum": [
+                      "relevant",
+                      "navigation",
+                      "noise",
+                      "duplicate",
+                      "out_of_scope"
+                    ]
+                  },
+                  "why": {
+                    "type": "string",
+                    "maxLength": 160
+                  }
+                }
+              }
+            },
+            "notes": {
+              "type": "string",
+              "maxLength": 600
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "crawl",
+      "kind": "loop",
+      "label": "Fetch, extract, pin — in batches",
+      "description": "One pass = one batch of at most ten conditional GETs (ETag / Last-Modified from the checkpoint; a 304 costs nothing), the extraction of the 200 bodies to clean Markdown blobs, and the pin: a new source version only where the content hash changed. The engine closes the loop when web.fetch reports no URLs remaining; each pass writes the checkpoint, so a run that stops half-way loses nothing. No model call inside — the budget is politeness, not tokens.",
+      "loop": {
+        "entry_node_id": "fetch",
+        "body_node_ids": [
+          "fetch",
+          "extract",
+          "pin",
+          "batch_done"
+        ],
+        "until": {
+          "evaluator_node_id": "batch_done",
+          "kind": "expression",
+          "expression": {
+            "language": "nexus-expr-v1",
+            "source": "$.node.fetch.output.remaining == 0"
+          }
+        },
+        "max_iterations": 50,
+        "max_duration_s": 3600,
+        "iteration_context": "summarize"
+      }
+    },
+    {
+      "id": "fetch",
+      "kind": "tool",
+      "label": "Fetch a batch",
+      "description": "The curator's URLs — or, when the curator failed, the shortlist web.map left for this run (urls = null) — from the cursor the previous pass left (none on the first). Refusals — outside the scope, egress, robots, size — are page outcomes, never exceptions.",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 15
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "knowledge_sync"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/web.fetch",
+        "operation": "fetch",
+        "mutating": false
+      },
+      "input_mapping": {
+        "binding_ref": "$.event.payload.binding_ref",
+        "urls": "$.node.curate.output.urls",
+        "cursor": "$.loop.crawl.previous.next_cursor"
+      }
+    },
+    {
+      "id": "extract",
+      "kind": "tool",
+      "label": "Extract the content",
+      "description": "Main content only — navigation, ads and footers dropped — as a Markdown blob with its content hash, title, language and the deterministic signals (auth_wall · noindex · noai). Unchanged, gone and refused pages pass through.",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "knowledge_sync"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/web.extract",
+        "operation": "extract",
+        "mutating": false
+      },
+      "input_mapping": {
+        "binding_ref": "$.event.payload.binding_ref",
+        "pages": "$.node.fetch.output.pages"
+      }
+    },
+    {
+      "id": "pin",
+      "kind": "tool",
+      "label": "Pin what changed",
+      "description": "A new SourceVersion only where the hash differs; walls, noindex/noai pages and the curator's non-knowledge classes are recorded on the run, never pinned. Counts and the first wall accumulate on the binding under this run.",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "idempotency": {
+        "key_template": "pin:{{run_id}}:{{$.loop.crawl.iteration}}",
+        "dedupe_window_s": 86400
+      },
+      "policy": {
+        "pep_action": "write",
+        "purpose": "knowledge_sync"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/graph.source.pin",
+        "operation": "pin",
+        "mutating": true
+      },
+      "input_mapping": {
+        "binding_ref": "$.event.payload.binding_ref",
+        "pages": "$.node.extract.output.pages",
+        "run_ref": "$.run.uri"
+      }
+    },
+    {
+      "id": "batch_done",
+      "kind": "evaluator",
+      "label": "More URLs?",
+      "description": "The engine reads web.fetch's `remaining`: 0 closes the loop, anything else opens the next batch.",
+      "timeout_s": 60,
+      "evaluator": {
+        "kind": "deterministic",
+        "criteria_source": "inline",
+        "metrics_path": "$.node.fetch.output",
+        "criteria": [
+          {
+            "metric": "remaining",
+            "operator": "eq",
+            "value": 0,
+            "description": "Every URL the curator chose has been fetched"
+          }
+        ]
+      }
+    },
+    {
+      "id": "report",
+      "kind": "tool",
+      "label": "Report the run",
+      "description": "Closes the run on the binding: reachable, the map's counts; fetched · pinned · unchanged · gone · failed and the auth wall come from what the pins accumulated. NexGraph sets the states and the next check from the schedule.",
+      "timeout_s": 60,
+      "retry": {
+        "max_attempts": 3,
+        "backoff": "exponential",
+        "initial_delay_s": 5,
+        "max_delay_s": 60
+      },
+      "idempotency": {
+        "key_template": "report:{{run_id}}",
+        "dedupe_window_s": 86400
+      },
+      "policy": {
+        "pep_action": "write",
+        "purpose": "knowledge_sync"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/graph.source.report",
+        "operation": "report",
+        "mutating": true
+      },
+      "input_mapping": {
+        "binding_ref": "$.event.payload.binding_ref",
+        "reachable": "true",
+        "run_ref": "$.run.uri",
+        "pages_mapped": "$.node.map.output.pages_count",
+        "pages_blocked": "$.node.map.output.blocked_count"
+      }
+    },
+    {
+      "id": "report_failed",
+      "kind": "tool",
+      "label": "Report the failure",
+      "description": "The map failed (site unreachable, egress refused), the crawl ran out of passes or a person stopped it: the binding shows *unreachable* with *check the URL* as the next step; what was pinned before stays.",
+      "timeout_s": 60,
+      "retry": {
+        "max_attempts": 3,
+        "backoff": "exponential",
+        "initial_delay_s": 5,
+        "max_delay_s": 60
+      },
+      "idempotency": {
+        "key_template": "report_failed:{{run_id}}",
+        "dedupe_window_s": 86400
+      },
+      "policy": {
+        "pep_action": "write",
+        "purpose": "knowledge_sync"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/graph.source.report",
+        "operation": "report",
+        "mutating": true
+      },
+      "input_mapping": {
+        "binding_ref": "$.event.payload.binding_ref",
+        "reachable": "false",
+        "run_ref": "$.run.uri",
+        "error_class": "'fetch_failed'"
+      }
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Done",
+      "input_mapping": {
+        "binding_ref": "$.event.payload.binding_ref",
+        "states": "$.node.report.output.states"
+      }
+    },
+    {
+      "id": "end_failed",
+      "kind": "end",
+      "label": "Stopped",
+      "input_mapping": {
+        "binding_ref": "$.event.payload.binding_ref",
+        "states": "$.node.report_failed.output.states"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-map",
+      "source": "trigger",
+      "target": "map"
+    },
+    {
+      "id": "e-map-curate",
+      "source": "map",
+      "target": "curate"
+    },
+    {
+      "id": "e-map-failed",
+      "source": "map",
+      "target": "report_failed",
+      "when": "failure",
+      "label": "Could not map"
+    },
+    {
+      "id": "e-curate-crawl",
+      "source": "curate",
+      "target": "crawl"
+    },
+    {
+      "id": "e-curate-failed",
+      "source": "curate",
+      "target": "crawl",
+      "when": "failure",
+      "label": "Curator silent — crawl the shortlist"
+    },
+    {
+      "id": "e-fetch-extract",
+      "source": "fetch",
+      "target": "extract"
+    },
+    {
+      "id": "e-extract-pin",
+      "source": "extract",
+      "target": "pin"
+    },
+    {
+      "id": "e-pin-done",
+      "source": "pin",
+      "target": "batch_done"
+    },
+    {
+      "id": "e-crawl-report",
+      "source": "crawl",
+      "target": "report",
+      "when": "complete",
+      "label": "All fetched"
+    },
+    {
+      "id": "e-crawl-exhausted",
+      "source": "crawl",
+      "target": "report_failed",
+      "when": "exhausted",
+      "label": "Ran out of passes"
+    },
+    {
+      "id": "e-crawl-needs-human",
+      "source": "crawl",
+      "target": "report_failed",
+      "when": "needs_human",
+      "label": "Stopped by a person"
+    },
+    {
+      "id": "e-report-end",
+      "source": "report",
+      "target": "end"
+    },
+    {
+      "id": "e-failed-end",
+      "source": "report_failed",
+      "target": "end_failed"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": false,
+    "max_run_duration_s": 7200,
+    "allowed_tool_uris": [
+      "nexus://tool/web.map",
+      "nexus://tool/web.fetch",
+      "nexus://tool/web.extract",
+      "nexus://tool/graph.source.pin",
+      "nexus://tool/graph.source.report"
+    ],
+    "run_as": "initiator",
+    "sensitive_outputs": [],
+    "budget": {
+      "max_tokens": 60000,
+      "max_tool_calls": 220
+    },
+    "max_loop_depth": 1,
+    "sandbox_profile_uri": "nexus://sandbox/profile/public-dev"
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 200,
+        "y": 0
+      },
+      "map": {
+        "x": 200,
+        "y": 116
+      },
+      "curate": {
+        "x": 200,
+        "y": 232
+      },
+      "crawl": {
+        "x": 200,
+        "y": 348
+      },
+      "fetch": {
+        "x": 240,
+        "y": 420
+      },
+      "extract": {
+        "x": 240,
+        "y": 536
+      },
+      "pin": {
+        "x": 240,
+        "y": 652
+      },
+      "batch_done": {
+        "x": 240,
+        "y": 768
+      },
+      "report": {
+        "x": 200,
+        "y": 900
+      },
+      "report_failed": {
+        "x": 520,
+        "y": 900
+      },
+      "end": {
+        "x": 200,
+        "y": 1016
+      },
+      "end_failed": {
+        "x": 520,
+        "y": 1016
+      }
+    }
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-24T00:00:00Z"
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-09-24T00:00:00Z",
+  "published_at": "2026-09-24T00:00:00Z"
+}

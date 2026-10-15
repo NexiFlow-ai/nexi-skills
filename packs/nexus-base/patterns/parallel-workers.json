@@ -1,0 +1,98 @@
+{
+  "api_version": "nexus/v1",
+  "kind": "FlowPattern",
+  "metadata": {
+    "id": "parallel-workers",
+    "name": "Parallel workers",
+    "version": "1.0",
+    "category": "orchestration",
+    "layer": "flow_pattern",
+    "human_reviewed_by": "Nexi maintainers",
+    "reviewed_at": "2026-09-17T12:00:00Z"
+  },
+  "description": "Run independent analyses at the same time and combine their results.",
+  "use_when": [
+    "independent_subtasks",
+    "outputs_need_combining",
+    "latency_matters"
+  ],
+  "examples": [
+    "Legal and commercial review of one contract",
+    "Twenty documents, one summary"
+  ],
+  "characteristics": {
+    "autonomy": "medium",
+    "cost": "medium",
+    "latency": "medium",
+    "reliability": "high"
+  },
+  "diagram": {
+    "columns": [
+      [
+        "trigger"
+      ],
+      [
+        "agent",
+        "agent"
+      ],
+      [
+        "join"
+      ],
+      [
+        "agent"
+      ],
+      [
+        "end"
+      ]
+    ],
+    "aria": "Trigger, two workers in parallel, join, combine, end."
+  },
+  "template": {
+    "workflow_uri": "nexus://workflow/template/parallel-workers",
+    "version": "1.1.0",
+    "file": "templates/parallel-workers.json"
+  },
+  "requires": {
+    "node_types": [
+      "agent",
+      "join"
+    ]
+  },
+  "placeholders": [
+    {
+      "node_id": "worker_a",
+      "role": "reasoner"
+    },
+    {
+      "node_id": "worker_b",
+      "role": "reasoner"
+    },
+    {
+      "node_id": "combine",
+      "role": "summarizer"
+    }
+  ],
+  "recommended": {
+    "parallelism": 2
+  },
+  "learn_more": [
+    {
+      "term": "Fan-out / fan-in, map-reduce",
+      "note": "Workers see the same input but do different jobs; the join waits for all."
+    }
+  ],
+  "ui": {
+    "icon": "columns-3"
+  },
+  "i18n": {
+    "uk": {
+      "name": "Паралельні виконавці",
+      "description": "Незалежні аналізи виконуються одночасно, результати об'єднуються.",
+      "examples": [
+        "Юридична та комерційна перевірка одного контракту",
+        "Двадцять документів, одне резюме"
+      ],
+      "diagram_aria": "Тригер, два виконавці паралельно, об'єднання, зведення, кінець."
+    }
+  }
+}

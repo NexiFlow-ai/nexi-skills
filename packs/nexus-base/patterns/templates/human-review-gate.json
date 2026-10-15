@@ -1,0 +1,255 @@
+{
+  "spec_version": "1.1",
+  "workflow_id": "flw_tpl_human_review_gate",
+  "uri": "nexus://workflow/template/human-review-gate",
+  "tenancy": {
+    "enterprise_id": "pack",
+    "tenant_id": "pack"
+  },
+  "project_id": null,
+  "name": "Human review gate",
+  "description": "An agent prepares a candidate result; a person approves, rejects or sends it back for revision — a bounded number of times.",
+  "version": 1,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.1.0"
+  },
+  "requires": {},
+  "goal": {
+    "objective": "A reviewer accepts the result.",
+    "success_criteria": [
+      {
+        "metric": "approved",
+        "operator": "eq",
+        "value": true
+      }
+    ],
+    "max_iterations": 3,
+    "max_runtime_s": 604800,
+    "on_no_progress": "finish",
+    "human_review_required": true
+  },
+  "presentation": {
+    "title": {
+      "en": "Human review gate",
+      "uk": "Перевірка людиною"
+    },
+    "stage_labels": [
+      {
+        "node_id": "revisions",
+        "label": {
+          "en": "Revisions",
+          "uk": "Доопрацювання"
+        }
+      }
+    ],
+    "person_steps": [
+      "review"
+    ],
+    "receipt_fields": [
+      {
+        "key": "result",
+        "label": {
+          "en": "Result",
+          "uk": "Результат"
+        }
+      }
+    ],
+    "result_kind": "answer"
+  },
+  "trigger": {
+    "kind": "manual"
+  },
+  "inputs": [
+    {
+      "name": "request",
+      "type": "string",
+      "required": true,
+      "description": "What the flow works on"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "object"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "Start"
+    },
+    {
+      "id": "revisions",
+      "kind": "loop",
+      "label": "Until accepted (max 3 rounds)",
+      "loop": {
+        "entry_node_id": "work",
+        "body_node_ids": [
+          "work",
+          "review",
+          "decide"
+        ],
+        "until": {
+          "evaluator_node_id": "decide",
+          "kind": "goal"
+        },
+        "max_iterations": 3,
+        "max_duration_s": 604800,
+        "on_no_progress": "finish",
+        "iteration_context": "preserve"
+      }
+    },
+    {
+      "id": "work",
+      "kind": "agent",
+      "label": "Prepare candidate",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "analysis"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_writer",
+        "context_scope": "project",
+        "inference": {
+          "role": "summarizer"
+        }
+      },
+      "input_mapping": {
+        "request": "$.inputs.request",
+        "reviewer_comments": "$.loop.revisions.previous.summary"
+      }
+    },
+    {
+      "id": "review",
+      "kind": "approval",
+      "label": "Human review",
+      "timeout_s": 259200,
+      "approval": {
+        "approver": {
+          "relation": "owner"
+        },
+        "title_template": "Review: {{inputs.request}}",
+        "on_timeout": "fail"
+      }
+    },
+    {
+      "id": "decide",
+      "kind": "evaluator",
+      "label": "Accepted?",
+      "timeout_s": 30,
+      "evaluator": {
+        "kind": "deterministic",
+        "criteria_source": "goal",
+        "metrics_path": "$.node.review.output"
+      },
+      "description": "Reads the approval outcome; rejected = one more revision round."
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Done",
+      "input_mapping": {
+        "result": "$.node.work.output",
+        "review": "$.node.review.output",
+        "loop": "$.node.revisions.output",
+        "verdict": "$.node.decide.output"
+      },
+      "description": "What the run returns: `result` is the substantive answer; the other keys are the steps' outputs for review and debugging."
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-revisions",
+      "source": "trigger",
+      "target": "revisions"
+    },
+    {
+      "id": "e-work-review",
+      "source": "work",
+      "target": "review"
+    },
+    {
+      "id": "e-review-decide-approved",
+      "source": "review",
+      "target": "decide",
+      "when": "approved"
+    },
+    {
+      "id": "e-review-decide-rejected",
+      "source": "review",
+      "target": "decide",
+      "when": "rejected",
+      "label": "revise"
+    },
+    {
+      "id": "e-revisions-end-complete",
+      "source": "revisions",
+      "target": "end",
+      "when": "complete",
+      "label": "Accepted"
+    },
+    {
+      "id": "e-revisions-end-exhausted",
+      "source": "revisions",
+      "target": "end",
+      "when": "exhausted",
+      "label": "3 rounds"
+    },
+    {
+      "id": "e-revisions-end-needs_human",
+      "source": "revisions",
+      "target": "end",
+      "when": "needs_human"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": true,
+    "max_run_duration_s": 604800,
+    "run_as": "initiator"
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 200,
+        "y": 0
+      },
+      "revisions": {
+        "x": 200,
+        "y": 116
+      },
+      "work": {
+        "x": 20,
+        "y": 46
+      },
+      "review": {
+        "x": 20,
+        "y": 164
+      },
+      "decide": {
+        "x": 20,
+        "y": 282
+      },
+      "end": {
+        "x": 200,
+        "y": 580
+      }
+    }
+  },
+  "governance": {
+    "state": "approved"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-09-17T12:00:00Z",
+  "published_at": "2026-09-17T12:00:00Z"
+}

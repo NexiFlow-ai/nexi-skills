@@ -1,0 +1,76 @@
+{
+  "uri": "nexus://bi/template/data_overview",
+  "id": "data_overview",
+  "title": [
+    {
+      "text": "Data overview",
+      "lang": "en"
+    },
+    {
+      "text": "Огляд даних",
+      "lang": "uk"
+    }
+  ],
+  "decision_kinds": [
+    "understand_this_table"
+  ],
+  "pack_ref": "nexus://core/pack/nexus-base",
+  "version": "1.0.0",
+  "slots": [
+    {
+      "id": "total_kpi",
+      "kind": "metric",
+      "role": "outcome",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "volume_kpi",
+      "kind": "metric",
+      "role": "volume",
+      "required": false,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_hint": "volume"
+    },
+    {
+      "id": "trend",
+      "kind": "chart",
+      "role": "trend_over_time",
+      "required": false,
+      "recommended_size": {
+        "w": 8,
+        "h": 4
+      },
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "breakdown",
+      "kind": "table",
+      "role": "breakdown_by_driver",
+      "required": false,
+      "recommended_size": {
+        "w": 4,
+        "h": 4
+      },
+      "metric_hint": "driver"
+    },
+    {
+      "id": "findings",
+      "kind": "insight",
+      "role": "what_the_analysis_found",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 2
+      },
+      "metric_hint": null
+    }
+  ]
+}

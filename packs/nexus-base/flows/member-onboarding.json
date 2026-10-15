@@ -1,0 +1,172 @@
+{
+  "spec_version": "1.1",
+  "workflow_id": "flw_tpl_member_onboarding",
+  "uri": "nexus://workflow/template/flw_tpl_member_onboarding",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "project_id": null,
+  "name": "Member onboarding",
+  "description": "When a person joins (invitation accepted), the Writer agent posts a welcome in the General project's thread with what the organization's projects are and the three things to try first. Installed enabled for the Owner.",
+  "version": 2,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.1.0"
+  },
+  "requires": {
+    "models": [
+      {
+        "role": "chat"
+      }
+    ],
+    "tools": [
+      "nexus://tool/project.search"
+    ]
+  },
+  "trigger": {
+    "kind": "event",
+    "event_subject": "nexus.core.organization.membership.granted.v1"
+  },
+  "inputs": [],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "object"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "Start"
+    },
+    {
+      "id": "projects",
+      "kind": "tool",
+      "label": "Read the Project overview",
+      "timeout_s": 120,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "projects"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/project.search",
+        "operation": "search",
+        "mutating": false
+      },
+      "input_mapping": {
+        "query": "'project overview'"
+      }
+    },
+    {
+      "id": "welcome",
+      "kind": "agent",
+      "label": "Write the welcome",
+      "timeout_s": 300,
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "onboarding"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_writer",
+        "context_scope": "project",
+        "skill_uris": [
+          "nexus://skill/skl_draft_and_rewrite"
+        ],
+        "output_schema": {
+          "type": "object",
+          "required": [
+            "text"
+          ],
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "input_mapping": {
+        "brief": "'Welcome a new member; list the projects they can see and three things to try first.'",
+        "source_text": "$.node.projects.output.results",
+        "tone": "'friendly'",
+        "format": "'plain'"
+      }
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Done",
+      "input_mapping": {
+        "result": "$.node.welcome.output"
+      },
+      "description": "The welcome text is the run's result (visible in the run detail and the Overview); an event-triggered run has no thread to post into."
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-projects",
+      "source": "trigger",
+      "target": "projects"
+    },
+    {
+      "id": "e-projects-welcome",
+      "source": "projects",
+      "target": "welcome"
+    },
+    {
+      "id": "e-welcome-end",
+      "source": "welcome",
+      "target": "end"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": false,
+    "max_run_duration_s": 3600,
+    "allowed_tool_uris": [
+      "nexus://tool/project.search"
+    ],
+    "run_as": "initiator",
+    "sensitive_outputs": [],
+    "max_loop_depth": 1,
+    "sandbox_profile_uri": "nexus://sandbox/profile/public-dev"
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 200,
+        "y": 0
+      },
+      "projects": {
+        "x": 200,
+        "y": 116
+      },
+      "welcome": {
+        "x": 200,
+        "y": 232
+      },
+      "end": {
+        "x": 200,
+        "y": 464
+      }
+    }
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-17T00:00:00Z"
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-09-17T00:00:00Z",
+  "published_at": "2026-09-19T00:00:00Z"
+}

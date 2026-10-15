@@ -1,0 +1,106 @@
+{
+  "api_version": "nexus/v1",
+  "kind": "FlowPattern",
+  "metadata": {
+    "id": "plan-execute",
+    "name": "Plan & execute",
+    "version": "1.0",
+    "category": "reasoning",
+    "layer": "agent_strategy",
+    "human_reviewed_by": "Nexi maintainers",
+    "reviewed_at": "2026-09-17T12:00:00Z"
+  },
+  "description": "A planner writes a bounded plan; an executor works through it; a reviewer checks the result.",
+  "use_when": [
+    "complex_task",
+    "decomposable_upfront",
+    "bounded_steps"
+  ],
+  "examples": [
+    "Multi-part research brief",
+    "Migration checklist executed step by step"
+  ],
+  "characteristics": {
+    "autonomy": "high",
+    "cost": "medium",
+    "latency": "medium",
+    "reliability": "medium"
+  },
+  "diagram": {
+    "columns": [
+      [
+        "trigger"
+      ],
+      [
+        "agent"
+      ],
+      [
+        "agent"
+      ],
+      [
+        "evaluator"
+      ],
+      [
+        "approval"
+      ],
+      [
+        "end"
+      ]
+    ],
+    "aria": "Trigger, planner, executor, reviewer, human check when needed, end."
+  },
+  "template": {
+    "workflow_uri": "nexus://workflow/template/plan-execute",
+    "version": "1.1.0",
+    "file": "templates/plan-execute.json"
+  },
+  "requires": {
+    "node_types": [
+      "agent",
+      "evaluator",
+      "condition",
+      "approval"
+    ]
+  },
+  "placeholders": [
+    {
+      "node_id": "plan",
+      "role": "reasoner"
+    },
+    {
+      "node_id": "execute",
+      "role": "reasoner"
+    },
+    {
+      "node_id": "review",
+      "role": "evaluator"
+    },
+    {
+      "node_id": "check",
+      "role": "evaluator"
+    }
+  ],
+  "recommended": {
+    "human_review": "on_fail"
+  },
+  "learn_more": [
+    {
+      "term": "Plan-and-solve / ReWOO",
+      "note": "Planning is separated from acting; the plan is structured and capped (max 8 steps)."
+    }
+  ],
+  "ui": {
+    "icon": "list-checks"
+  },
+  "i18n": {
+    "uk": {
+      "name": "План і виконання",
+      "description": "Планувальник пише обмежений план; виконавець проходить його; рецензент перевіряє результат.",
+      "examples": [
+        "Дослідницьке завдання з кількох частин",
+        "Чекліст міграції крок за кроком"
+      ],
+      "diagram_aria": "Тригер, планувальник, виконавець, рецензент, перевірка людиною за потреби, кінець."
+    }
+  }
+}

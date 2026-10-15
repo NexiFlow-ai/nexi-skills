@@ -1,0 +1,323 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.nexiflow.ai/v1/pattern-definition.schema.json",
+  "title": "PatternDefinition",
+  "description": "1.25.0: an agentic pattern as an AUTHORING ABSTRACTION — business copy, a mini-diagram, four characteristics, the closed `use_when` vocabulary the recommender scores, and a pointer to one ordinary WorkflowSpec template (`template.is_template = true`, existing node kinds only). A pattern carries NO executable logic: no runtime, no node kind, no engine branch reads it. Instantiating a pattern copies the template into a Draft with `origin.pattern_uri` / `origin.pattern_version`; after that the Flow has no dependency on the pattern (FR-PAT-010). Shipped human-reviewed inside a NexusPack (`packs/nexus-base/patterns/<id>.json`, FR-PAT-019) and read by chat-api's read-only registry. Cards show `metadata.name` / `description` only; research terms live under `learn_more`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "description",
+    "use_when",
+    "examples",
+    "characteristics",
+    "diagram",
+    "template",
+    "requires",
+    "placeholders",
+    "learn_more",
+    "ui"
+  ],
+  "properties": {
+    "api_version": {
+      "const": "nexus/v1"
+    },
+    "kind": {
+      "const": "FlowPattern"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "version",
+        "category",
+        "layer",
+        "human_reviewed_by",
+        "reviewed_at"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,63}$",
+          "description": "Pattern slug; the pattern URI is nexus://chat/pattern/<id>."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60,
+          "description": "Business name shown on the card — never a research term."
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$"
+        },
+        "category": {
+          "$ref": "vocabulary.schema.json#/$defs/PatternCategory"
+        },
+        "layer": {
+          "$ref": "vocabulary.schema.json#/$defs/PatternLayer",
+          "description": "Brief §7 architectural layer — a library filter only, never card copy (FR-PAT-018)."
+        },
+        "human_reviewed_by": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Who reviewed this version before it shipped (FR-PAT-019; a pack validator refuses an unreviewed pattern)."
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "One plain-language sentence for the card."
+    },
+    "use_when": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "vocabulary.schema.json#/$defs/PatternUseWhen"
+      },
+      "description": "Closed reason vocabulary: the deterministic recommender scores these against the author's sentence and renders the matches as *because* lines through i18n. The Skill-backed rerank may reorder or drop, never add."
+    },
+    "examples": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "string",
+        "maxLength": 120
+      }
+    },
+    "characteristics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "autonomy",
+        "cost",
+        "latency",
+        "reliability"
+      ],
+      "properties": {
+        "autonomy": {
+          "$ref": "vocabulary.schema.json#/$defs/PatternLevel"
+        },
+        "cost": {
+          "$ref": "vocabulary.schema.json#/$defs/PatternLevel"
+        },
+        "latency": {
+          "$ref": "vocabulary.schema.json#/$defs/PatternLevel"
+        },
+        "reliability": {
+          "$ref": "vocabulary.schema.json#/$defs/PatternLevel"
+        }
+      }
+    },
+    "diagram": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "columns",
+        "aria"
+      ],
+      "description": "Mini-diagram of the card: glyph columns left → right; a column with several glyphs is a fan-out; `loop` names the body of the loop glyph. `aria` is the one-sentence text alternative (08 §4).",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 10,
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "items": {
+              "$ref": "vocabulary.schema.json#/$defs/PatternDiagramGlyph"
+            }
+          }
+        },
+        "loop": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "$ref": "vocabulary.schema.json#/$defs/PatternDiagramGlyph"
+          }
+        },
+        "aria": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
+    },
+    "template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workflow_uri",
+        "version",
+        "file"
+      ],
+      "description": "The one WorkflowSpec template this pattern instantiates (FR-PAT-002). The template validates on its own against workflow-spec.schema.json; the pattern never restates its topology.",
+      "properties": {
+        "workflow_uri": {
+          "$ref": "resource-uri.schema.json",
+          "description": "nexus://workflow/template/<id> — matches the template's `uri`."
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "description": "Matches the template's `template.source_template_version`."
+        },
+        "file": {
+          "type": "string",
+          "pattern": "^(templates|\\.\\./flows)/[a-z0-9-]+\\.json$",
+          "description": "Path inside the pack, relative to the pattern file."
+        }
+      }
+    },
+    "requires": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_types"
+      ],
+      "properties": {
+        "node_types": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "vocabulary.schema.json#/$defs/FlowNodeKind"
+          },
+          "description": "Node kinds the template uses beyond trigger / end — checked against the Project's Blueprint `allowed_node_kinds` before the pattern is listed (FR-PAT-011, NEG-PAT-04). Never a new kind (T-510)."
+        }
+      }
+    },
+    "placeholders": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "node_id",
+          "role"
+        ],
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "$ref": "vocabulary.schema.json#/$defs/ModelRole",
+            "description": "The model role of the agent step the author is expected to revisit; the template already binds a base-pack agent there so it runs as-is."
+          }
+        }
+      }
+    },
+    "recommended": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "parallelism": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 10
+        },
+        "model_strategy": {
+          "$ref": "vocabulary.schema.json#/$defs/InferenceStrategy"
+        },
+        "human_review": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "agreement_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "learn_more": {
+      "type": "array",
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "term",
+          "note"
+        ],
+        "properties": {
+          "term": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Research / engineering name (ReAct, ReWOO, fan-out / fan-in…) — preview only."
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 300
+          }
+        }
+      }
+    },
+    "ui": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "icon"
+      ],
+      "properties": {
+        "icon": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,40}$",
+          "description": "Icon token of the shared icon set."
+        }
+      }
+    },
+    "i18n": {
+      "type": "object",
+      "description": "Per-locale copy; `en` is the primary text in the fields above.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "description",
+          "examples",
+          "diagram_aria"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "examples": {
+            "type": "array",
+            "maxItems": 5,
+            "items": {
+              "type": "string",
+              "maxLength": 120
+            }
+          },
+          "diagram_aria": {
+            "type": "string",
+            "maxLength": 200
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,396 @@
+{
+  "spec_version": "1.1",
+  "workflow_id": "flw_tpl_plan_execute",
+  "uri": "nexus://workflow/template/plan-execute",
+  "tenancy": {
+    "enterprise_id": "pack",
+    "tenant_id": "pack"
+  },
+  "project_id": null,
+  "name": "Plan & execute",
+  "description": "A planner writes a bounded, structured plan; an executor works through it; a reviewer checks the result.",
+  "version": 1,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.1.0"
+  },
+  "requires": {},
+  "goal": {
+    "objective": "Describe the outcome the plan must reach.",
+    "success_criteria": [
+      {
+        "metric": "steps_completed_ratio",
+        "operator": "gte",
+        "value": 1
+      }
+    ],
+    "max_iterations": 8,
+    "max_runtime_s": 1800,
+    "budget": {
+      "max_tokens": 400000,
+      "max_tool_calls": 40
+    },
+    "on_no_progress": "ask_human",
+    "no_progress_after": 2
+  },
+  "presentation": {
+    "title": {
+      "en": "Plan and execute",
+      "uk": "План і виконання"
+    },
+    "stage_labels": [
+      {
+        "node_id": "plan",
+        "label": {
+          "en": "Planning",
+          "uk": "Планую"
+        }
+      },
+      {
+        "node_id": "execute",
+        "label": {
+          "en": "Executing",
+          "uk": "Виконую"
+        }
+      },
+      {
+        "node_id": "review",
+        "label": {
+          "en": "Reviewing",
+          "uk": "Перевіряю"
+        }
+      },
+      {
+        "node_id": "human",
+        "label": {
+          "en": "Your check",
+          "uk": "Ваша перевірка"
+        }
+      }
+    ],
+    "person_steps": [
+      "human"
+    ],
+    "receipt_fields": [
+      {
+        "key": "result",
+        "label": {
+          "en": "Result",
+          "uk": "Результат"
+        }
+      }
+    ],
+    "result_kind": "answer"
+  },
+  "trigger": {
+    "kind": "manual"
+  },
+  "inputs": [
+    {
+      "name": "request",
+      "type": "string",
+      "required": true,
+      "description": "What the flow works on"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "object"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "Start"
+    },
+    {
+      "id": "plan",
+      "kind": "agent",
+      "label": "Planner",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "planning"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_general",
+        "context_scope": "project",
+        "inference": {
+          "role": "reasoner"
+        },
+        "output_schema": {
+          "type": "object",
+          "required": [
+            "steps"
+          ],
+          "properties": {
+            "steps": {
+              "type": "array",
+              "maxItems": 8,
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "goal"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "goal": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "input_mapping": {
+        "request": "$.inputs.request",
+        "objective": "$.goal.objective"
+      },
+      "description": "Structured plan, at most 8 steps (FR-PAT-005). The planner never executes."
+    },
+    {
+      "id": "execute",
+      "kind": "agent",
+      "label": "Executor",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "analysis"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_general",
+        "context_scope": "project",
+        "inference": {
+          "role": "reasoner"
+        }
+      },
+      "input_mapping": {
+        "plan": "$.node.plan.output",
+        "request": "$.inputs.request"
+      },
+      "description": "Works through the plan within the flow's tool allow-list and budget."
+    },
+    {
+      "id": "review",
+      "kind": "agent",
+      "label": "Review",
+      "timeout_s": 180,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "evaluation"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_reviewer",
+        "context_scope": "project",
+        "inference": {
+          "role": "evaluator"
+        },
+        "output_schema": {
+          "type": "object",
+          "required": [
+            "steps_completed_ratio",
+            "verdict"
+          ],
+          "properties": {
+            "steps_completed_ratio": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Share of the plan's steps whose result is present and correct (0–1)"
+            },
+            "verdict": {
+              "type": "string",
+              "enum": [
+                "pass",
+                "fail"
+              ]
+            },
+            "reasons": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "input_mapping": {
+        "request": "$.inputs.request",
+        "plan": "$.node.plan.output",
+        "result": "$.node.execute.output"
+      },
+      "description": "A reviewer agent checks the result against the plan and reports the completed share. It does not decide."
+    },
+    {
+      "id": "check",
+      "kind": "evaluator",
+      "label": "Goal met?",
+      "timeout_s": 30,
+      "evaluator": {
+        "kind": "deterministic",
+        "criteria_source": "goal",
+        "metrics_path": "$.node.review.output"
+      },
+      "description": "The engine compares the review with the goal's success criteria."
+    },
+    {
+      "id": "passed",
+      "kind": "condition",
+      "label": "Good enough?",
+      "condition": {
+        "language": "nexus-expr-v1",
+        "source": "$.node.check.output.passed == true"
+      }
+    },
+    {
+      "id": "human",
+      "kind": "approval",
+      "label": "Human check",
+      "timeout_s": 259200,
+      "approval": {
+        "approver": {
+          "relation": "owner"
+        },
+        "title_template": "Plan & execute result for {{inputs.request}} needs a look",
+        "on_timeout": "fail"
+      }
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Done",
+      "input_mapping": {
+        "result": "$.node.review.output",
+        "plan": "$.node.plan.output",
+        "execution": "$.node.execute.output",
+        "verdict": "$.node.check.output",
+        "human_decision": "$.node.human.output"
+      },
+      "description": "What the run returns: `result` is the substantive answer; the other keys are the steps' outputs for review and debugging."
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-plan",
+      "source": "trigger",
+      "target": "plan"
+    },
+    {
+      "id": "e-plan-execute",
+      "source": "plan",
+      "target": "execute"
+    },
+    {
+      "id": "e-execute-review",
+      "source": "execute",
+      "target": "review"
+    },
+    {
+      "id": "e-review-check",
+      "source": "review",
+      "target": "check"
+    },
+    {
+      "id": "e-check-passed",
+      "source": "check",
+      "target": "passed"
+    },
+    {
+      "id": "e-passed-end-true",
+      "source": "passed",
+      "target": "end",
+      "when": "true",
+      "label": "yes"
+    },
+    {
+      "id": "e-passed-human-false",
+      "source": "passed",
+      "target": "human",
+      "when": "false",
+      "label": "no"
+    },
+    {
+      "id": "e-human-end-approved",
+      "source": "human",
+      "target": "end",
+      "when": "approved"
+    },
+    {
+      "id": "e-human-end-rejected",
+      "source": "human",
+      "target": "end",
+      "when": "rejected"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": true,
+    "max_run_duration_s": 3600,
+    "run_as": "initiator"
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 200,
+        "y": 0
+      },
+      "plan": {
+        "x": 200,
+        "y": 116
+      },
+      "execute": {
+        "x": 200,
+        "y": 232
+      },
+      "review": {
+        "x": 200,
+        "y": 348
+      },
+      "passed": {
+        "x": 200,
+        "y": 580
+      },
+      "human": {
+        "x": 480,
+        "y": 696
+      },
+      "end": {
+        "x": 200,
+        "y": 812
+      },
+      "check": {
+        "x": 200,
+        "y": 464
+      }
+    }
+  },
+  "governance": {
+    "state": "approved"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-09-17T12:00:00Z",
+  "published_at": "2026-09-17T12:00:00Z"
+}

@@ -1,0 +1,52 @@
+{
+  "agent_id": "agt_governance",
+  "uri": "nexus://agent/agt_governance",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "name": "Governance",
+  "purpose": "Assesses governance events for the administrators' flow and proposes risks; never decides",
+  "status": "published",
+  "version": 2,
+  "instructions": "",
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-17T00:00:00Z",
+  "published_at": "2026-09-17T00:00:00Z",
+  "skill_refs": [
+    "nexus://skill/skl_assess_governance_risk",
+    "nexus://skill/skl_classify_sensitivity",
+    "nexus://skill/skl_summarize_sources"
+  ],
+  "inference": {
+    "role": "classifier"
+  },
+  "permissions": {
+    "max_classification": "secret"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-17T00:00:00Z"
+  },
+  "capability": {
+    "intents": [
+      "classify",
+      "monitor"
+    ],
+    "domains": [
+      "compliance",
+      "operations"
+    ],
+    "inputs": [
+      "text"
+    ],
+    "outputs": [
+      "record"
+    ],
+    "side_effects": false,
+    "background_supported": true,
+    "cost_class": "low",
+    "latency_class": "background",
+    "classification_max": "secret"
+  }
+}

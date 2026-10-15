@@ -1,0 +1,7 @@
+# Publishers whose packs a Nexi deployment may trust — public keys only (Ed25519, base64url).
+# A deployment operator copies the entries they trust into their own publishers file; nexi-pack verify reads this format.
+version: 1
+publishers:
+- key_id: nexus-base-2026
+  public_key: NnVbWkUGhnTTT7oyKA-PoHV6ko0XkiS9G20wZCb_bM4
+  name: Nexi (the publisher of Nexi Base)

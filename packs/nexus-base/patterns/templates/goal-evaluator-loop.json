@@ -1,0 +1,290 @@
+{
+  "spec_version": "1.1",
+  "workflow_id": "flw_tpl_goal_evaluator_loop",
+  "uri": "nexus://workflow/template/goal-evaluator-loop",
+  "tenancy": {
+    "enterprise_id": "pack",
+    "tenant_id": "pack"
+  },
+  "project_id": null,
+  "name": "Goal loop",
+  "description": "Work, evaluate, repeat until the goal's criteria are met — the engine, never the model, decides completion.",
+  "version": 1,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.1.0"
+  },
+  "requires": {},
+  "goal": {
+    "objective": "Describe the measurable outcome.",
+    "success_criteria": [
+      {
+        "metric": "score",
+        "operator": "gte",
+        "value": 0.9,
+        "description": "Replace with the metric your evaluator produces"
+      }
+    ],
+    "max_iterations": 6,
+    "max_runtime_s": 1800,
+    "budget": {
+      "max_tokens": 600000,
+      "max_tool_calls": 60
+    },
+    "on_no_progress": "ask_human",
+    "no_progress_after": 2,
+    "human_review_required": false
+  },
+  "presentation": {
+    "title": {
+      "en": "Goal loop",
+      "uk": "Цикл до цілі"
+    },
+    "stage_labels": [
+      {
+        "node_id": "iterate",
+        "label": {
+          "en": "Working towards the goal",
+          "uk": "Працюю до цілі"
+        }
+      },
+      {
+        "node_id": "review",
+        "label": {
+          "en": "Your review",
+          "uk": "Ваша перевірка"
+        }
+      }
+    ],
+    "person_steps": [
+      "review"
+    ],
+    "receipt_fields": [
+      {
+        "key": "result",
+        "label": {
+          "en": "Result",
+          "uk": "Результат"
+        }
+      }
+    ],
+    "result_kind": "answer"
+  },
+  "trigger": {
+    "kind": "manual"
+  },
+  "inputs": [
+    {
+      "name": "request",
+      "type": "string",
+      "required": true,
+      "description": "What the flow works on"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "object"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "Start"
+    },
+    {
+      "id": "iterate",
+      "kind": "loop",
+      "label": "Until goal complete",
+      "loop": {
+        "entry_node_id": "work",
+        "body_node_ids": [
+          "work",
+          "evaluate"
+        ],
+        "until": {
+          "evaluator_node_id": "evaluate",
+          "kind": "goal"
+        },
+        "max_iterations": 6,
+        "max_duration_s": 1800,
+        "budget": {
+          "max_tokens": 600000
+        },
+        "on_no_progress": "ask_human",
+        "no_progress_after": 2,
+        "iteration_context": "summarize"
+      }
+    },
+    {
+      "id": "work",
+      "kind": "agent",
+      "label": "Work",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "analysis"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_general",
+        "context_scope": "project",
+        "inference": {
+          "role": "reasoner"
+        },
+        "output_schema": {
+          "type": "object",
+          "required": [
+            "result",
+            "score"
+          ],
+          "properties": {
+            "result": {
+              "type": "string",
+              "description": "This pass's answer"
+            },
+            "score": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Replace with the metric your evaluator measures"
+            }
+          }
+        }
+      },
+      "input_mapping": {
+        "request": "$.inputs.request",
+        "previous": "$.loop.iterate.previous.summary",
+        "objective": "$.goal.objective"
+      }
+    },
+    {
+      "id": "evaluate",
+      "kind": "evaluator",
+      "label": "Goal evaluator",
+      "timeout_s": 60,
+      "evaluator": {
+        "kind": "deterministic",
+        "criteria_source": "goal",
+        "metrics_path": "$.node.work.output"
+      }
+    },
+    {
+      "id": "review",
+      "kind": "approval",
+      "label": "Human review",
+      "timeout_s": 259200,
+      "approval": {
+        "approver": {
+          "relation": "owner"
+        },
+        "title_template": "Goal loop for {{inputs.request}} stopped — decide how to continue",
+        "on_timeout": "fail"
+      }
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Done",
+      "input_mapping": {
+        "result": "$.node.work.output",
+        "loop": "$.node.iterate.output",
+        "verdict": "$.node.evaluate.output",
+        "human_decision": "$.node.review.output"
+      },
+      "description": "What the run returns: `result` is the substantive answer; the other keys are the steps' outputs for review and debugging."
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-iterate",
+      "source": "trigger",
+      "target": "iterate"
+    },
+    {
+      "id": "e-work-evaluate",
+      "source": "work",
+      "target": "evaluate"
+    },
+    {
+      "id": "e-iterate-end-complete",
+      "source": "iterate",
+      "target": "end",
+      "when": "complete",
+      "label": "Goal met"
+    },
+    {
+      "id": "e-iterate-review-exhausted",
+      "source": "iterate",
+      "target": "review",
+      "when": "exhausted",
+      "label": "Budget / iterations"
+    },
+    {
+      "id": "e-iterate-review-needs_human",
+      "source": "iterate",
+      "target": "review",
+      "when": "needs_human",
+      "label": "No progress"
+    },
+    {
+      "id": "e-review-end-approved",
+      "source": "review",
+      "target": "end",
+      "when": "approved"
+    },
+    {
+      "id": "e-review-end-rejected",
+      "source": "review",
+      "target": "end",
+      "when": "rejected"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": true,
+    "max_run_duration_s": 3600,
+    "run_as": "initiator"
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 200,
+        "y": 0
+      },
+      "iterate": {
+        "x": 200,
+        "y": 116
+      },
+      "work": {
+        "x": 20,
+        "y": 46
+      },
+      "evaluate": {
+        "x": 20,
+        "y": 164
+      },
+      "review": {
+        "x": 200,
+        "y": 464
+      },
+      "end": {
+        "x": 200,
+        "y": 580
+      }
+    }
+  },
+  "governance": {
+    "state": "approved"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-09-17T12:00:00Z",
+  "published_at": "2026-09-17T12:00:00Z"
+}

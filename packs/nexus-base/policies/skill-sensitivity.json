@@ -1,0 +1,28 @@
+{
+  "kind": "skill_sensitivity",
+  "description": "the highest data classification each skill accepts as input. Chat refuses to apply a skill to material above its level.",
+  "max_input_classification": {
+    "skl_summarize_sources": "secret",
+    "skl_extract_structured_data": "secret",
+    "skl_classify_sensitivity": "top_secret",
+    "skl_assess_governance_risk": "secret",
+    "skl_answer_from_sources": "secret",
+    "skl_compare_documents": "secret",
+    "skl_draft_and_rewrite": "secret",
+    "skl_translate": "secret",
+    "skl_meeting_notes_to_actions": "secret",
+    "skl_create_flow": "secret",
+    "skl_pin_context": "secret",
+    "skl_dataset_profile": "confidential",
+    "skl_eda_plan": "confidential",
+    "skl_chart_recommendation": "confidential",
+    "skl_analysis_report": "confidential"
+  },
+  "recommended": [
+    "skl_summarize_sources",
+    "skl_extract_structured_data",
+    "skl_answer_from_sources",
+    "skl_draft_and_rewrite",
+    "skl_meeting_notes_to_actions"
+  ]
+}

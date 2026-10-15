@@ -1,0 +1,93 @@
+{
+  "api_version": "nexus/v1",
+  "kind": "FlowPattern",
+  "metadata": {
+    "id": "sequential-chain",
+    "name": "Sequential chain",
+    "version": "1.0",
+    "category": "orchestration",
+    "layer": "flow_pattern",
+    "human_reviewed_by": "Nexi maintainers",
+    "reviewed_at": "2026-09-17T12:00:00Z"
+  },
+  "description": "Steps in a fixed order; each one works on the result of the previous.",
+  "use_when": [
+    "fixed_sequence",
+    "each_step_depends_on_previous",
+    "low_autonomy"
+  ],
+  "examples": [
+    "Extract → validate → format",
+    "Analyse → approve → notify"
+  ],
+  "characteristics": {
+    "autonomy": "low",
+    "cost": "low",
+    "latency": "low",
+    "reliability": "high"
+  },
+  "diagram": {
+    "columns": [
+      [
+        "trigger"
+      ],
+      [
+        "agent"
+      ],
+      [
+        "agent"
+      ],
+      [
+        "agent"
+      ],
+      [
+        "end"
+      ]
+    ],
+    "aria": "Trigger, three agent steps in a row, end."
+  },
+  "template": {
+    "workflow_uri": "nexus://workflow/template/sequential-chain",
+    "version": "1.1.0",
+    "file": "templates/sequential-chain.json"
+  },
+  "requires": {
+    "node_types": [
+      "agent"
+    ]
+  },
+  "placeholders": [
+    {
+      "node_id": "step_a",
+      "role": "reasoner"
+    },
+    {
+      "node_id": "step_b",
+      "role": "reasoner"
+    },
+    {
+      "node_id": "step_c",
+      "role": "summarizer"
+    }
+  ],
+  "learn_more": [
+    {
+      "term": "Prompt chaining",
+      "note": "Each step's output is the next step's input; deterministic control flow."
+    }
+  ],
+  "ui": {
+    "icon": "list-ordered"
+  },
+  "i18n": {
+    "uk": {
+      "name": "Послідовний ланцюжок",
+      "description": "Кроки у фіксованому порядку; кожен працює з результатом попереднього.",
+      "examples": [
+        "Витягти → перевірити → відформатувати",
+        "Проаналізувати → погодити → повідомити"
+      ],
+      "diagram_aria": "Тригер, три кроки агентів підряд, кінець."
+    }
+  }
+}

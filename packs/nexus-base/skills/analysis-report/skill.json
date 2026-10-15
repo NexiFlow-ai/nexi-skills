@@ -1,0 +1,161 @@
+{
+  "skill_id": "skl_analysis_report",
+  "uri": "nexus://skill/skl_analysis_report",
+  "name": "Analysis report",
+  "description": "Write the report of an analysis run from its plan, metrics and artifacts — it leads with what stands out, every claim cites an artifact uri; 'possible' and 'not found' where the numbers say so.",
+  "origin": "platform",
+  "status": "published",
+  "version": "1.1.1",
+  "entry": "SKILL.md",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "metadata": {
+    "tags": [
+      "data",
+      "reporting"
+    ]
+  },
+  "evaluation": {
+    "human_review": {
+      "state": "approved",
+      "reviewed_by": "Nexi maintainers",
+      "reviewed_at": "2026-09-23T12:28:00Z",
+      "reviewed_version": "1.1.1",
+      "notes": "Owner review 2026-09-23 15:28 (TBD-722): APPROVED skl_analysis_report 1.1.1 — What stands out first, every claim cites an artifact as a Markdown link, evidence links alone on their own line so the Canvas renders charts and tables inside the report."
+    }
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-19T00:00:00Z"
+  },
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-19T00:00:00Z",
+  "published_at": "2026-09-19T00:00:00Z",
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "plan": {
+        "type": "object"
+      },
+      "loop": {
+        "type": "object",
+        "description": "stage_loop output: metrics, artifact_uris, per-pass summaries"
+      },
+      "profile": {
+        "type": "object"
+      },
+      "question": {
+        "type": "string",
+        "maxLength": 2000
+      }
+    },
+    "required": [
+      "plan",
+      "loop"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "title": {
+        "type": "string",
+        "maxLength": 120
+      },
+      "markdown": {
+        "type": "string",
+        "maxLength": 60000
+      },
+      "cited_artifact_uris": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 50
+      }
+    },
+    "required": [
+      "title",
+      "markdown",
+      "cited_artifact_uris"
+    ]
+  },
+  "examples": [
+    {
+      "title": "complete run",
+      "input": {
+        "plan": {
+          "stages": [
+            {
+              "id": "roles",
+              "name": "What each column is"
+            },
+            {
+              "id": "by_cat",
+              "name": "Power by category"
+            },
+            {
+              "id": "insights",
+              "name": "What stands out"
+            },
+            {
+              "id": "suggestions",
+              "name": "What to look at next"
+            }
+          ]
+        },
+        "loop": {
+          "metrics": {
+            "understanding.completed": 1,
+            "structure.found": 1,
+            "insights.count": 4,
+            "suggestions.count": 3,
+            "dq.assessed": 1,
+            "artifacts.chart": 4
+          },
+          "artifact_uris": [
+            "nexus://chat/artifact/art_roles",
+            "nexus://chat/artifact/art_bycat",
+            "nexus://chat/artifact/art_insights",
+            "nexus://chat/artifact/art_sugg"
+          ]
+        }
+      },
+      "expected_output": "{\"title\": \"Analysis of epoints_sample.xlsx\", \"markdown\": \"## What stands out\\n- 3 of 7 categories carry 81 % of the declared power ([Power by category](nexus://chat/artifact/art_bycat)).\\n- Power is stored as text in 62 of 62 rows and parses into two units, kW and W ([What each column is](nexus://chat/artifact/art_roles)).\\n- …\\n\\n## How the data is organised\\n8 columns: 1 identifier, 3 categories, 2 measures hidden in text, 2 free text ([roles](nexus://chat/artifact/art_roles)). The rows group by `Category` into 7 segments of very different size (2 to 21 rows) …\\n\\n## Suggestions\\n- Confirm the unit of the 9 rows below 1 kW with the data owner — because two units were found in one column ([Insights](nexus://chat/artifact/art_insights)).\\n- …\\n\\n## Data quality\\n…\\n\\n## Not done\\nNothing — every planned stage completed.\\n\\n## Indices\\n…\", \"cited_artifact_uris\": [\"nexus://chat/artifact/art_roles\", \"nexus://chat/artifact/art_bycat\", \"nexus://chat/artifact/art_insights\", \"nexus://chat/artifact/art_sugg\"]}"
+    },
+    {
+      "title": "partial run",
+      "input": {
+        "plan": {
+          "stages": [
+            {
+              "id": "roles",
+              "name": "What each column is"
+            },
+            {
+              "id": "clusters",
+              "name": "Candidate clusters"
+            }
+          ]
+        },
+        "loop": {
+          "metrics": {
+            "understanding.completed": 1,
+            "artifacts.chart": 2
+          },
+          "exit_reason": "needs_human",
+          "artifact_uris": [
+            "nexus://chat/artifact/art_roles"
+          ]
+        }
+      },
+      "expected_output": "{\"title\": \"Analysis (partial)\", \"markdown\": \"## What stands out\\n- Only one finding so far: 2 of 6 columns are entirely empty ([What each column is](nexus://chat/artifact/art_roles)).\\n\\n## How the data is organised\\n…\\n\\n## Not done\\nThe clustering stage stopped after three passes without a result: fewer than 30 complete rows remained once missing measures were dropped. No insights or suggestions were computed.\", \"cited_artifact_uris\": [\"nexus://chat/artifact/art_roles\"]}"
+    }
+  ]
+}

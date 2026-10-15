@@ -1,0 +1,57 @@
+{
+  "agent_id": "agt_reviewer",
+  "uri": "nexus://agent/agt_reviewer",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "name": "Reviewer",
+  "purpose": "Grounded answers and comparisons — citations mandatory",
+  "status": "published",
+  "version": 1,
+  "instructions": "",
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-17T00:00:00Z",
+  "published_at": "2026-09-17T00:00:00Z",
+  "skill_refs": [
+    "nexus://skill/skl_answer_from_sources",
+    "nexus://skill/skl_compare_documents"
+  ],
+  "inference": {
+    "role": "reasoner"
+  },
+  "permissions": {
+    "max_classification": "secret"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-17T00:00:00Z"
+  },
+  "capability": {
+    "intents": [
+      "explain",
+      "compare",
+      "review_document"
+    ],
+    "domains": [
+      "general",
+      "legal",
+      "compliance",
+      "procurement"
+    ],
+    "inputs": [
+      "text",
+      "attachment",
+      "url"
+    ],
+    "outputs": [
+      "text",
+      "document"
+    ],
+    "side_effects": false,
+    "background_supported": false,
+    "cost_class": "medium",
+    "latency_class": "interactive",
+    "classification_max": "secret"
+  }
+}

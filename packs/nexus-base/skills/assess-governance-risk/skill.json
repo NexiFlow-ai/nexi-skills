@@ -1,0 +1,246 @@
+{
+  "skill_id": "skl_assess_governance_risk",
+  "uri": "nexus://skill/skl_assess_governance_risk",
+  "name": "Assess governance risk",
+  "description": "Reads one governance event (a join, an invitation, a suspension, a tool-policy change, a model or credential registration, a pack install) and proposes the risks an administrator should look at — a register of proposed rows with provenance; never a verified finding.",
+  "origin": "platform",
+  "status": "published",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "metadata": {
+    "tags": [
+      "governance",
+      "security",
+      "compliance"
+    ]
+  },
+  "evaluation": {
+    "human_review": {
+      "state": "approved",
+      "reviewed_by": "Nexi maintainers",
+      "reviewed_at": "2026-09-19T00:00:00Z",
+      "reviewed_version": "1.0.0"
+    }
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-19T00:00:00Z"
+  },
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-19T00:00:00Z",
+  "published_at": "2026-09-19T00:00:00Z",
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "event": {
+        "type": "object",
+        "description": "The governance event: kind, organization_id, actor_id, audit_id and the kind-specific identifiers / flags. Never names, e-mails or credentials."
+      }
+    },
+    "required": [
+      "event"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "summary": {
+        "type": "string",
+        "maxLength": 600
+      },
+      "risk_count": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "highest_severity": {
+        "type": "string",
+        "enum": [
+          "none",
+          "low",
+          "medium",
+          "high"
+        ]
+      },
+      "register": {
+        "type": "object",
+        "description": "TableSpec 1.0 with exactly the five columns title · severity · rationale · provenance · status; one row per proposed risk, every cell a string, status always `proposed`.",
+        "required": [
+          "columns",
+          "rows"
+        ],
+        "properties": {
+          "spec_version": {
+            "type": "string",
+            "const": "1.0"
+          },
+          "columns": {
+            "type": "array",
+            "minItems": 5,
+            "maxItems": 5,
+            "items": {
+              "type": "object",
+              "required": [
+                "key",
+                "label",
+                "type"
+              ],
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "enum": [
+                    "title",
+                    "severity",
+                    "rationale",
+                    "provenance",
+                    "status"
+                  ]
+                },
+                "label": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "const": "string"
+                }
+              }
+            }
+          },
+          "rows": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "required": [
+                "title",
+                "severity",
+                "rationale",
+                "provenance",
+                "status"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "severity": {
+                  "type": "string",
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high"
+                  ]
+                },
+                "rationale": {
+                  "type": "string",
+                  "maxLength": 400
+                },
+                "provenance": {
+                  "type": "string",
+                  "maxLength": 600
+                },
+                "status": {
+                  "type": "string",
+                  "const": "proposed"
+                }
+              }
+            }
+          }
+        },
+        "examples": [
+          {
+            "spec_version": "1.0",
+            "columns": [
+              {
+                "key": "title",
+                "label": "Risk",
+                "type": "string"
+              },
+              {
+                "key": "severity",
+                "label": "Severity",
+                "type": "string"
+              },
+              {
+                "key": "rationale",
+                "label": "Why",
+                "type": "string"
+              },
+              {
+                "key": "provenance",
+                "label": "Provenance",
+                "type": "string"
+              },
+              {
+                "key": "status",
+                "label": "Status",
+                "type": "string"
+              }
+            ],
+            "rows": [
+              {
+                "title": "Member joined with clearance secret",
+                "severity": "high",
+                "rationale": "A new member may now read every project up to secret; confirm the clearance was intended.",
+                "provenance": "aud_0000; nexus://core/organization/org_x/member/usr_y",
+                "status": "proposed"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "required": [
+      "summary",
+      "risk_count",
+      "highest_severity",
+      "register"
+    ]
+  },
+  "examples": [
+    {
+      "title": "A member joined with clearance secret",
+      "input": {
+        "event": {
+          "kind": "member.joined",
+          "organization_id": "org_x",
+          "actor_id": "usr_y",
+          "audit_id": "aud_0000",
+          "subject_id": "usr_y",
+          "roles": [
+            "member"
+          ],
+          "clearance": "secret",
+          "via": "invitation:inv_1"
+        }
+      },
+      "expected_output": "{\"summary\": \"usr_y joined org_x through invitation inv_1 with roles member and clearance secret.\", \"risk_count\": 1, \"highest_severity\": \"high\", \"register\": {\"spec_version\": \"1.0\", \"columns\": [{\"key\": \"title\", \"label\": \"Risk\", \"type\": \"string\"}, {\"key\": \"severity\", \"label\": \"Severity\", \"type\": \"string\"}, {\"key\": \"rationale\", \"label\": \"Why\", \"type\": \"string\"}, {\"key\": \"provenance\", \"label\": \"Provenance\", \"type\": \"string\"}, {\"key\": \"status\", \"label\": \"Status\", \"type\": \"string\"}], \"rows\": [{\"title\": \"Member joined with clearance secret\", \"severity\": \"high\", \"rationale\": \"A new member may now read every project up to secret; confirm the clearance was intended.\", \"provenance\": \"aud_0000; nexus://core/organization/org_x/member/usr_y\", \"status\": \"proposed\"}]}}"
+    },
+    {
+      "title": "An ordinary invitation",
+      "input": {
+        "event": {
+          "kind": "invitation.created",
+          "organization_id": "org_x",
+          "actor_id": "usr_owner",
+          "audit_id": "aud_0001",
+          "invitation_id": "inv_2",
+          "roles": [
+            "member"
+          ],
+          "clearance": "confidential"
+        }
+      },
+      "expected_output": "{\"summary\": \"usr_owner invited a new member to org_x with roles member and clearance confidential.\", \"risk_count\": 0, \"highest_severity\": \"none\", \"register\": {\"spec_version\": \"1.0\", \"columns\": [{\"key\": \"title\", \"label\": \"Risk\", \"type\": \"string\"}, {\"key\": \"severity\", \"label\": \"Severity\", \"type\": \"string\"}, {\"key\": \"rationale\", \"label\": \"Why\", \"type\": \"string\"}, {\"key\": \"provenance\", \"label\": \"Provenance\", \"type\": \"string\"}, {\"key\": \"status\", \"label\": \"Status\", \"type\": \"string\"}], \"rows\": []}}"
+    }
+  ]
+}

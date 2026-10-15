@@ -1,0 +1,39 @@
+{
+  "skill_id": "skl_create_flow",
+  "uri": "nexus://skill/skl_create_flow",
+  "name": "Create Flow",
+  "description": "Turn a natural-language automation request into a WorkflowSpec draft you can review in Flow Studio.",
+  "origin": "platform",
+  "status": "published",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "shortcut": "/flow",
+  "metadata": {
+    "tags": [
+      "platform",
+      "flows"
+    ]
+  },
+  "evaluation": {
+    "human_review": {
+      "state": "approved",
+      "reviewed_by": "Nexi maintainers",
+      "reviewed_at": "2026-09-17T00:00:00Z",
+      "reviewed_version": "1.0.0"
+    }
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-17T00:00:00Z"
+  },
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-17T00:00:00Z",
+  "published_at": "2026-09-17T00:00:00Z"
+}

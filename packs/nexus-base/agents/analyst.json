@@ -1,0 +1,63 @@
+{
+  "agent_id": "agt_analyst",
+  "uri": "nexus://agent/agt_analyst",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "name": "Analyst",
+  "purpose": "Extraction, classification and comparison with provenance",
+  "status": "published",
+  "version": 2,
+  "instructions": "",
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-17T00:00:00Z",
+  "published_at": "2026-09-17T00:00:00Z",
+  "skill_refs": [
+    "nexus://skill/skl_extract_structured_data",
+    "nexus://skill/skl_classify_sensitivity",
+    "nexus://skill/skl_compare_documents"
+  ],
+  "inference": {
+    "role": "extractor"
+  },
+  "permissions": {
+    "max_classification": "secret"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-17T00:00:00Z"
+  },
+  "capability": {
+    "intents": [
+      "extract",
+      "classify",
+      "compare",
+      "data_query",
+      "report",
+      "risk_assessment"
+    ],
+    "domains": [
+      "general",
+      "procurement",
+      "finance",
+      "compliance",
+      "data"
+    ],
+    "inputs": [
+      "text",
+      "attachment",
+      "table"
+    ],
+    "outputs": [
+      "table",
+      "record",
+      "document"
+    ],
+    "side_effects": false,
+    "background_supported": true,
+    "cost_class": "medium",
+    "latency_class": "interactive",
+    "classification_max": "secret"
+  }
+}

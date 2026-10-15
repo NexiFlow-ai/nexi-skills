@@ -1,0 +1,39 @@
+{
+  "skill_id": "skl_pin_context",
+  "uri": "nexus://skill/skl_pin_context",
+  "name": "Pin to context",
+  "description": "Pin a source, artifact or chat into the Project context.",
+  "origin": "platform",
+  "status": "published",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "shortcut": "/pin",
+  "metadata": {
+    "tags": [
+      "platform",
+      "context"
+    ]
+  },
+  "evaluation": {
+    "human_review": {
+      "state": "approved",
+      "reviewed_by": "Nexi maintainers",
+      "reviewed_at": "2026-09-17T00:00:00Z",
+      "reviewed_version": "1.0.0"
+    }
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-17T00:00:00Z"
+  },
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-17T00:00:00Z",
+  "published_at": "2026-09-17T00:00:00Z"
+}

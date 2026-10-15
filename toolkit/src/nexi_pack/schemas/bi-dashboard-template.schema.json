@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.nexiflow.ai/v1/bi-dashboard-template.schema.json",
+  "title": "BiDashboardTemplate",
+  "description": "1.46.0: a slot structure shipped as pack content (packs/nexus-base/dashboards/*.json) — P0: executive_overview · operational_control · performance_vs_target · risk_exceptions. A template instantiates into an ordinary draft; there is no template runtime.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "uri",
+    "id",
+    "title",
+    "slots",
+    "pack_ref",
+    "version"
+  ],
+  "properties": {
+    "uri": {
+      "type": "string",
+      "pattern": "^nexus://bi/template/[A-Za-z0-9._:-]+$"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{1,63}$"
+    },
+    "title": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "graph-common.schema.json#/$defs/LangText"
+      }
+    },
+    "decision_kinds": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*$"
+      }
+    },
+    "slots": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "role",
+          "required",
+          "recommended_size"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,63}$"
+          },
+          "kind": {
+            "$ref": "vocabulary.schema.json#/$defs/DashboardBlockKind"
+          },
+          "role": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "recommended_size": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "w",
+              "h"
+            ],
+            "properties": {
+              "w": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 12
+              },
+              "h": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 24
+              }
+            }
+          },
+          "metric_hint": {
+            "oneOf": [
+              {
+                "$ref": "vocabulary.schema.json#/$defs/BiTemplateMetricHint"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "metric_key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[a-z][a-z0-9_]{1,63}$",
+            "description": "1.53.0: the exact metric key this slot wants — the planner takes the Project's validated/certified metric of that key before any hint (NEXUS platform templates bind to the product-metrics keys); absent → `missing_metric · metric_key_absent`."
+          },
+          "series_by": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "description": "1.54.0: for a `chart` slot — the dataset column whose values become the chart's series (one line per value, ≤ 6; e.g. `arm` for a benchmark by retrieval arm). Absent: one series over time. A hint for whoever fills the slot (the person in *From data*, or `scripts/product-metrics.py` as the person); the planner leaves chart slots open — a chart is a Canvas artifact, never made by bi-api."
+          }
+        }
+      }
+    },
+    "pack_ref": {
+      "type": "string",
+      "pattern": "^nexus://core/pack/[A-Za-z0-9._:-]+$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "deployment_targets": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "vocabulary.schema.json#/$defs/DeploymentTarget"
+      },
+      "description": "1.53.0: the deployment targets this template is offered on; absent or empty = every target. `nexus_infrastructure` names on_prem · disconnected — an enterprise deployment controls its own NEXUS, a cloud tenant does not."
+    },
+    "platform": {
+      "type": "boolean",
+      "description": "1.53.0: true for the NEXUS platform templates (quality · usage · infrastructure · graph · vibeban) — the Plan dialog groups them apart from the decision templates."
+    }
+  }
+}

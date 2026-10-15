@@ -1,0 +1,58 @@
+{
+  "agent_id": "agt_writer",
+  "uri": "nexus://agent/agt_writer",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "name": "Writer",
+  "purpose": "Drafting, rewriting, translation and summaries",
+  "status": "published",
+  "version": 1,
+  "instructions": "",
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-17T00:00:00Z",
+  "published_at": "2026-09-17T00:00:00Z",
+  "skill_refs": [
+    "nexus://skill/skl_draft_and_rewrite",
+    "nexus://skill/skl_translate",
+    "nexus://skill/skl_summarize_sources",
+    "nexus://skill/skl_meeting_notes_to_actions"
+  ],
+  "inference": {
+    "role": "chat"
+  },
+  "permissions": {
+    "max_classification": "secret"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-17T00:00:00Z"
+  },
+  "capability": {
+    "intents": [
+      "draft_document",
+      "translate",
+      "summarize"
+    ],
+    "domains": [
+      "general",
+      "marketing",
+      "sales",
+      "hr"
+    ],
+    "inputs": [
+      "text",
+      "attachment"
+    ],
+    "outputs": [
+      "document",
+      "text"
+    ],
+    "side_effects": false,
+    "background_supported": true,
+    "cost_class": "low",
+    "latency_class": "interactive",
+    "classification_max": "secret"
+  }
+}

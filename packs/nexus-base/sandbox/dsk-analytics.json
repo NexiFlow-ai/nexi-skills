@@ -1,0 +1,52 @@
+{
+  "profile_id": "dsk-analytics",
+  "uri": "nexus://sandbox/profile/dsk-analytics",
+  "name": "DSK analytics sandbox",
+  "description": "seed for dsk data: requires the gvisor isolation backend, so on docker_api / container-seccomp every run is denied `isolation` until k8s_job + gVisor lands after C2. The image digest below is a PLACEHOLDER (all zeros) — replace it with the digest of the gVisor-class image before any dsk deployment.",
+  "layer": "regulatory",
+  "runtimes": [
+    "python"
+  ],
+  "network": {
+    "policy": "none"
+  },
+  "packages": {
+    "policy": "allowlist_only",
+    "allowlist": [
+      "numpy",
+      "pandas",
+      "scipy",
+      "scikit-learn",
+      "pyarrow",
+      "openpyxl"
+    ]
+  },
+  "limits": {
+    "cpu_millicores": 2000,
+    "memory_mb": 2048,
+    "timeout_s": 600,
+    "max_output_mb": 32,
+    "max_artifacts": 20,
+    "max_concurrent_per_run": 1
+  },
+  "isolation": {
+    "host_filesystem": "none",
+    "credentials": "none",
+    "input_datasets": "read_only",
+    "artifact_dir": "writable",
+    "ephemeral": true,
+    "isolation_backend": "gvisor"
+  },
+  "classification_max": "dsk",
+  "image": {
+    "ref": "nexus-sandbox-python:0.6",
+    "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "audit": {
+    "enabled": true,
+    "retain_stdout_days": 90,
+    "retain_code_days": 365
+  },
+  "version": "1.1.3",
+  "created_at": "2026-09-10T00:00:00Z"
+}

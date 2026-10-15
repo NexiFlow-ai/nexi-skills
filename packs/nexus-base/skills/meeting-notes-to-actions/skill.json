@@ -1,0 +1,145 @@
+{
+  "skill_id": "skl_meeting_notes_to_actions",
+  "uri": "nexus://skill/skl_meeting_notes_to_actions",
+  "name": "Meeting notes → actions",
+  "description": "Turns raw notes or a transcript into decisions, owned actions with due dates as stated, open points and the follow-up.",
+  "origin": "platform",
+  "status": "published",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "shortcut": "/actions",
+  "metadata": {
+    "tags": [
+      "meetings",
+      "productivity"
+    ]
+  },
+  "evaluation": {
+    "human_review": {
+      "state": "approved",
+      "reviewed_by": "Nexi maintainers",
+      "reviewed_at": "2026-09-17T00:00:00Z",
+      "reviewed_version": "1.0.0"
+    }
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-17T00:00:00Z"
+  },
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-17T00:00:00Z",
+  "published_at": "2026-09-17T00:00:00Z",
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "notes": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "notes"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "title": {
+        "type": "string"
+      },
+      "date": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "participants": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 50
+      },
+      "decisions": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 50
+      },
+      "actions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "type": "string"
+            },
+            "owner": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "due": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "source": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "action",
+            "owner",
+            "due",
+            "source"
+          ]
+        },
+        "maxItems": 100
+      },
+      "open_points": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 50
+      },
+      "follow_up_meeting": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "required": [
+      "title",
+      "date",
+      "participants",
+      "decisions",
+      "actions",
+      "open_points",
+      "follow_up_meeting"
+    ]
+  },
+  "examples": [
+    {
+      "title": "Weekly sync",
+      "input": {
+        "notes": "Anna: ship v2 Friday. Oleh to write release notes by Thu."
+      },
+      "expected_output": "{\"title\": \"Weekly sync\", \"decisions\": [\"v2 ships Friday\"], \"actions\": [{\"action\": \"Write release notes\", \"owner\": \"Oleh\", \"due\": \"Thu\", \"source\": \"Oleh to write release notes by Thu.\"}], …}"
+    }
+  ]
+}

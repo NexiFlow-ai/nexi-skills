@@ -1,0 +1,87 @@
+{
+  "uri": "nexus://bi/template/performance_vs_target",
+  "id": "performance_vs_target",
+  "title": [
+    {
+      "text": "Performance vs target",
+      "lang": "en"
+    },
+    {
+      "text": "Результат проти цілі",
+      "lang": "uk"
+    }
+  ],
+  "decision_kinds": [
+    "correct_course"
+  ],
+  "pack_ref": "nexus://core/pack/nexus-base",
+  "version": "1.0.0",
+  "slots": [
+    {
+      "id": "outcome_kpi",
+      "kind": "metric",
+      "role": "outcome",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "target_kpi",
+      "kind": "metric",
+      "role": "target",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_hint": "target"
+    },
+    {
+      "id": "gap_trend",
+      "kind": "chart",
+      "role": "trend_vs_target",
+      "required": true,
+      "recommended_size": {
+        "w": 8,
+        "h": 4
+      },
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "breakdown",
+      "kind": "table",
+      "role": "breakdown_by_driver",
+      "required": true,
+      "recommended_size": {
+        "w": 4,
+        "h": 6
+      },
+      "metric_hint": "driver"
+    },
+    {
+      "id": "risk",
+      "kind": "metric",
+      "role": "risk",
+      "required": false,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_hint": "risk"
+    },
+    {
+      "id": "insight",
+      "kind": "insight",
+      "role": "what_changed",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 2
+      },
+      "metric_hint": null
+    }
+  ]
+}

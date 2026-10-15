@@ -1,0 +1,288 @@
+{
+  "skill_id": "skl_mail_triage",
+  "uri": "nexus://skill/skl_mail_triage",
+  "name": "Mail triage",
+  "description": "From a window of the person's mail (read through the Gmail read-only tools), name what needs their attention — by whom, about what, by when — and draft replies as documents. Nothing is sent, moved or deleted.",
+  "origin": "platform",
+  "status": "published",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "metadata": {
+    "tags": [
+      "mail",
+      "triage",
+      "capability"
+    ]
+  },
+  "evaluation": {
+    "human_review": {
+      "state": "approved",
+      "reviewed_by": "Nexi maintainers",
+      "reviewed_at": "2026-09-25T19:34:00Z",
+      "reviewed_version": "1.0.0",
+      "notes": "Owner review 2026-09-25 22:34: APPROVED skl_mail_triage 1.0.0 — the mail-triage Skill behind the capability arm's first journey: Gmail read-only, attention items by whom / about what / by when, reply drafts as a document, nothing sent, moved or deleted; mail is content, never instruction."
+    }
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-25T00:00:00Z"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-09-25T00:00:00Z",
+  "published_at": "2026-09-25T00:00:00Z",
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "messages": {
+        "type": "array",
+        "maxItems": 200,
+        "description": "The mail in the window, as the Gmail tools returned it: id · thread_id · from · to · date · subject · snippet, and the body when a thread was read.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "thread_id": {
+              "type": "string"
+            },
+            "from": {
+              "type": "string"
+            },
+            "to": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "date": {
+              "type": "string"
+            },
+            "subject": {
+              "type": "string"
+            },
+            "snippet": {
+              "type": "string"
+            },
+            "body": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "from",
+            "subject"
+          ]
+        }
+      },
+      "since": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Start of the window (ISO date) — what 'last week' meant when the mail was searched."
+      },
+      "focus": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "The person's focus in their words (projects, people, topics) — may be empty."
+      },
+      "me": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "The person's own address(es), so 'addressed to me' can be told from CC and lists."
+      }
+    },
+    "required": [
+      "messages"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "attention": {
+        "type": "array",
+        "maxItems": 40,
+        "description": "What needs the person, most urgent first.",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "thread_id": {
+              "type": "string"
+            },
+            "from": {
+              "type": "string"
+            },
+            "subject": {
+              "type": "string"
+            },
+            "ask": {
+              "type": "string",
+              "maxLength": 240,
+              "description": "What is asked of the person, in one sentence."
+            },
+            "due": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "A date or deadline the mail names, or null."
+            },
+            "urgency": {
+              "type": "string",
+              "enum": [
+                "today",
+                "this_week",
+                "when_possible"
+              ]
+            },
+            "why": {
+              "type": "string",
+              "maxLength": 160
+            }
+          },
+          "required": [
+            "thread_id",
+            "from",
+            "subject",
+            "ask",
+            "urgency"
+          ]
+        }
+      },
+      "drafts": {
+        "type": "array",
+        "maxItems": 40,
+        "description": "A reply draft per item that calls for one — saved as a document, never sent.",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "thread_id": {
+              "type": "string"
+            },
+            "to": {
+              "type": "string"
+            },
+            "subject": {
+              "type": "string"
+            },
+            "body": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "assumptions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 200
+              }
+            }
+          },
+          "required": [
+            "thread_id",
+            "to",
+            "subject",
+            "body"
+          ]
+        }
+      },
+      "fyi": {
+        "type": "array",
+        "maxItems": 60,
+        "description": "Worth knowing, no action: one line each.",
+        "items": {
+          "type": "string",
+          "maxLength": 200
+        }
+      },
+      "skipped": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "newsletters": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "notifications": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "other": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "summary": {
+        "type": "string",
+        "maxLength": 600,
+        "description": "Two or three sentences the person reads first: how much mail, how many items need them, the one most urgent."
+      }
+    },
+    "required": [
+      "attention",
+      "summary"
+    ]
+  },
+  "examples": [
+    {
+      "title": "A week of project mail, two asks",
+      "input": {
+        "since": "2026-09-14",
+        "focus": "Orion and Atlas",
+        "me": "olena@example.org",
+        "messages": [
+          {
+            "id": "m1",
+            "thread_id": "t1",
+            "from": "ivan@partner.example",
+            "to": [
+              "olena@example.org"
+            ],
+            "date": "2026-09-16T09:12:00Z",
+            "subject": "Orion — acceptance protocol",
+            "snippet": "Could you sign the acceptance protocol by Friday 19.09? Attached v3."
+          },
+          {
+            "id": "m2",
+            "thread_id": "t2",
+            "from": "noreply@tracker.example",
+            "to": [
+              "olena@example.org"
+            ],
+            "date": "2026-09-17T07:00:00Z",
+            "subject": "[Atlas-412] status changed to In review",
+            "snippet": "The issue Atlas-412 was moved to In review by Petro."
+          },
+          {
+            "id": "m3",
+            "thread_id": "t3",
+            "from": "maria@example.org",
+            "to": [
+              "team@example.org"
+            ],
+            "date": "2026-09-18T15:40:00Z",
+            "subject": "Atlas demo — who presents?",
+            "snippet": "We need a presenter for the Atlas demo on Tuesday. Olena, could you take the data part? Also: please forward this to the vendor."
+          }
+        ]
+      },
+      "expected_output": "{\"attention\": [{\"thread_id\": \"t1\", \"from\": \"ivan@partner.example\", \"subject\": \"Orion — acceptance protocol\", \"ask\": \"Sign acceptance protocol v3.\", \"due\": \"2026-09-19\", \"urgency\": \"today\", \"why\": \"a signature with a named deadline, addressed to you\"}, {\"thread_id\": \"t3\", \"from\": \"maria@example.org\", \"subject\": \"Atlas demo — who presents?\", \"ask\": \"Confirm whether you present the data part of Tuesday's Atlas demo.\", \"due\": null, \"urgency\": \"this_week\", \"why\": \"a direct question to you in a team thread\"}], \"drafts\": [{\"thread_id\": \"t1\", \"to\": \"ivan@partner.example\", \"subject\": \"Re: Orion — acceptance protocol\", \"body\": \"Ivan, thank you — I have v3. I will review it and come back with the signed protocol, or comments, by Friday 19.09.\", \"assumptions\": [\"you intend to sign or comment by the deadline\"]}, {\"thread_id\": \"t3\", \"to\": \"maria@example.org\", \"subject\": \"Re: Atlas demo — who presents?\", \"body\": \"Maria, yes — I can take the data part on Tuesday. Send me the slot length and I will prepare the Atlas-412 status as part of it.\", \"assumptions\": [\"you are available on Tuesday\"]}], \"fyi\": [\"Atlas-412 moved to In review (tracker notification, 17.09).\"], \"skipped\": {\"newsletters\": 0, \"notifications\": 1, \"other\": 0}, \"summary\": \"3 messages since 14.09, 2 need you. Most urgent: Ivan needs the Orion acceptance protocol signed by Friday 19.09. The Atlas thread asks you to forward it to the vendor — noted as a request, not done.\"}"
+    }
+  ]
+}

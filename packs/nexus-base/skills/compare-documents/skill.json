@@ -1,0 +1,175 @@
+{
+  "skill_id": "skl_compare_documents",
+  "uri": "nexus://skill/skl_compare_documents",
+  "name": "Compare documents",
+  "description": "Meaningful differences between two documents or versions — kind, quotes, locations, materiality — plus the key terms that stayed the same.",
+  "origin": "platform",
+  "status": "published",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "shortcut": "/compare",
+  "metadata": {
+    "tags": [
+      "comparison",
+      "review"
+    ]
+  },
+  "evaluation": {
+    "human_review": {
+      "state": "approved",
+      "reviewed_by": "Nexi maintainers",
+      "reviewed_at": "2026-09-17T00:00:00Z",
+      "reviewed_version": "1.0.0"
+    }
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-17T00:00:00Z"
+  },
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-17T00:00:00Z",
+  "published_at": "2026-09-17T00:00:00Z",
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "left": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
+      "right": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ]
+      }
+    },
+    "required": [
+      "left",
+      "right"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "summary": {
+        "type": "string"
+      },
+      "differences": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "added",
+                "removed",
+                "changed",
+                "moved"
+              ]
+            },
+            "topic": {
+              "type": "string"
+            },
+            "left": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "right": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "location_left": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "location_right": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "materiality": {
+              "type": "string",
+              "enum": [
+                "high",
+                "medium",
+                "low"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "topic",
+            "left",
+            "right",
+            "materiality"
+          ]
+        },
+        "maxItems": 200
+      },
+      "unchanged_key_terms": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 50
+      }
+    },
+    "required": [
+      "summary",
+      "differences",
+      "unchanged_key_terms"
+    ]
+  },
+  "examples": [
+    {
+      "title": "Contract v1 vs v2",
+      "input": {
+        "left": {
+          "text": "…"
+        },
+        "right": {
+          "text": "…"
+        }
+      },
+      "expected_output": "{\"summary\": \"Two substantive changes: the fee and the term.\", \"differences\": [...], \"unchanged_key_terms\": [\"parties\", \"governing law\"]}"
+    }
+  ]
+}

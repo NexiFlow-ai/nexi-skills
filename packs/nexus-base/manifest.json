@@ -1,0 +1,814 @@
+{
+  "api_version": "nexus/v1",
+  "kind": "NexusPack",
+  "metadata": {
+    "name": "nexus-base",
+    "version": "1.34.1",
+    "display_name": "Nexi Base",
+    "publisher": "Nexi",
+    "description": "Nexi Base — the layer every organization starts from: human-reviewed skills (summarize, extract, classify, answer from sources, compare, draft, translate, meeting notes to actions, mail triage, the analysis skills, web-source curation), the everyday agents (General, Analyst, Writer, Reviewer, Governance, the analysis planner, the web-source curator), the Flows they make whole (document review, data extraction, weekly digest, member onboarding, admin governance, mail triage, web source, the three BI automations), the orchestration patterns, the platform tool allow-list, model roles, sandbox profiles, approvals and retention policy, and the dashboard templates. Generic, vendor-free: no instances, no credentials, no tenant data.",
+    "license": "Apache-2.0",
+    "created_at": "2026-09-17T00:00:00Z",
+    "homepage": "https://github.com/NexiFlow-ai/nexi-skills"
+  },
+  "layer": "base",
+  "compatibility": {
+    "nexus_min_version": "0.4.0",
+    "spec_versions": {
+      "workflow-spec": "1.1",
+      "agent-definition": "1.0",
+      "skill-manifest": "1.0",
+      "blueprint": "1.0"
+    },
+    "deployment_targets": [
+      "on_prem",
+      "azure",
+      "disconnected"
+    ]
+  },
+  "resources": [
+    {
+      "kind": "blueprint",
+      "path": "blueprints/nexus-base.json",
+      "uri": "nexus://core/blueprint/nexus-base",
+      "name": "Nexi Base",
+      "version": "1.12.0",
+      "digest": "sha256:c62a7f8faf9b9770269cea7a71f1035de3e8975444d66bdc059e76978c33da4e"
+    },
+    {
+      "kind": "agent",
+      "path": "agents/general.json",
+      "uri": "nexus://agent/agt_general",
+      "name": "General",
+      "version": "4",
+      "digest": "sha256:fe77109e95b51b94033938e84780f251a28bcbaf30b181229282ba15c1a65e01"
+    },
+    {
+      "kind": "prompt",
+      "path": "agents/general.md",
+      "digest": "sha256:42dead6172debf898390b580e1febc01ff70ed57132c5ad67a1b311b9755c9eb"
+    },
+    {
+      "kind": "agent",
+      "path": "agents/analyst.json",
+      "uri": "nexus://agent/agt_analyst",
+      "name": "Analyst",
+      "version": "2",
+      "digest": "sha256:8adfaf22fce4cd70f4a1eca6f362e216999bd6b30d1ecef4c2f3777357f16731"
+    },
+    {
+      "kind": "prompt",
+      "path": "agents/analyst.md",
+      "digest": "sha256:ea347a803a8948ebf33ac3588a0b26ed51b82ef55d5b3e992bae609184823cb0"
+    },
+    {
+      "kind": "agent",
+      "path": "agents/writer.json",
+      "uri": "nexus://agent/agt_writer",
+      "name": "Writer",
+      "version": "1",
+      "digest": "sha256:bc82ad76e807ca128db4f0b207703638f4c308daf8f7bee88628e3f615af9ee0"
+    },
+    {
+      "kind": "prompt",
+      "path": "agents/writer.md",
+      "digest": "sha256:b1e68d07dc56ab52a56c8fb6ae6ceee1fb1def2c52ebb786e054205ab53a1636"
+    },
+    {
+      "kind": "agent",
+      "path": "agents/reviewer.json",
+      "uri": "nexus://agent/agt_reviewer",
+      "name": "Reviewer",
+      "version": "1",
+      "digest": "sha256:8a1017e47d862025d137d1674ccc862b81a2e6cc600e154ee64e6d84fcb55427"
+    },
+    {
+      "kind": "prompt",
+      "path": "agents/reviewer.md",
+      "digest": "sha256:b5caec1d147d6913051e41402d5c6f3d603f83ca5cc1f2a09039ebb0d42bd841"
+    },
+    {
+      "kind": "agent",
+      "path": "agents/governance.json",
+      "uri": "nexus://agent/agt_governance",
+      "name": "Governance",
+      "version": "2",
+      "digest": "sha256:4e778ad128c5f09b1b0ae6694ab9334c17e1313235fca1ccf7d87e5a122cd831"
+    },
+    {
+      "kind": "prompt",
+      "path": "agents/governance.md",
+      "digest": "sha256:75f693392d593b9cb68384866698422f6728c37ff1fb4ee4295f7380754b0be2"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/assess-governance-risk/skill.json",
+      "uri": "nexus://skill/skl_assess_governance_risk",
+      "name": "Assess governance risk",
+      "version": "1.0.0",
+      "digest": "sha256:087ba95aeacf5f04a43648341178f6437899caeed03ce8134e224c7925bcee7c"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/assess-governance-risk/SKILL.md",
+      "digest": "sha256:34c48fd77d73db39e26b3b72803a051e4d86b40e9577ad10af7b0833c3c34e40"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/answer-from-sources/skill.json",
+      "uri": "nexus://skill/skl_answer_from_sources",
+      "name": "Answer from sources",
+      "version": "1.0.0",
+      "digest": "sha256:61f21215b9a4b357877303002d2903eade8ba94259f65758f4fe4baf6e603ecf"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/answer-from-sources/SKILL.md",
+      "digest": "sha256:3c9697177fa95dfb0ab038da69ed6e59ae1c8167084abfdaa60cdb4fe591669b"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/classify-sensitivity/skill.json",
+      "uri": "nexus://skill/skl_classify_sensitivity",
+      "name": "Classify sensitivity",
+      "version": "1.0.1",
+      "digest": "sha256:8a43b1179e61f2aa2df1fb45e9707083878442384d212bfa2e6479b6f34bbe55"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/classify-sensitivity/SKILL.md",
+      "digest": "sha256:5b95024257a462b54b2cfa9902fb0bb7b3638a57dbc248eb09817eec5a25942b"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/compare-documents/skill.json",
+      "uri": "nexus://skill/skl_compare_documents",
+      "name": "Compare documents",
+      "version": "1.0.0",
+      "digest": "sha256:918c22b30d81583b22688c75c7e09d29f66e217114e2a7a20ad02d337657483b"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/compare-documents/SKILL.md",
+      "digest": "sha256:43807e44f9dc015d3169c229775ccfe47fca97e6c3e12b034857c70278929c21"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/create-flow/skill.json",
+      "uri": "nexus://skill/skl_create_flow",
+      "name": "Create Flow",
+      "version": "1.0.0",
+      "digest": "sha256:9556c278c0610cf6b829d38cd0ec7d0a0ab1e7651ebcb03355458899ace89a22"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/create-flow/SKILL.md",
+      "digest": "sha256:9a08c6f7d512dbd82302d7fb390e75277b6eb501f62bccfc6f9335fde3fdf9f4"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/draft-and-rewrite/skill.json",
+      "uri": "nexus://skill/skl_draft_and_rewrite",
+      "name": "Draft and rewrite",
+      "version": "1.0.0",
+      "digest": "sha256:77986e90bc0bb0c4cc0f61d40cfa41701212554492a92c8a101aac209df7ab5e"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/draft-and-rewrite/SKILL.md",
+      "digest": "sha256:dcbec56287c2157daf5034bca6476c81c0a16031d11be756ab85a23daf8bc3c1"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/extract-structured-data/skill.json",
+      "uri": "nexus://skill/skl_extract_structured_data",
+      "name": "Extract structured data",
+      "version": "1.0.0",
+      "digest": "sha256:5508635b3177f5ec147794b26c81f70133ed79217fec94b215234be34460d02f"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/extract-structured-data/SKILL.md",
+      "digest": "sha256:66257cda0693912cfc5bc933b8ccd8237117382f81a482434ca99570943b2597"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/meeting-notes-to-actions/skill.json",
+      "uri": "nexus://skill/skl_meeting_notes_to_actions",
+      "name": "Meeting notes → actions",
+      "version": "1.0.0",
+      "digest": "sha256:7c9c7dbc7c6422af2d50fd016f3de3d70afa4bb64e0859379a98e954a89412d3"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/meeting-notes-to-actions/SKILL.md",
+      "digest": "sha256:2b9e636ddb33e84b44045eb0bd6dceddee51d180b79ec11bdf353d67d03c3e93"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/pin-context/skill.json",
+      "uri": "nexus://skill/skl_pin_context",
+      "name": "Pin to context",
+      "version": "1.0.0",
+      "digest": "sha256:4dbceb5b04cc30582ff45b4b0d9ae76b76bec69e7af0c45442a9eadb5ff85c1b"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/pin-context/SKILL.md",
+      "digest": "sha256:004c29c83bfcffd5154713c657544e5dbe98810402098128e220f02efc9ceab8"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/recommend-pattern/skill.json",
+      "uri": "nexus://skill/skl_recommend_pattern",
+      "name": "Recommend pattern",
+      "version": "1.0.0",
+      "digest": "sha256:a667dc7ce139067a25d180f1747ded7dd2005d80bf792b6d9327592e9f054843"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/recommend-pattern/SKILL.md",
+      "digest": "sha256:f2d9d1cebf3d404dee6b8290fc8aa48599f0a93ce0093b6a2e9327c6c9d24f84"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/summarize/skill.json",
+      "uri": "nexus://skill/skl_summarize_sources",
+      "name": "Summarize",
+      "version": "1.0.0",
+      "digest": "sha256:ba223f28f81aaaebb0e6a32fb8edc350356caced761fdca8d19cbca3d837c17f"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/summarize/SKILL.md",
+      "digest": "sha256:fc05df1fa241f18b8d397d90876ea841b81e82273bc72ae46b3013e67dac8df7"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/translate/skill.json",
+      "uri": "nexus://skill/skl_translate",
+      "name": "Translate",
+      "version": "1.0.0",
+      "digest": "sha256:e2af7a28e59d2d8d5688e0d30c0c12a5d9027f23516f957f37c8d2c6b1d54864"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/translate/SKILL.md",
+      "digest": "sha256:d28e6b3bf7adecf855e638be21c1ab3d03076978c30c961a04eb3f0ca4882474"
+    },
+    {
+      "kind": "flow_template",
+      "path": "flows/admin-governance.json",
+      "uri": "nexus://workflow/template/flw_tpl_admin_governance",
+      "name": "Admin governance",
+      "version": "1.1.0",
+      "digest": "sha256:5a3460e8d169eda1c2afce00003a4d73196cfa3468d482b7b6cdf10648670c0b"
+    },
+    {
+      "kind": "flow_template",
+      "path": "flows/data-extraction.json",
+      "uri": "nexus://workflow/template/flw_tpl_data_extraction",
+      "name": "Data extraction",
+      "version": "1.1.0",
+      "digest": "sha256:020a08e7f8657e0c7329e9f44c58355ab12440b50bdb477b47e62659f8cee145"
+    },
+    {
+      "kind": "flow_template",
+      "path": "flows/document-review.json",
+      "uri": "nexus://workflow/template/flw_tpl_document_review",
+      "name": "Document review",
+      "version": "1.1.0",
+      "digest": "sha256:c12a7f7784f9ff5b3c73541f71fb22dd0f5151ee056d2c35246ff6839d4b58e1"
+    },
+    {
+      "kind": "flow_template",
+      "path": "flows/member-onboarding.json",
+      "uri": "nexus://workflow/template/flw_tpl_member_onboarding",
+      "name": "Member onboarding",
+      "version": "1.1.0",
+      "digest": "sha256:6c184f3609e86b0c0a6b3ea055e80bbfdf5b6dfe3eab59b6454b1eb4d18db7da"
+    },
+    {
+      "kind": "flow_template",
+      "path": "flows/weekly-digest.json",
+      "uri": "nexus://workflow/template/flw_tpl_weekly_digest",
+      "name": "Weekly digest",
+      "version": "1.0.0",
+      "digest": "sha256:a3e00b731d41c90eb0cb415b1c114e73565bbb172e7cf62c076a7250997a6a71"
+    },
+    {
+      "kind": "flow_template",
+      "path": "flows/mail-triage.json",
+      "uri": "nexus://workflow/template/flw_tpl_mail_triage",
+      "name": "Mail triage",
+      "version": "1.0.0",
+      "digest": "sha256:bc381cf199bc8b1d35b6efb0357d6d5954848c2e0f365f9634d4ae97185d99d3"
+    },
+    {
+      "kind": "flow_template",
+      "path": "patterns/templates/sequential-chain.json",
+      "uri": "nexus://workflow/template/sequential-chain",
+      "name": "Sequential chain",
+      "version": "1.1.0",
+      "digest": "sha256:3c7dbdf09e9e65378215023d945d1016c931fdb0b0b59a65cc577f25039ef167"
+    },
+    {
+      "kind": "pattern",
+      "path": "patterns/sequential-chain.json",
+      "uri": "nexus://chat/pattern/sequential-chain",
+      "name": "Sequential chain",
+      "version": "1.0",
+      "digest": "sha256:a3d4dc4799ee59fded44993257b8d516494b7395de21a3fee6023a1ff1c89bf1"
+    },
+    {
+      "kind": "flow_template",
+      "path": "patterns/templates/route-to-specialist.json",
+      "uri": "nexus://workflow/template/route-to-specialist",
+      "name": "Route to specialist",
+      "version": "1.1.0",
+      "digest": "sha256:e6d729d395c6f1a3c52c6703b937cb4d635d0c799f165cf19b7f97c4e2e420f8"
+    },
+    {
+      "kind": "pattern",
+      "path": "patterns/route-to-specialist.json",
+      "uri": "nexus://chat/pattern/route-to-specialist",
+      "name": "Route to specialist",
+      "version": "1.0",
+      "digest": "sha256:8fa8f8fe60d4e2669e88bdb767d403ade222389a8668ae35c31a938f66b6899c"
+    },
+    {
+      "kind": "flow_template",
+      "path": "patterns/templates/plan-execute.json",
+      "uri": "nexus://workflow/template/plan-execute",
+      "name": "Plan & execute",
+      "version": "1.1.0",
+      "digest": "sha256:7cfb7a6f46258607035b0787bdae4cfa0a3328136aa68b6c4c69b1c224488229"
+    },
+    {
+      "kind": "pattern",
+      "path": "patterns/plan-execute.json",
+      "uri": "nexus://chat/pattern/plan-execute",
+      "name": "Plan & execute",
+      "version": "1.0",
+      "digest": "sha256:5a3f2bf5abed00c2d838e3ea46b236e508898496580cdef9612d1e7530a20861"
+    },
+    {
+      "kind": "flow_template",
+      "path": "patterns/templates/parallel-workers.json",
+      "uri": "nexus://workflow/template/parallel-workers",
+      "name": "Parallel workers",
+      "version": "1.1.0",
+      "digest": "sha256:4b93ab2df2ee25d7be72b692de756e27bcd32534134cb01092091d26b4fa3f22"
+    },
+    {
+      "kind": "pattern",
+      "path": "patterns/parallel-workers.json",
+      "uri": "nexus://chat/pattern/parallel-workers",
+      "name": "Parallel workers",
+      "version": "1.0",
+      "digest": "sha256:9058a9a94e5d4fa02f4d738ddde97c3e4c4851cac17e4adb622d3bba9e6dadd0"
+    },
+    {
+      "kind": "flow_template",
+      "path": "patterns/templates/ensemble-judge.json",
+      "uri": "nexus://workflow/template/ensemble-judge",
+      "name": "Ensemble & judge",
+      "version": "1.1.0",
+      "digest": "sha256:97107d2a514af39892e670da3990331108c5dec931f60a0407ad9932c3248b53"
+    },
+    {
+      "kind": "pattern",
+      "path": "patterns/ensemble-judge.json",
+      "uri": "nexus://chat/pattern/ensemble-judge",
+      "name": "Ensemble & judge",
+      "version": "1.0",
+      "digest": "sha256:bf5328dffa7843474ccccec1d48a558ee2b279bc1d8d81174668cf996a02bf80"
+    },
+    {
+      "kind": "flow_template",
+      "path": "patterns/templates/model-cascade.json",
+      "uri": "nexus://workflow/template/model-cascade",
+      "name": "Model cascade",
+      "version": "1.1.0",
+      "digest": "sha256:78375490d2a7e1528f629b52a84024dc0da6f76015760451a2d3bcc60dcb0be4"
+    },
+    {
+      "kind": "pattern",
+      "path": "patterns/model-cascade.json",
+      "uri": "nexus://chat/pattern/model-cascade",
+      "name": "Model cascade",
+      "version": "1.0",
+      "digest": "sha256:f12dfb3bbf55ad7c25b30162c1f6bc4ed2977767d138f3eae3e066b4fdfc3092"
+    },
+    {
+      "kind": "flow_template",
+      "path": "patterns/templates/goal-evaluator-loop.json",
+      "uri": "nexus://workflow/template/goal-evaluator-loop",
+      "name": "Goal loop",
+      "version": "1.1.0",
+      "digest": "sha256:34d8d313f8ac48243479fd7132a64c70470bc9d4db9443c06bff064c7459b877"
+    },
+    {
+      "kind": "pattern",
+      "path": "patterns/goal-evaluator-loop.json",
+      "uri": "nexus://chat/pattern/goal-evaluator-loop",
+      "name": "Goal loop",
+      "version": "1.0",
+      "digest": "sha256:00a60bbc7f026d0a63f57158554d22f78cae497fa2879172e859879dddc19584"
+    },
+    {
+      "kind": "flow_template",
+      "path": "patterns/templates/execute-test-repair.json",
+      "uri": "nexus://workflow/template/execute-test-repair",
+      "name": "Execute, test, repair",
+      "version": "1.1.0",
+      "digest": "sha256:b17800ed9fa981e67d9d22b3005d33067e49b98299c3ad94531659e362dd3698"
+    },
+    {
+      "kind": "pattern",
+      "path": "patterns/execute-test-repair.json",
+      "uri": "nexus://chat/pattern/execute-test-repair",
+      "name": "Execute, test, repair",
+      "version": "1.0",
+      "digest": "sha256:35688c4cbc334c5cfe20319ef76cfc96abd6d7fa44e9ea6fa085c8d30373cd72"
+    },
+    {
+      "kind": "flow_template",
+      "path": "patterns/templates/human-review-gate.json",
+      "uri": "nexus://workflow/template/human-review-gate",
+      "name": "Human review gate",
+      "version": "1.1.0",
+      "digest": "sha256:5dd5de70dff779e0e575dedb90c8764161dd586cd5f27f14b43af4af118e8657"
+    },
+    {
+      "kind": "pattern",
+      "path": "patterns/human-review-gate.json",
+      "uri": "nexus://chat/pattern/human-review-gate",
+      "name": "Human review gate",
+      "version": "1.0",
+      "digest": "sha256:7b52141f412c74fb29ee9f3a097c370f0374ca3f1d361611b18d45fba4330e8e"
+    },
+    {
+      "kind": "sandbox_profile",
+      "path": "sandbox/public-dev.json",
+      "uri": "nexus://sandbox/profile/public-dev",
+      "version": "1.1.3",
+      "digest": "sha256:ad81824521844e1c903e17f8c7b5b75ffe394f3a2ee39f2dc3b3d2efe6573fc9"
+    },
+    {
+      "kind": "sandbox_profile",
+      "path": "sandbox/dsk-analytics.json",
+      "uri": "nexus://sandbox/profile/dsk-analytics",
+      "version": "1.1.3",
+      "digest": "sha256:1376a83ae2ec866d59f49d5354e865d32c686dffe5c1d47c73cd5a539d3adc71"
+    },
+    {
+      "kind": "policy",
+      "path": "policies/skill-sensitivity.json",
+      "name": "skill-sensitivity",
+      "digest": "sha256:c168057a9612b824120e57efb56df245197c097e50401da1b086315bfd85c280"
+    },
+    {
+      "kind": "policy",
+      "path": "policies/tool-groups.json",
+      "name": "tool-groups",
+      "digest": "sha256:bac5e604b4c86e1a167396cef0da97f2ad55dffe91a71475489feedff2bef6ec"
+    },
+    {
+      "kind": "policy",
+      "path": "policies/connector-kinds.json",
+      "name": "connector-kinds",
+      "digest": "sha256:d679217f57048ab57ea333a4b7113c748c82b00e3f99396c4481b70dc1e92f71"
+    },
+    {
+      "kind": "policy",
+      "path": "policies/model-roles.json",
+      "name": "model-roles",
+      "digest": "sha256:5192f0bcb65766469357f5c807c53e2ef77fcb0f08f5642aa2a8039d38a74039"
+    },
+    {
+      "kind": "policy",
+      "path": "policies/kpis.json",
+      "name": "kpis",
+      "digest": "sha256:f439802134f4f20e6adf7a84f591a40920fd3acc3215822bcec29fb60e85e228"
+    },
+    {
+      "kind": "agent",
+      "path": "agents/ds-planner.json",
+      "uri": "nexus://agent/agt_ds_planner",
+      "name": "Analysis planner",
+      "version": "8",
+      "digest": "sha256:c41538e34c0ae3d92cec75cd19158db5530098fa03bfaa83e13fc932e96f03fc"
+    },
+    {
+      "kind": "prompt",
+      "path": "agents/ds-planner.md",
+      "digest": "sha256:f7beffb2438d75bb746f873705be85f57c8f41296ee53d5f33ba38e7b920eace"
+    },
+    {
+      "kind": "agent",
+      "path": "agents/web-source-curator.json",
+      "uri": "nexus://agent/agt_web_source_curator",
+      "name": "Web source curator",
+      "version": "1",
+      "digest": "sha256:dcbd23a03ebf241030dbb24022a944d11c1fb9c7c2059751f0278758abcefe7a"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/dataset-profile/skill.json",
+      "uri": "nexus://skill/skl_dataset_profile",
+      "name": "Dataset profile",
+      "version": "1.0.2",
+      "digest": "sha256:b47f4a7ef9c0c2b4ff8aa8812c459e6158f304ff2eca4e0f31072541f49d7766"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/dataset-profile/SKILL.md",
+      "digest": "sha256:f8fa108c0501fc8f5714ba90517deb004ce9601e4f2efcf44255fb1dc2989426"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/eda-plan/skill.json",
+      "uri": "nexus://skill/skl_eda_plan",
+      "name": "Analysis plan",
+      "version": "1.1.1",
+      "digest": "sha256:2616684d03925b793cfef216f7f90152de5e20511990ed0f54768c03c3f9d7ae"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/eda-plan/SKILL.md",
+      "digest": "sha256:5d527955cb0d479aa171f31446b740d5c859815459036fef5c92dcef6a6332ac"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/chart-recommendation/skill.json",
+      "uri": "nexus://skill/skl_chart_recommendation",
+      "name": "Chart recommendation",
+      "version": "1.0.0",
+      "digest": "sha256:687b0dff9a4ec95732ed4e43dba19c8aeb5f7faa7e0e0f428ec2b91e5529c1b1"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/chart-recommendation/SKILL.md",
+      "digest": "sha256:0dcf9eeeb086d042e5eda074acc7b27fe2b55d582e104b06275dd47037a45d87"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/analysis-report/skill.json",
+      "uri": "nexus://skill/skl_analysis_report",
+      "name": "Analysis report",
+      "version": "1.1.1",
+      "digest": "sha256:3d4fe623667f1d1f114215ae48c503f9feb8822075d38839e7a2ef854a111d5f"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/analysis-report/SKILL.md",
+      "digest": "sha256:392eba6c312ad48cd3fcdbbba087f499ffe10dafeed4880a3efebc48dce6732e"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/web-source-curation/skill.json",
+      "uri": "nexus://skill/skl_web_source_curation",
+      "name": "Web source curation",
+      "version": "1.2.0",
+      "digest": "sha256:d599574a64cd4c7eb872f5a32bb7d5067b3dab9a5f12e4450fc04ddb08d2236f"
+    },
+    {
+      "kind": "prompt",
+      "path": "agents/web-source-curator.md",
+      "digest": "sha256:2dd9c205641671fed65622f20d10ad9b78fdef43290a14b5e687220ba4686209"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/web-source-curation/SKILL.md",
+      "digest": "sha256:d1a60636f3782c339f3b8c65367482b6ea897822c86b94c6d2eb421901637bf8"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/mail-triage/skill.json",
+      "uri": "nexus://skill/skl_mail_triage",
+      "name": "Mail triage",
+      "version": "1.0.0",
+      "digest": "sha256:e667aff3fe81195c12ae717a59c112a4c2d578f39f9725fd859ca0ee455ff57e"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/mail-triage/SKILL.md",
+      "digest": "sha256:96897e0ae588410ad184221542cf5a0f38772953d8187147119c9e1bfd0c1d79"
+    },
+    {
+      "kind": "flow_template",
+      "path": "flows/bi-refresh.json",
+      "uri": "nexus://workflow/template/flw_tpl_bi_refresh",
+      "name": "BI refresh",
+      "version": "1.0.0",
+      "digest": "sha256:2fcb31b1d67d2d8cfd2c449b676e310519f32b8214d8ed31075038da7a2b2b43"
+    },
+    {
+      "kind": "flow_template",
+      "path": "flows/bi-metric-alert.json",
+      "uri": "nexus://workflow/template/flw_tpl_bi_metric_alert",
+      "name": "BI metric alert",
+      "version": "1.0.0",
+      "digest": "sha256:c28b4be019deb8c86649caaaccc86b712839c6f3c6c544110702d14af60a6e44"
+    },
+    {
+      "kind": "flow_template",
+      "path": "flows/bi-subscription.json",
+      "uri": "nexus://workflow/template/flw_tpl_bi_subscription",
+      "name": "BI subscription",
+      "version": "1.0.0",
+      "digest": "sha256:d9ea592232baf5e8749b3ee698601548d2471d9f202c23e02f0e9c6f1376b433"
+    },
+    {
+      "kind": "flow_template",
+      "path": "flows/web-source.json",
+      "uri": "nexus://workflow/template/flw_tpl_web_source",
+      "name": "Web source",
+      "version": "1.2.0",
+      "digest": "sha256:a71815592f5da91c52b0b2cdd438c777c5ee9ae9ced9d0f9aad736154d4ceb75"
+    },
+    {
+      "kind": "sandbox_profile",
+      "path": "sandbox/confidential-analytics.json",
+      "uri": "nexus://sandbox/profile/sbx_confidential_analytics",
+      "version": "1.0.4",
+      "digest": "sha256:62277c37cfdd2b77d666ae9f90158cf2b3b3a32a73788439356e41803814509c"
+    },
+    {
+      "kind": "sandbox_profile",
+      "path": "sandbox/skill-trial.json",
+      "uri": "nexus://sandbox/profile/skill-trial",
+      "version": "1.0.0",
+      "digest": "sha256:6cde24820a1769e01d90e528bd7b42bcd24c6d8f3ee20f7685c157fe9d355da8"
+    },
+    {
+      "kind": "dashboard_template",
+      "path": "dashboards/data_overview.json",
+      "uri": "nexus://bi/template/data_overview",
+      "name": "Data overview",
+      "version": "1.0.0",
+      "digest": "sha256:886ceddc6e6c621a60db25052c8192a264a6761c8311dc7753acc8d5c442ac20"
+    },
+    {
+      "kind": "dashboard_template",
+      "path": "dashboards/executive_overview.json",
+      "uri": "nexus://bi/template/executive_overview",
+      "name": "Executive overview",
+      "version": "1.0.0",
+      "digest": "sha256:9417a6989113d98c10019194b6855cf65e01fea18dc09ef87ede6a1b134c3e79"
+    },
+    {
+      "kind": "dashboard_template",
+      "path": "dashboards/operational_control.json",
+      "uri": "nexus://bi/template/operational_control",
+      "name": "Operational control",
+      "version": "1.0.0",
+      "digest": "sha256:0b3861492ffafe4151256a0aab7bac59197b025e2e57d649b13a76cab9470819"
+    },
+    {
+      "kind": "dashboard_template",
+      "path": "dashboards/performance_vs_target.json",
+      "uri": "nexus://bi/template/performance_vs_target",
+      "name": "Performance vs target",
+      "version": "1.0.0",
+      "digest": "sha256:49611df227d7e8e3dbc2d43e5c37a7f5b123519344cc6364890a44fc25bbc3e5"
+    },
+    {
+      "kind": "dashboard_template",
+      "path": "dashboards/risk_exceptions.json",
+      "uri": "nexus://bi/template/risk_exceptions",
+      "name": "Risk & exceptions",
+      "version": "1.0.0",
+      "digest": "sha256:a124431ad6f6cb8ce400bb0b8a84b3162734033cb7714fd0c1863cfe89c46ffb"
+    },
+    {
+      "kind": "dashboard_template",
+      "path": "dashboards/nexus_quality.json",
+      "uri": "nexus://bi/template/nexus_quality",
+      "name": "Nexi quality",
+      "version": "1.1.0",
+      "digest": "sha256:551bf316f835088dc3975ee55808485ba210c0874c435a5b64280bb29433f16c"
+    },
+    {
+      "kind": "dashboard_template",
+      "path": "dashboards/nexus_usage.json",
+      "uri": "nexus://bi/template/nexus_usage",
+      "name": "Nexi people & activity",
+      "version": "1.1.0",
+      "digest": "sha256:43f54f4217b422406392b02a77ee276c2defc16cf17537004fa8e798ad089a44"
+    },
+    {
+      "kind": "dashboard_template",
+      "path": "dashboards/nexus_infrastructure.json",
+      "uri": "nexus://bi/template/nexus_infrastructure",
+      "name": "Nexi infrastructure",
+      "version": "1.1.0",
+      "digest": "sha256:2afe6490e39646958022550b7b2298633d02f7dfe3d295e3c2b210a1370a267d"
+    },
+    {
+      "kind": "dashboard_template",
+      "path": "dashboards/nexus_graph.json",
+      "uri": "nexus://bi/template/nexus_graph",
+      "name": "NexGraph knowledge",
+      "version": "1.1.0",
+      "digest": "sha256:087d2e3627bed9c3098c47c263eb49c404bf90e2384ca543a9ed7f31257627c5"
+    },
+    {
+      "kind": "dashboard_template",
+      "path": "dashboards/nexus_vibeban.json",
+      "uri": "nexus://bi/template/nexus_vibeban",
+      "name": "Vibeban work",
+      "version": "1.1.0",
+      "digest": "sha256:7ab4693d33b898f80ab7c7a2f403f1bb3e1098dd11612282d10283a198c1a8db"
+    }
+  ],
+  "requires": {
+    "models": [
+      {
+        "role": "reasoner",
+        "capabilities": [
+          "structured_output",
+          "tool_calling"
+        ]
+      },
+      {
+        "role": "chat"
+      },
+      {
+        "role": "extractor",
+        "capabilities": [
+          "structured_output"
+        ]
+      },
+      {
+        "role": "classifier",
+        "capabilities": [
+          "structured_output"
+        ]
+      },
+      {
+        "role": "coder"
+      },
+      {
+        "role": "embedding",
+        "capabilities": [
+          "embeddings"
+        ]
+      },
+      {
+        "role": "planner",
+        "capabilities": [
+          "structured_output"
+        ]
+      }
+    ],
+    "sandbox_runtimes": [
+      "python"
+    ],
+    "platform_tools": [
+      "nexus://tool/project.search",
+      "nexus://tool/knowledge.search",
+      "nexus://tool/project.file_read",
+      "nexus://tool/blob.read_text",
+      "nexus://tool/blob.head",
+      "nexus://tool/artifact.create_document",
+      "nexus://tool/artifact.create_table",
+      "nexus://tool/artifact.create_chart",
+      "nexus://tool/artifact.read",
+      "nexus://tool/dataset.query",
+      "nexus://tool/dataset.describe",
+      "nexus://tool/sandbox.run_python",
+      "nexus://tool/task.create",
+      "nexus://tool/task.read",
+      "nexus://tool/flow.run",
+      "nexus://tool/artifact.publish",
+      "nexus://tool/web.map",
+      "nexus://tool/web.fetch",
+      "nexus://tool/web.extract",
+      "nexus://tool/graph.source.pin",
+      "nexus://tool/graph.source.report",
+      "nexus://tool/goal.rank",
+      "nexus://tool/goal.bind",
+      "nexus://tool/goal.classify_anomaly",
+      "nexus://tool/goal.open",
+      "nexus://tool/goal.board.read",
+      "nexus://tool/goal.plan.validate",
+      "nexus://tool/goal.plan.challenge",
+      "nexus://tool/goal.situation",
+      "nexus://tool/goal.next",
+      "nexus://tool/goal.dispatch",
+      "nexus://tool/goal.agent.run",
+      "nexus://tool/goal.board.write",
+      "nexus://tool/goal.checkpoint",
+      "nexus://tool/goal.complete"
+    ]
+  },
+  "contains_secrets": false,
+  "readme_path": "README.md",
+  "signature": {
+    "alg": "ed25519",
+    "key_id": "nexus-base-2026",
+    "value": "1cjY7X7IqvBjyX9GUjtjXScaAka1zK4XnXrESzoHPCiko3XuNwgG5sNZpv3fN1v8C0wH_-J70tDRxDUyMm-rDA"
+  }
+}

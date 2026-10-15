@@ -1,0 +1,76 @@
+{
+  "kind": "model_roles",
+  "description": "The model roles the base pack routes to. No vendor ids: the deployment binds registry models to roles. `max_classification` is the highest data the role's model may see; anything above stays local/contour by the blueprint's max_classification_for_cloud.",
+  "roles": [
+    {
+      "role": "reasoner",
+      "label": "Reasoner",
+      "used_by": [
+        "agt_general",
+        "agt_reviewer"
+      ],
+      "max_classification": "secret",
+      "capabilities": [
+        "structured_output",
+        "tool_calling"
+      ]
+    },
+    {
+      "role": "chat",
+      "label": "Writer",
+      "used_by": [
+        "agt_writer"
+      ],
+      "max_classification": "secret",
+      "capabilities": [
+        "streaming"
+      ]
+    },
+    {
+      "role": "extractor",
+      "label": "Extractor",
+      "used_by": [
+        "agt_analyst"
+      ],
+      "max_classification": "secret",
+      "capabilities": [
+        "structured_output",
+        "json_mode"
+      ]
+    },
+    {
+      "role": "classifier",
+      "label": "Classifier",
+      "used_by": [
+        "agt_governance"
+      ],
+      "max_classification": "top_secret",
+      "capabilities": [
+        "structured_output"
+      ]
+    },
+    {
+      "role": "coder",
+      "label": "Coder",
+      "used_by": [
+        "flw_tpl_goal_loop"
+      ],
+      "max_classification": "confidential",
+      "capabilities": [
+        "structured_output"
+      ]
+    },
+    {
+      "role": "embedding",
+      "label": "Embedder",
+      "used_by": [
+        "project.search",
+        "knowledge.search"
+      ],
+      "max_classification": "secret",
+      "capabilities": [
+        "embeddings"
+      ]
+    }
+  ]
+}

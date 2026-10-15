@@ -1,0 +1,92 @@
+{
+  "skill_id": "skl_dataset_profile",
+  "uri": "nexus://skill/skl_dataset_profile",
+  "name": "Dataset profile",
+  "description": "Ingest a tabular file with pandas and profile every field — type, missing share, distinct count, sample values — as a table, metrics and a Parquet copy; never rows.",
+  "origin": "platform",
+  "status": "published",
+  "version": "1.0.2",
+  "entry": "SKILL.md",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "metadata": {
+    "tags": [
+      "data",
+      "profiling"
+    ]
+  },
+  "evaluation": {
+    "human_review": {
+      "state": "approved",
+      "reviewed_by": "Nexi maintainers",
+      "reviewed_at": "2026-09-21T11:48:00Z",
+      "reviewed_version": "1.0.2",
+      "notes": "Owner review 2026-09-21 (TBD-713): APPROVED skl_dataset_profile 1.0.2 — ingest cell skeleton, exact object→string coercion before Parquet, metrics are single numbers."
+    }
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-19T00:00:00Z"
+  },
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-19T00:00:00Z",
+  "published_at": "2026-09-19T00:00:00Z",
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "dataset": {
+        "type": "string",
+        "description": "nexus://chat/attachment/… of the file, materialised at /nexus/in/<filename>"
+      },
+      "question": {
+        "type": "string",
+        "maxLength": 2000
+      }
+    },
+    "required": [
+      "dataset"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "code": {
+        "type": "string",
+        "maxLength": 40000
+      },
+      "intent": {
+        "type": "string",
+        "maxLength": 500
+      }
+    },
+    "required": [
+      "code",
+      "intent"
+    ]
+  },
+  "examples": [
+    {
+      "title": "xlsx with a definitions sheet",
+      "input": {
+        "dataset": "nexus://chat/attachment/att_sample01",
+        "question": ""
+      },
+      "expected_output": "{\"code\": \"import nexus\\nimport pandas as pd\\npath = '/nexus/in/sample.xlsx'\\ndf = pd.read_excel(path, sheet_name='Sheet1', engine='openpyxl')  # the data sheet named by the source hint\\ndefs = pd.read_excel(path, sheet_name='визначення полів', engine='openpyxl')  # two columns: field, description\\n…\\nobj = df.select_dtypes(include='object').columns; df[obj] = df[obj].astype('string')\\ndf.to_parquet('dataset.parquet', index=False); nexus.file('dataset.parquet', 'dataset.parquet')\\nnexus.metric('rows', len(df)); nexus.metric('columns', df.shape[1]); nexus.metric('sheets', 2)\\nnexus.table(defs, 'Field definitions')\\nnexus.table(profile, 'Dataset profile')\\nnexus.metric('profile.completed', 1)\", \"intent\": \"read the data sheet of the workbook, keep it as Parquet, profile every field; keep the definitions sheet as a table\"}"
+    },
+    {
+      "title": "csv",
+      "input": {
+        "dataset": "nexus://chat/attachment/att_sample02",
+        "question": "which columns are dates?"
+      },
+      "expected_output": "{\"code\": \"import nexus\\nimport pandas as pd\\ndf = pd.read_csv('/nexus/in/events.csv')\\n…\\nnexus.table(profile, 'Dataset profile')\\nnexus.metric('profile.completed', 1)\", \"intent\": \"profile the csv and flag date-like columns\"}"
+    }
+  ]
+}

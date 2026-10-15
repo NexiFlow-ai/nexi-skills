@@ -1,0 +1,57 @@
+{
+  "kind": "connector_kinds",
+  "description": "Connector *kinds* the organization may connect from Core › Connections — Synapse protocols that exist in this deployment. No instances, no endpoints, no credentials ship in the pack.",
+  "kinds": [
+    {
+      "key": "postgresql",
+      "label": "PostgreSQL",
+      "protocol": "sql",
+      "credential": "dsn",
+      "description": "Read-only or read-write SQL over a governed connection; queries are parameterised."
+    },
+    {
+      "key": "rest_openapi",
+      "label": "REST / OpenAPI",
+      "protocol": "rest_openapi",
+      "credential": "api_key | oauth2 | none",
+      "description": "Any HTTP API described by an OpenAPI document; operations become tools after review."
+    },
+    {
+      "key": "mcp",
+      "label": "MCP server",
+      "protocol": "mcp",
+      "credential": "token | none",
+      "description": "Model Context Protocol server; its tools are discovered and enabled one by one."
+    },
+    {
+      "key": "google_workspace",
+      "label": "Google Workspace",
+      "protocol": "rest_openapi",
+      "credential": "oauth2",
+      "oauth_provider": "google",
+      "description": "Gmail · Calendar · Drive through Google's APIs with a user or shared OAuth consent."
+    },
+    {
+      "key": "microsoft_365",
+      "label": "Microsoft 365",
+      "protocol": "rest_openapi",
+      "credential": "oauth2",
+      "oauth_provider": "microsoft",
+      "description": "Outlook · Calendar · OneDrive / SharePoint through Microsoft Graph with an Entra consent."
+    },
+    {
+      "key": "files",
+      "label": "Files · S3-compatible",
+      "protocol": "s3_compatible",
+      "credential": "access_key",
+      "description": "Object storage (S3 / MinIO / Azure Blob via S3 gateway) as a governed file source."
+    },
+    {
+      "key": "webhook_in",
+      "label": "Webhook (inbound)",
+      "protocol": "webhook_in",
+      "credential": "hmac_secret",
+      "description": "External systems start a flow by calling a signed inbound hook."
+    }
+  ]
+}

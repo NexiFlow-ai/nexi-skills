@@ -1,0 +1,207 @@
+{
+  "spec_version": "1.1",
+  "workflow_id": "flw_tpl_bi_metric_alert",
+  "uri": "nexus://workflow/template/flw_tpl_bi_metric_alert",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "project_id": null,
+  "name": "BI metric alert",
+  "description": "When a new version of the alert's dataset is published: NexBI runs the metric as the initiator, compares it with the threshold and counts consecutive versions; the Flow posts to the thread only when it fired. Fires once per streak.",
+  "version": 1,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.0.0",
+    "parameters": [
+      {
+        "name": "alert_ref",
+        "type": "ref",
+        "required": true,
+        "description": "The AlertDefinition (nexus://bi/alert/…) NexBI evaluates."
+      },
+      {
+        "name": "dataset_ref",
+        "type": "ref",
+        "required": true,
+        "description": "The dataset whose published versions trigger the evaluation."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "required": true,
+        "description": "The metric's name as shown in the message."
+      }
+    ]
+  },
+  "requires": {
+    "models": [],
+    "tools": [
+      "nexus://tool/bi.alert.evaluate"
+    ]
+  },
+  "trigger": {
+    "kind": "event",
+    "event_subject": "nexus.bi.dataset_version.published.v1",
+    "event_filter": {
+      "language": "nexus-expr-v1",
+      "source": "$.event.payload.dataset_ref == '{{param.dataset_ref}}'"
+    }
+  },
+  "inputs": [],
+  "outputs": [
+    {
+      "name": "fired",
+      "type": "boolean"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "A dataset version is published"
+    },
+    {
+      "id": "evaluate",
+      "kind": "tool",
+      "label": "Evaluate the alert",
+      "timeout_s": 60,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "alert"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/bi.alert.evaluate",
+        "operation": "evaluate",
+        "mutating": true
+      },
+      "input_mapping": {
+        "alert_ref": "'{{param.alert_ref}}'",
+        "dataset_version_ref": "$.event.payload.dataset_version_ref"
+      },
+      "idempotency": {
+        "key_template": "evaluate:{{run_id}}",
+        "dedupe_window_s": 86400
+      }
+    },
+    {
+      "id": "fired",
+      "kind": "condition",
+      "label": "Did it fire?",
+      "description": "NexBI compared the metric with the threshold and counted the consecutive versions; the engine only reads its answer.",
+      "condition": {
+        "language": "nexus-expr-v1",
+        "source": "$.node.evaluate.output.fired == true"
+      }
+    },
+    {
+      "id": "notify",
+      "kind": "notify",
+      "label": "Tell the thread",
+      "retry": {
+        "max_attempts": 3,
+        "backoff": "exponential",
+        "initial_delay_s": 5,
+        "max_delay_s": 60
+      },
+      "idempotency": {
+        "key_template": "notify:{{run_id}}",
+        "dedupe_window_s": 86400
+      },
+      "notify": {
+        "channel_uri": "nexus://chat/thread/{{run.thread_id}}",
+        "template": "Alert «{{param.title}}»: {{node.evaluate.output.observed_value}} {{node.evaluate.output.unit}} is {{node.evaluate.output.comparator}} {{node.evaluate.output.threshold}} for {{node.evaluate.output.streak}} consecutive versions. {{node.evaluate.output.href}}",
+        "channel": "thread"
+      }
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Done"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-evaluate",
+      "source": "trigger",
+      "target": "evaluate"
+    },
+    {
+      "id": "e-evaluate-fired",
+      "source": "evaluate",
+      "target": "fired"
+    },
+    {
+      "id": "e-fired-notify-true",
+      "source": "fired",
+      "target": "notify",
+      "when": "true",
+      "label": "fired"
+    },
+    {
+      "id": "e-fired-end-false",
+      "source": "fired",
+      "target": "end",
+      "when": "false",
+      "label": "held"
+    },
+    {
+      "id": "e-notify-end",
+      "source": "notify",
+      "target": "end"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": false,
+    "max_run_duration_s": 600,
+    "allowed_tool_uris": [
+      "nexus://tool/bi.alert.evaluate"
+    ],
+    "run_as": "initiator",
+    "sensitive_outputs": [],
+    "max_loop_depth": 1,
+    "sandbox_profile_uri": "nexus://sandbox/profile/public-dev"
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 200,
+        "y": 0
+      },
+      "evaluate": {
+        "x": 200,
+        "y": 116
+      },
+      "fired": {
+        "x": 200,
+        "y": 232
+      },
+      "notify": {
+        "x": 200,
+        "y": 348
+      },
+      "end": {
+        "x": 200,
+        "y": 464
+      }
+    }
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-24T00:00:00Z"
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-09-24T00:00:00Z",
+  "published_at": "2026-09-24T00:00:00Z"
+}

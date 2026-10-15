@@ -1,0 +1,178 @@
+{
+  "spec_version": "1.1",
+  "workflow_id": "flw_tpl_bi_subscription",
+  "uri": "nexus://workflow/template/flw_tpl_bi_subscription",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "project_id": null,
+  "name": "BI subscription",
+  "description": "On the schedule the subscriber chose: read the dashboard's published version as the initiator and deliver its KPIs and link to the Project thread. Members only — the thread is the Project's.",
+  "version": 1,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.0.0",
+    "parameters": [
+      {
+        "name": "dashboard_ref",
+        "type": "ref",
+        "required": true,
+        "description": "The dashboard (nexus://bi/dashboard/…) this Flow refreshes or reports on."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "required": true,
+        "description": "The dashboard's title as shown in the message."
+      },
+      {
+        "name": "cron",
+        "type": "cron",
+        "required": true,
+        "description": "When to run — a five-field cron expression (the dialog offers presets)."
+      },
+      {
+        "name": "timezone",
+        "type": "string",
+        "required": false,
+        "default": "Europe/Kyiv",
+        "description": "IANA time zone for the schedule."
+      }
+    ]
+  },
+  "requires": {
+    "models": [],
+    "tools": [
+      "nexus://tool/bi.dashboard.describe"
+    ]
+  },
+  "trigger": {
+    "kind": "schedule",
+    "schedule_cron": "{{param.cron}}",
+    "schedule_timezone": "{{param.timezone}}"
+  },
+  "inputs": [],
+  "outputs": [
+    {
+      "name": "dashboard_ref",
+      "type": "resource_uri"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "On schedule"
+    },
+    {
+      "id": "describe",
+      "kind": "tool",
+      "label": "Read the published dashboard",
+      "timeout_s": 60,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "subscription"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/bi.dashboard.describe",
+        "operation": "describe",
+        "mutating": false
+      },
+      "input_mapping": {
+        "dashboard_ref": "'{{param.dashboard_ref}}'"
+      }
+    },
+    {
+      "id": "notify",
+      "kind": "notify",
+      "label": "Deliver to the thread",
+      "retry": {
+        "max_attempts": 3,
+        "backoff": "exponential",
+        "initial_delay_s": 5,
+        "max_delay_s": 60
+      },
+      "idempotency": {
+        "key_template": "notify:{{run_id}}",
+        "dedupe_window_s": 86400
+      },
+      "notify": {
+        "channel_uri": "nexus://chat/thread/{{run.thread_id}}",
+        "template": "«{{param.title}}» — {{node.describe.output.kpis_summary}} (version {{node.describe.output.published_version}}). {{node.describe.output.href}}",
+        "channel": "thread"
+      }
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Done"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-describe",
+      "source": "trigger",
+      "target": "describe"
+    },
+    {
+      "id": "e-describe-notify",
+      "source": "describe",
+      "target": "notify"
+    },
+    {
+      "id": "e-notify-end",
+      "source": "notify",
+      "target": "end"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": false,
+    "max_run_duration_s": 600,
+    "allowed_tool_uris": [
+      "nexus://tool/bi.dashboard.describe"
+    ],
+    "run_as": "initiator",
+    "sensitive_outputs": [],
+    "max_loop_depth": 1,
+    "sandbox_profile_uri": "nexus://sandbox/profile/public-dev"
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 200,
+        "y": 0
+      },
+      "describe": {
+        "x": 200,
+        "y": 116
+      },
+      "notify": {
+        "x": 200,
+        "y": 232
+      },
+      "end": {
+        "x": 200,
+        "y": 348
+      }
+    }
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-24T00:00:00Z"
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-09-24T00:00:00Z",
+  "published_at": "2026-09-24T00:00:00Z"
+}

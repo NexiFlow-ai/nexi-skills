@@ -1,0 +1,89 @@
+{
+  "api_version": "nexus/v1",
+  "kind": "FlowPattern",
+  "metadata": {
+    "id": "goal-evaluator-loop",
+    "name": "Goal loop",
+    "version": "1.0",
+    "category": "reasoning",
+    "layer": "flow_pattern",
+    "human_reviewed_by": "Nexi maintainers",
+    "reviewed_at": "2026-09-17T12:00:00Z"
+  },
+  "description": "Work, evaluate, repeat until the goal is met — with limits on iterations, time and budget.",
+  "use_when": [
+    "measurable_goal",
+    "iterative_improvement",
+    "unknown_step_count"
+  ],
+  "examples": [
+    "Improve a draft until the checklist passes",
+    "Tune an analysis until the metric target is met"
+  ],
+  "characteristics": {
+    "autonomy": "high",
+    "cost": "medium",
+    "latency": "high",
+    "reliability": "medium"
+  },
+  "diagram": {
+    "columns": [
+      [
+        "trigger"
+      ],
+      [
+        "loop"
+      ],
+      [
+        "end"
+      ]
+    ],
+    "loop": [
+      "agent",
+      "evaluator"
+    ],
+    "aria": "Trigger, a loop of work and evaluate until the goal is met, end."
+  },
+  "template": {
+    "workflow_uri": "nexus://workflow/template/goal-evaluator-loop",
+    "version": "1.1.0",
+    "file": "templates/goal-evaluator-loop.json"
+  },
+  "requires": {
+    "node_types": [
+      "loop",
+      "agent",
+      "evaluator",
+      "approval"
+    ]
+  },
+  "placeholders": [
+    {
+      "node_id": "work",
+      "role": "reasoner"
+    }
+  ],
+  "recommended": {
+    "human_review": "on_stall"
+  },
+  "learn_more": [
+    {
+      "term": "Evaluator-optimizer",
+      "note": "The engine decides completion from the GoalSpec; the model never marks its own goal done."
+    }
+  ],
+  "ui": {
+    "icon": "repeat"
+  },
+  "i18n": {
+    "uk": {
+      "name": "Цикл до цілі",
+      "description": "Працювати, оцінювати, повторювати до досягнення цілі — з лімітами ітерацій, часу і бюджету.",
+      "examples": [
+        "Покращувати чернетку, доки чекліст не пройде",
+        "Налаштовувати аналіз до цільової метрики"
+      ],
+      "diagram_aria": "Тригер, цикл роботи й оцінки до досягнення цілі, кінець."
+    }
+  }
+}

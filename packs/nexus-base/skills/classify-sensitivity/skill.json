@@ -1,0 +1,130 @@
+{
+  "skill_id": "skl_classify_sensitivity",
+  "uri": "nexus://skill/skl_classify_sensitivity",
+  "name": "Classify sensitivity",
+  "description": "Proposes the Nexi data classification (public · confidential · dsk · secret · top_secret) of a text with reasons, signals and suggested redactions.",
+  "origin": "platform",
+  "status": "published",
+  "version": "1.0.1",
+  "entry": "SKILL.md",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "shortcut": "/classify",
+  "metadata": {
+    "tags": [
+      "classification",
+      "security"
+    ]
+  },
+  "evaluation": {
+    "human_review": {
+      "state": "approved",
+      "reviewed_by": "Nexi maintainers",
+      "reviewed_at": "2026-10-15T11:05:00Z",
+      "reviewed_version": "1.0.1"
+    }
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-17T00:00:00Z"
+  },
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-17T00:00:00Z",
+  "published_at": "2026-09-17T00:00:00Z",
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "text": {
+        "type": "string"
+      },
+      "context": {
+        "type": "string",
+        "description": "Where the material comes from (optional)"
+      }
+    },
+    "required": [
+      "text"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "classification": {
+        "type": "string",
+        "enum": [
+          "public",
+          "confidential",
+          "dsk",
+          "secret",
+          "top_secret"
+        ]
+      },
+      "reasons": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 5
+      },
+      "signals": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "personal_data",
+            "financial",
+            "contractual",
+            "credentials",
+            "health",
+            "legal",
+            "security",
+            "marking_present",
+            "public_source"
+          ]
+        }
+      },
+      "redactions_suggested": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "quote": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "quote",
+            "reason"
+          ]
+        },
+        "maxItems": 20
+      }
+    },
+    "required": [
+      "classification",
+      "reasons",
+      "signals",
+      "redactions_suggested"
+    ]
+  },
+  "examples": [
+    {
+      "title": "HR list with dates of birth",
+      "input": {
+        "text": "Name, date of birth, salary …"
+      },
+      "expected_output": "{\"classification\": \"dsk\", \"reasons\": [\"personal identifiers with dates of birth and salaries\"], \"signals\": [\"personal_data\", \"financial\"], \"redactions_suggested\": []}"
+    }
+  ]
+}

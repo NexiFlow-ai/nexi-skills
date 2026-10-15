@@ -1,0 +1,334 @@
+{
+  "spec_version": "1.1",
+  "workflow_id": "flw_tpl_route_to_specialist",
+  "uri": "nexus://workflow/template/route-to-specialist",
+  "tenancy": {
+    "enterprise_id": "pack",
+    "tenant_id": "pack"
+  },
+  "project_id": null,
+  "name": "Route to specialist",
+  "description": "A classifier decides the category; the matching specialist handles the request. Never a keyword match (FR-PAT-017).",
+  "version": 1,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.1.0"
+  },
+  "requires": {},
+  "presentation": {
+    "title": {
+      "en": "Route to a specialist",
+      "uk": "До фахівця"
+    },
+    "stage_labels": [
+      {
+        "node_id": "classify",
+        "label": {
+          "en": "Classifying the request",
+          "uk": "Класифікую запит"
+        }
+      },
+      {
+        "node_id": "specialist_a",
+        "label": {
+          "en": "Specialist A",
+          "uk": "Фахівець A"
+        }
+      },
+      {
+        "node_id": "specialist_b",
+        "label": {
+          "en": "Specialist B",
+          "uk": "Фахівець B"
+        }
+      },
+      {
+        "node_id": "specialist_c",
+        "label": {
+          "en": "Specialist C",
+          "uk": "Фахівець C"
+        }
+      }
+    ],
+    "receipt_fields": [
+      {
+        "key": "result",
+        "label": {
+          "en": "Result",
+          "uk": "Результат"
+        }
+      }
+    ],
+    "result_kind": "answer"
+  },
+  "trigger": {
+    "kind": "manual"
+  },
+  "inputs": [
+    {
+      "name": "request",
+      "type": "string",
+      "required": true,
+      "description": "What the flow works on"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "object"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "Start"
+    },
+    {
+      "id": "classify",
+      "kind": "agent",
+      "label": "Classify request",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "classification"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_governance",
+        "context_scope": "project",
+        "inference": {
+          "role": "classifier"
+        },
+        "output_schema": {
+          "type": "object",
+          "required": [
+            "category"
+          ],
+          "properties": {
+            "category": {
+              "type": "string",
+              "enum": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          }
+        }
+      },
+      "input_mapping": {
+        "request": "$.inputs.request"
+      },
+      "description": "Structured output: one category from the declared set. Rename the categories to your domains."
+    },
+    {
+      "id": "is_a",
+      "kind": "condition",
+      "label": "Category A?",
+      "condition": {
+        "language": "nexus-expr-v1",
+        "source": "$.node.classify.output.category == \"a\""
+      }
+    },
+    {
+      "id": "is_b",
+      "kind": "condition",
+      "label": "Category B?",
+      "condition": {
+        "language": "nexus-expr-v1",
+        "source": "$.node.classify.output.category == \"b\""
+      }
+    },
+    {
+      "id": "specialist_a",
+      "kind": "agent",
+      "label": "Specialist A",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "analysis"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_analyst",
+        "context_scope": "project",
+        "inference": {
+          "role": "reasoner"
+        }
+      },
+      "input_mapping": {
+        "request": "$.inputs.request"
+      }
+    },
+    {
+      "id": "specialist_b",
+      "kind": "agent",
+      "label": "Specialist B",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "analysis"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_writer",
+        "context_scope": "project",
+        "inference": {
+          "role": "reasoner"
+        }
+      },
+      "input_mapping": {
+        "request": "$.inputs.request"
+      }
+    },
+    {
+      "id": "specialist_c",
+      "kind": "agent",
+      "label": "Specialist C",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "analysis"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_general",
+        "context_scope": "project",
+        "inference": {
+          "role": "reasoner"
+        }
+      },
+      "input_mapping": {
+        "request": "$.inputs.request"
+      },
+      "description": "Handles everything that is not A or B."
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Done",
+      "description": "The run's result is the answer of whichever specialist ran (the end node maps nothing on purpose — the engine takes the arriving step's output)."
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-classify",
+      "source": "trigger",
+      "target": "classify"
+    },
+    {
+      "id": "e-classify-is_a",
+      "source": "classify",
+      "target": "is_a"
+    },
+    {
+      "id": "e-is_a-specialist_a-true",
+      "source": "is_a",
+      "target": "specialist_a",
+      "when": "true",
+      "label": "A"
+    },
+    {
+      "id": "e-is_a-is_b-false",
+      "source": "is_a",
+      "target": "is_b",
+      "when": "false"
+    },
+    {
+      "id": "e-is_b-specialist_b-true",
+      "source": "is_b",
+      "target": "specialist_b",
+      "when": "true",
+      "label": "B"
+    },
+    {
+      "id": "e-is_b-specialist_c-false",
+      "source": "is_b",
+      "target": "specialist_c",
+      "when": "false",
+      "label": "other"
+    },
+    {
+      "id": "e-specialist_a-end",
+      "source": "specialist_a",
+      "target": "end"
+    },
+    {
+      "id": "e-specialist_b-end",
+      "source": "specialist_b",
+      "target": "end"
+    },
+    {
+      "id": "e-specialist_c-end",
+      "source": "specialist_c",
+      "target": "end"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": true,
+    "max_run_duration_s": 3600,
+    "run_as": "initiator"
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 200,
+        "y": 0
+      },
+      "classify": {
+        "x": 200,
+        "y": 116
+      },
+      "is_a": {
+        "x": 200,
+        "y": 232
+      },
+      "specialist_a": {
+        "x": -80,
+        "y": 348
+      },
+      "is_b": {
+        "x": 200,
+        "y": 348
+      },
+      "specialist_b": {
+        "x": 480,
+        "y": 464
+      },
+      "specialist_c": {
+        "x": 200,
+        "y": 464
+      },
+      "end": {
+        "x": 200,
+        "y": 580
+      }
+    }
+  },
+  "governance": {
+    "state": "approved"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-09-17T12:00:00Z",
+  "published_at": "2026-09-17T12:00:00Z"
+}

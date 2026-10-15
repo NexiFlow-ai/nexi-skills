@@ -1,0 +1,280 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.nexiflow.ai/v1/sandbox-profile.schema.json",
+  "title": "SandboxProfile",
+  "description": "Policy for the NEXUS Sandbox Runtime. Owner NexCore (nexus://sandbox/profile/<id>); selected through the effective Blueprint and tightened (never loosened) by Project, Flow or node. Generated code runs in an ephemeral isolated runtime: no host filesystem, no credentials, no direct network — external access only through approved Tools via the PEP. Fields that must never be relaxed are constants here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile_id",
+    "uri",
+    "name",
+    "layer",
+    "runtimes",
+    "network",
+    "packages",
+    "limits",
+    "isolation",
+    "classification_max",
+    "audit",
+    "version",
+    "created_at"
+  ],
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "uri": {
+      "$ref": "resource-uri.schema.json"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "layer": {
+      "$ref": "vocabulary.schema.json#/$defs/BlueprintLayer"
+    },
+    "parent_uri": {
+      "$ref": "resource-uri.schema.json",
+      "description": "Profile this one tightens. Validator rejects any limit larger than the parent's."
+    },
+    "tenancy": {
+      "$ref": "tenancy-context.schema.json"
+    },
+    "runtimes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "vocabulary.schema.json#/$defs/SandboxRuntime"
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy"
+      ],
+      "properties": {
+        "policy": {
+          "$ref": "vocabulary.schema.json#/$defs/SandboxNetworkPolicy"
+        },
+        "approved_tool_uris": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "resource-uri.schema.json"
+          },
+          "description": "Only meaningful for approved_tools_only: calls leave the sandbox as ToolCalls (PEP → Synapse), never as raw sockets."
+        }
+      }
+    },
+    "packages": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy"
+      ],
+      "properties": {
+        "policy": {
+          "$ref": "vocabulary.schema.json#/$defs/SandboxPackagePolicy"
+        },
+        "allowlist": {
+          "type": "array",
+          "maxItems": 500,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._-]+(==[A-Za-z0-9.+-]+)?$"
+          },
+          "description": "Pinned package names for allowlist_only / internal_mirror."
+        },
+        "registry_ref": {
+          "$ref": "resource-uri.schema.json",
+          "description": "Internal mirror registered in Synapse (nexus://integration/<id>). No public index in dsk+ profiles."
+        },
+        "approval_relation": {
+          "$ref": "vocabulary.schema.json#/$defs/ProjectRelation",
+          "description": "Who approves a package request when policy = approval_required (NexTasks approval)."
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cpu_millicores",
+        "memory_mb",
+        "timeout_s"
+      ],
+      "properties": {
+        "cpu_millicores": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 16000
+        },
+        "memory_mb": {
+          "type": "integer",
+          "minimum": 128,
+          "maximum": 65536
+        },
+        "timeout_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400
+        },
+        "max_output_mb": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10240
+        },
+        "max_artifacts": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "max_concurrent_per_run": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 32
+        }
+      }
+    },
+    "isolation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "host_filesystem",
+        "credentials",
+        "input_datasets",
+        "artifact_dir",
+        "ephemeral"
+      ],
+      "description": "Non-negotiable boundary — constants, so no profile at any layer can relax them.",
+      "properties": {
+        "host_filesystem": {
+          "type": "string",
+          "const": "none"
+        },
+        "credentials": {
+          "type": "string",
+          "const": "none"
+        },
+        "input_datasets": {
+          "type": "string",
+          "const": "read_only"
+        },
+        "artifact_dir": {
+          "type": "string",
+          "const": "writable"
+        },
+        "ephemeral": {
+          "type": "boolean",
+          "const": true
+        },
+        "isolation_backend": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "Deployment-chosen backend label (e.g. container-seccomp, gvisor, microvm). Informational; enforced by the Sandbox Manager."
+        }
+      }
+    },
+    "classification_max": {
+      "$ref": "vocabulary.schema.json#/$defs/DataClassification"
+    },
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref"
+      ],
+      "description": "1.18.0: the runtime image the Sandbox Manager runs this profile in. `ref` is the image reference (e.g. nexus-sandbox-python:0.1); `digest` pins it. RULE: `digest` is REQUIRED when classification_max is dsk or above (dsk / secret / top_secret — DataClassification order), optional for public / confidential dev profiles. When set, the manager logs the resolved digest and refuses a mismatch (POLICY-MODELi `image`). Never a registry credential or URL.",
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "const": true
+        },
+        "retain_stdout_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3650
+        },
+        "retain_code_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3650
+        }
+      }
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "classification_max"
+        ],
+        "properties": {
+          "classification_max": {
+            "anyOf": [
+              {
+                "const": "dsk"
+              },
+              {
+                "const": "secret"
+              },
+              {
+                "const": "top_secret"
+              }
+            ]
+          }
+        }
+      },
+      "then": {
+        "description": "at dsk and above the image must be pinned by digest.",
+        "properties": {
+          "image": {
+            "required": [
+              "ref",
+              "digest"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

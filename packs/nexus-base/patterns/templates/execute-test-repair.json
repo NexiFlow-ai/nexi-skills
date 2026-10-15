@@ -1,0 +1,334 @@
+{
+  "spec_version": "1.1",
+  "workflow_id": "flw_tpl_execute_test_repair",
+  "uri": "nexus://workflow/template/execute-test-repair",
+  "tenancy": {
+    "enterprise_id": "pack",
+    "tenant_id": "pack"
+  },
+  "project_id": null,
+  "name": "Execute, test, repair",
+  "description": "Generate, run it in the sandbox, validate deterministically; on failure diagnose and repair — never the same model approving itself (FR-PAT-008).",
+  "version": 1,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.1.0"
+  },
+  "requires": {
+    "tools": [
+      "nexus://tool/sandbox.run_python"
+    ],
+    "sandbox_runtimes": [
+      "python"
+    ]
+  },
+  "goal": {
+    "objective": "All validation checks pass.",
+    "success_criteria": [
+      {
+        "metric": "tests_failed",
+        "operator": "eq",
+        "value": 0,
+        "description": "Failing tests reported by the sandbox run"
+      }
+    ],
+    "max_iterations": 5,
+    "max_runtime_s": 1800,
+    "budget": {
+      "max_tokens": 500000,
+      "max_tool_calls": 30,
+      "max_sandbox_runtime_s": 900
+    },
+    "on_no_progress": "ask_human",
+    "no_progress_after": 2
+  },
+  "presentation": {
+    "title": {
+      "en": "Execute, test, repair",
+      "uk": "Виконати, перевірити, виправити"
+    },
+    "stage_labels": [
+      {
+        "node_id": "repair_loop",
+        "label": {
+          "en": "Until the tests pass",
+          "uk": "Доки тести не пройдуть"
+        }
+      },
+      {
+        "node_id": "review",
+        "label": {
+          "en": "Your review",
+          "uk": "Ваша перевірка"
+        }
+      }
+    ],
+    "person_steps": [
+      "review"
+    ],
+    "receipt_fields": [
+      {
+        "key": "result",
+        "label": {
+          "en": "Result",
+          "uk": "Результат"
+        }
+      }
+    ],
+    "result_kind": "answer"
+  },
+  "trigger": {
+    "kind": "manual"
+  },
+  "inputs": [
+    {
+      "name": "request",
+      "type": "string",
+      "required": true,
+      "description": "What the flow works on"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "object"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "Start"
+    },
+    {
+      "id": "repair_loop",
+      "kind": "loop",
+      "label": "Until tests pass",
+      "loop": {
+        "entry_node_id": "generate",
+        "body_node_ids": [
+          "generate",
+          "execute",
+          "validate"
+        ],
+        "until": {
+          "evaluator_node_id": "validate",
+          "kind": "goal"
+        },
+        "max_iterations": 5,
+        "max_duration_s": 1800,
+        "budget": {
+          "max_sandbox_runtime_s": 900
+        },
+        "on_no_progress": "ask_human",
+        "no_progress_after": 2,
+        "iteration_context": "preserve"
+      }
+    },
+    {
+      "id": "generate",
+      "kind": "agent",
+      "label": "Generate / repair",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "code_generation"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_general",
+        "context_scope": "project",
+        "inference": {
+          "role": "coder"
+        },
+        "output_schema": {
+          "type": "object",
+          "required": [
+            "code"
+          ],
+          "properties": {
+            "code": {
+              "type": "string",
+              "description": "Python that runs its own tests and reports `tests_failed=<n>` as a metric"
+            },
+            "rationale": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "input_mapping": {
+        "request": "$.inputs.request",
+        "last_run": "$.loop.repair_loop.previous.summary"
+      },
+      "description": "First iteration generates; later iterations repair from the failing test output."
+    },
+    {
+      "id": "execute",
+      "kind": "tool",
+      "label": "Run in sandbox",
+      "timeout_s": 600,
+      "retry": {
+        "max_attempts": 1,
+        "backoff": "none"
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "code_execution"
+      },
+      "sandbox_profile_uri": "nexus://sandbox/profile/public-dev",
+      "input_mapping": {
+        "code": "$.node.generate.output.code",
+        "intent": "'run the generated code and its tests'"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/sandbox.run_python",
+        "operation": "run",
+        "mutating": false
+      }
+    },
+    {
+      "id": "validate",
+      "kind": "evaluator",
+      "label": "Deterministic validation",
+      "timeout_s": 60,
+      "evaluator": {
+        "kind": "deterministic",
+        "criteria_source": "goal",
+        "metrics_path": "$.node.execute.output.metrics"
+      },
+      "description": "Test results / schema check — external to the generating model."
+    },
+    {
+      "id": "review",
+      "kind": "approval",
+      "label": "Human review",
+      "timeout_s": 259200,
+      "approval": {
+        "approver": {
+          "relation": "owner"
+        },
+        "title_template": "Execute-test-repair for {{inputs.request}} did not converge",
+        "on_timeout": "fail"
+      }
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Done",
+      "input_mapping": {
+        "result": "$.node.generate.output",
+        "execution": "$.node.execute.output",
+        "loop": "$.node.repair_loop.output",
+        "verdict": "$.node.validate.output",
+        "human_decision": "$.node.review.output"
+      },
+      "description": "What the run returns: `result` is the substantive answer; the other keys are the steps' outputs for review and debugging."
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-repair_loop",
+      "source": "trigger",
+      "target": "repair_loop"
+    },
+    {
+      "id": "e-generate-execute",
+      "source": "generate",
+      "target": "execute"
+    },
+    {
+      "id": "e-execute-validate",
+      "source": "execute",
+      "target": "validate"
+    },
+    {
+      "id": "e-repair_loop-end-complete",
+      "source": "repair_loop",
+      "target": "end",
+      "when": "complete",
+      "label": "Tests pass"
+    },
+    {
+      "id": "e-repair_loop-review-exhausted",
+      "source": "repair_loop",
+      "target": "review",
+      "when": "exhausted",
+      "label": "Attempts used"
+    },
+    {
+      "id": "e-repair_loop-review-needs_human",
+      "source": "repair_loop",
+      "target": "review",
+      "when": "needs_human",
+      "label": "No progress"
+    },
+    {
+      "id": "e-review-end-approved",
+      "source": "review",
+      "target": "end",
+      "when": "approved"
+    },
+    {
+      "id": "e-review-end-rejected",
+      "source": "review",
+      "target": "end",
+      "when": "rejected"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": true,
+    "max_run_duration_s": 3600,
+    "run_as": "initiator",
+    "allowed_tool_uris": [
+      "nexus://tool/sandbox.run_python"
+    ],
+    "sandbox_profile_uri": "nexus://sandbox/profile/public-dev",
+    "max_loop_depth": 1
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 200,
+        "y": 0
+      },
+      "repair_loop": {
+        "x": 200,
+        "y": 116
+      },
+      "generate": {
+        "x": 20,
+        "y": 46
+      },
+      "execute": {
+        "x": 20,
+        "y": 164
+      },
+      "validate": {
+        "x": 20,
+        "y": 282
+      },
+      "review": {
+        "x": 200,
+        "y": 580
+      },
+      "end": {
+        "x": 200,
+        "y": 696
+      }
+    }
+  },
+  "governance": {
+    "state": "approved"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-09-17T12:00:00Z",
+  "published_at": "2026-09-17T12:00:00Z"
+}

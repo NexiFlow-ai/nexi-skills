@@ -1,0 +1,44 @@
+{
+  "profile_id": "skill-trial",
+  "uri": "nexus://sandbox/profile/skill-trial",
+  "name": "Skill trial sandbox",
+  "description": "S3: the envelope a drafted Skill's examples are tried under. A Skill is instructions + schemas — no code runs, nothing is containerised; the profile is the limits the trial obeys: no network, no credentials (the trial offers the model no tool), ≤ 60 s for the whole trial, ≤ 2 MiB of answers, one trial at a time, data up to confidential. A Project layer may only narrow it.",
+  "layer": "base",
+  "runtimes": [
+    "python"
+  ],
+  "network": {
+    "policy": "none"
+  },
+  "packages": {
+    "policy": "allowlist_only",
+    "allowlist": []
+  },
+  "limits": {
+    "cpu_millicores": 500,
+    "memory_mb": 512,
+    "timeout_s": 60,
+    "max_output_mb": 2,
+    "max_artifacts": 1,
+    "max_concurrent_per_run": 1
+  },
+  "isolation": {
+    "host_filesystem": "none",
+    "credentials": "none",
+    "input_datasets": "read_only",
+    "artifact_dir": "writable",
+    "ephemeral": true,
+    "isolation_backend": "container-seccomp"
+  },
+  "classification_max": "confidential",
+  "image": {
+    "ref": "nexus-sandbox-python:0.6"
+  },
+  "audit": {
+    "enabled": true,
+    "retain_stdout_days": 30,
+    "retain_code_days": 30
+  },
+  "version": "1.0.0",
+  "created_at": "2026-09-27T00:00:00Z"
+}

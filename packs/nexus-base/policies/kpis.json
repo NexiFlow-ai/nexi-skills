@@ -1,0 +1,57 @@
+{
+  "kind": "kpis",
+  "description": "The seven operational KPIs the Overview pulse draws from — nothing else (R2 scope Q2).",
+  "kpis": [
+    {
+      "key": "executions_total",
+      "label": "Executions",
+      "source": "NexChat traces",
+      "window": "24h"
+    },
+    {
+      "key": "success_rate",
+      "label": "Success rate",
+      "source": "NexChat traces",
+      "window": "24h"
+    },
+    {
+      "key": "median_duration_ms",
+      "label": "Median duration",
+      "source": "NexChat traces",
+      "window": "24h"
+    },
+    {
+      "key": "waiting_approvals",
+      "label": "Waiting for approval",
+      "source": "NexChat traces",
+      "window": "now"
+    },
+    {
+      "key": "failed_runs",
+      "label": "Failed runs",
+      "source": "NexChat traces",
+      "window": "24h"
+    },
+    {
+      "key": "policy_denials",
+      "label": "Policy denials",
+      "source": "NexCore audit",
+      "window": "24h"
+    },
+    {
+      "key": "active_people",
+      "label": "Active people",
+      "source": "NexCore sessions",
+      "window": "7d"
+    }
+  ],
+  "approvals": {
+    "external_write_threshold": "confidential",
+    "goal_completion_requires_human": true
+  },
+  "retention": {
+    "artifact_days": 730,
+    "run_days": 365,
+    "sandbox_output_days": 90
+  }
+}

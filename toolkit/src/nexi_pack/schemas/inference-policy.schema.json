@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.nexiflow.ai/v1/inference-policy.schema.json",
+  "title": "InferencePolicy",
+  "description": "What an Agent / Flow agent node needs from a model — a *role* plus constraints, never a vendor. The Model Fabric resolves the policy to one ModelDefinition at call time (RoutingDecision); NexCore policy decides eligibility, the fabric only optimises inside the eligible set. `model_id` is allowed only with strategy=explicit and only where the effective Blueprint sets allow_explicit_model (validator warning: model_id_pinned).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "role"
+  ],
+  "properties": {
+    "role": {
+      "$ref": "vocabulary.schema.json#/$defs/ModelRole"
+    },
+    "strategy": {
+      "$ref": "vocabulary.schema.json#/$defs/InferenceStrategy",
+      "description": "Default cheapest_qualified: the lowest-tier eligible model whose quality[role] ≥ quality_min. quality_first: highest quality inside the eligible set. local_only: never leaves the deployment contour. explicit: `model_id` (Developer mode)."
+    },
+    "quality_min": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Minimum benchmark score for `role` (ModelDefinition.benchmarks[role]). Absent = Blueprint default for the role."
+    },
+    "latency_class": {
+      "$ref": "vocabulary.schema.json#/$defs/LatencyClass"
+    },
+    "languages": {
+      "type": "array",
+      "maxItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+      },
+      "description": "BCP-47 tags the model must support (e.g. uk, en). Rejection reason: language."
+    },
+    "capabilities": {
+      "type": "array",
+      "maxItems": 12,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "vocabulary.schema.json#/$defs/ModelCapability"
+      },
+      "description": "Required capabilities (tool_calling, structured_output, vision …). Rejection reason: capability."
+    },
+    "max_tier": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4,
+      "description": "Highest Inference Ladder tier this step may reach (0 = no generative model … 4 = frontier). Blueprints may only lower it."
+    },
+    "escalation": {
+      "type": "boolean",
+      "description": "Allow the schema-failure ladder: on invalid structured output retry once with a repair prompt, then the next eligible tier, then fail/human. Default false."
+    },
+    "retention": {
+      "$ref": "vocabulary.schema.json#/$defs/Retention",
+      "description": "1.114.0: the retention mode of the content this call carries. `session_only` — a shared-screen frame or a session-only file — excludes every egress provider that does not declare `retention=none` (the refusal is `retention`, visible on the route line; no silent fallback)."
+    },
+    "model_id": {
+      "type": "string",
+      "maxLength": 120,
+      "description": "Only with strategy=explicit. Never a provider secret or endpoint."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "model_id"
+        ]
+      },
+      "then": {
+        "properties": {
+          "strategy": {
+            "const": "explicit"
+          }
+        },
+        "required": [
+          "strategy"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "strategy": {
+            "const": "explicit"
+          }
+        },
+        "required": [
+          "strategy"
+        ]
+      },
+      "then": {
+        "required": [
+          "model_id"
+        ]
+      }
+    }
+  ]
+}

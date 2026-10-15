@@ -1,0 +1,259 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.nexiflow.ai/v1/agent-definition.schema.json",
+  "title": "AgentDefinition",
+  "description": "Versioned agent definition created, edited, tested and published in NexChat (owner: apps/chat; URI nexus://agent/<id>). NexCore never authors definitions — it attaches a governance record (core.agent_governance: review / block) that the PEP enforces on invoke. Runtime = PydanticAI AgentRuntime. Tool/skill/model bindings are references — the PEP re-checks them at run time.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "agent_id",
+    "uri",
+    "tenancy",
+    "name",
+    "purpose",
+    "status",
+    "version",
+    "instructions",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "agent_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "uri": {
+      "$ref": "resource-uri.schema.json"
+    },
+    "tenancy": {
+      "$ref": "tenancy-context.schema.json"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Owning Project when project-scoped; absent = workspace-level."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "purpose": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "status": {
+      "$ref": "vocabulary.schema.json#/$defs/AgentDefinitionStatus"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "instructions": {
+      "type": "string",
+      "maxLength": 40000
+    },
+    "knowledge_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "resource-uri.schema.json"
+      }
+    },
+    "skill_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "resource-uri.schema.json"
+      }
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "$ref": "tool-binding.schema.json"
+      },
+      "description": "ToolBindings owned by this agent. Replaces `tool_refs` (UAT-2c). Only a human author binds tools — an agent never grants itself capabilities; CapabilityRequests add bindings after approval."
+    },
+    "a2a_agent_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "resource-uri.schema.json"
+      },
+      "description": "Other agents this agent may delegate to over A2A (nexus://agent/<id>)."
+    },
+    "output_schema": {
+      "type": "object",
+      "description": "JSON Schema the agent's structured answer must satisfy."
+    },
+    "knowledge": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "resource-uri.schema.json"
+          },
+          "description": "Project sources / knowledge collections."
+        },
+        "graph_scope": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Verified Domain-graph scope the agent may ground in (e.g. project | domain:procurement)."
+        },
+        "memory_policy": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "none | project | thread — what the agent may remember across turns (policy-gated)."
+        }
+      }
+    },
+    "permissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "purposes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 40
+          }
+        },
+        "max_classification": {
+          "$ref": "vocabulary.schema.json#/$defs/DataClassification"
+        }
+      },
+      "description": "Upper bound the agent may operate under; runtime permission is always the intersection with the invoking user's rights."
+    },
+    "model_preference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "preferred_model_id": {
+          "type": "string"
+        },
+        "allow_fallback": {
+          "type": "boolean"
+        }
+      },
+      "description": "Composer default (D26). Since `inference` is the canonical requirement; preferred_model_id is a Developer-mode pin."
+    },
+    "created_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "description": "Read-only projection of the NexCore governance record. `blocked` ⇒ PEP denies invoke/publish; UI shows compact deny via user_message_key.",
+      "properties": {
+        "state": {
+          "$ref": "vocabulary.schema.json#/$defs/GovernanceState"
+        },
+        "record_uri": {
+          "$ref": "resource-uri.schema.json"
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "user_message_key": {
+          "type": "string"
+        }
+      }
+    },
+    "origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "intent": {
+          "type": "string",
+          "maxLength": 4000,
+          "description": "AI-first creation: the natural-language intent the draft was generated from."
+        },
+        "generated_by_run": {
+          "$ref": "resource-uri.schema.json"
+        },
+        "resolver_run": {
+          "$ref": "resource-uri.schema.json",
+          "description": "1.88.0: the Auto resolver run that drafted this agent on the person's behalf — publish stays the person's; the publish writes `draft_published` to that run's plan decision."
+        }
+      }
+    },
+    "inference": {
+      "$ref": "inference-policy.schema.json",
+      "description": "Role-based model requirement. Preferred over model_id; when both are present the validator warns model_id_pinned and the runtime honours `inference`."
+    },
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "1.25.0: declared ROUTING metadata the capability catalog read model projects into a RoutableCapability. Authored by a human in Studio; absent block → derived defaults (`intents = []`, `side_effects` from tool bindings / requires). Never read by the runtime; never a permission.",
+      "properties": {
+        "intents": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "vocabulary.schema.json#/$defs/IntentName"
+          }
+        },
+        "domains": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "vocabulary.schema.json#/$defs/IntentDomain"
+          }
+        },
+        "inputs": {
+          "type": "array",
+          "maxItems": 10,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "vocabulary.schema.json#/$defs/CapabilityInputKind"
+          }
+        },
+        "outputs": {
+          "type": "array",
+          "maxItems": 10,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "vocabulary.schema.json#/$defs/CapabilityOutputKind"
+          }
+        },
+        "side_effects": {
+          "type": "boolean",
+          "description": "true ⇒ Auto never auto-starts it."
+        },
+        "background_supported": {
+          "type": "boolean"
+        },
+        "cost_class": {
+          "$ref": "vocabulary.schema.json#/$defs/ModelCostClass"
+        },
+        "latency_class": {
+          "$ref": "vocabulary.schema.json#/$defs/LatencyClass"
+        },
+        "classification_max": {
+          "$ref": "vocabulary.schema.json#/$defs/DataClassification"
+        },
+        "routable": {
+          "type": "boolean",
+          "description": "1.76.0: false ⇒ the capability catalog never projects this agent — Auto never ranks it. For agents a pack ships only as steps of its own Flows. Absent = true. Not a permission, not a picker rule."
+        }
+      }
+    }
+  }
+}

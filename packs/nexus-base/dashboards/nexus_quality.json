@@ -1,0 +1,378 @@
+{
+  "uri": "nexus://bi/template/nexus_quality",
+  "id": "nexus_quality",
+  "title": [
+    {
+      "text": "Nexi quality",
+      "lang": "en"
+    },
+    {
+      "text": "Якість Nexi",
+      "lang": "uk"
+    }
+  ],
+  "decision_kinds": [
+    "engineering_attention",
+    "release_readiness"
+  ],
+  "platform": true,
+  "pack_ref": "nexus://core/pack/nexus-base",
+  "version": "1.0.0",
+  "slots": [
+    {
+      "id": "sec_code",
+      "kind": "section",
+      "role": "code",
+      "required": true,
+      "recommended_size": {
+        "w": 12,
+        "h": 1
+      }
+    },
+    {
+      "id": "loc_kpi",
+      "kind": "metric",
+      "role": "size",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "loc_total"
+    },
+    {
+      "id": "files",
+      "kind": "metric",
+      "role": "size",
+      "required": false,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "files_total"
+    },
+    {
+      "id": "tests_written",
+      "kind": "metric",
+      "role": "volume",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "tests_total",
+      "metric_hint": "volume"
+    },
+    {
+      "id": "tests_e2e",
+      "kind": "metric",
+      "role": "volume",
+      "required": false,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "tests_e2e_total"
+    },
+    {
+      "id": "loc_trend",
+      "kind": "chart",
+      "role": "trend_over_commits",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "loc_history",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "tests_trend",
+      "kind": "chart",
+      "role": "trend_over_commits",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "tests_history",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "sec_tests",
+      "kind": "section",
+      "role": "test_results",
+      "required": true,
+      "recommended_size": {
+        "w": 12,
+        "h": 1
+      }
+    },
+    {
+      "id": "passed",
+      "kind": "metric",
+      "role": "outcome",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "tests_passed_total",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "failed",
+      "kind": "metric",
+      "role": "risk",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "tests_failed_total",
+      "metric_hint": "risk"
+    },
+    {
+      "id": "skipped",
+      "kind": "metric",
+      "role": "volume",
+      "required": false,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "tests_skipped_total"
+    },
+    {
+      "id": "pass_rate",
+      "kind": "metric",
+      "role": "outcome",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "tests_pass_rate",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "pass_trend",
+      "kind": "chart",
+      "role": "trend_over_commits",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "tests_pass_rate_history",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "failed_trend",
+      "kind": "chart",
+      "role": "trend_over_commits",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "tests_failed_history",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "sec_lint",
+      "kind": "section",
+      "role": "code_quality",
+      "required": true,
+      "recommended_size": {
+        "w": 12,
+        "h": 1
+      }
+    },
+    {
+      "id": "lint_findings",
+      "kind": "metric",
+      "role": "risk",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "lint_findings_total",
+      "metric_hint": "risk"
+    },
+    {
+      "id": "lint_kloc",
+      "kind": "metric",
+      "role": "driver",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "lint_per_kloc",
+      "metric_hint": "driver"
+    },
+    {
+      "id": "types",
+      "kind": "metric",
+      "role": "risk",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "type_errors_total"
+    },
+    {
+      "id": "lint_trend",
+      "kind": "chart",
+      "role": "trend_over_commits",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "lint_findings_history",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "types_trend",
+      "kind": "chart",
+      "role": "trend_over_commits",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "type_errors_history",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "sec_security",
+      "kind": "section",
+      "role": "security",
+      "required": true,
+      "recommended_size": {
+        "w": 12,
+        "h": 1
+      }
+    },
+    {
+      "id": "audit",
+      "kind": "metric",
+      "role": "risk",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "audit_critical_high",
+      "metric_hint": "risk"
+    },
+    {
+      "id": "secrets",
+      "kind": "metric",
+      "role": "risk",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "secret_hits_total"
+    },
+    {
+      "id": "audit_trend",
+      "kind": "chart",
+      "role": "trend_over_commits",
+      "required": false,
+      "recommended_size": {
+        "w": 12,
+        "h": 4
+      },
+      "metric_key": "audit_history",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "sec_bench",
+      "kind": "section",
+      "role": "benchmarks",
+      "required": true,
+      "recommended_size": {
+        "w": 12,
+        "h": 1
+      }
+    },
+    {
+      "id": "fact_cov",
+      "kind": "metric",
+      "role": "outcome",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "bench_fact_coverage",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "cite_hit",
+      "kind": "metric",
+      "role": "outcome",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "bench_citation_hit"
+    },
+    {
+      "id": "unsupported",
+      "kind": "metric",
+      "role": "risk",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "bench_unsupported_rate"
+    },
+    {
+      "id": "bench_p95",
+      "kind": "metric",
+      "role": "driver",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "bench_latency_p95_ms"
+    },
+    {
+      "id": "bench_trend",
+      "kind": "chart",
+      "role": "trend_over_runs",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "bench_fact_coverage",
+      "metric_hint": "outcome",
+      "series_by": "arm"
+    },
+    {
+      "id": "bench_p95_trend",
+      "kind": "chart",
+      "role": "trend_over_runs",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "bench_latency_p95_ms",
+      "metric_hint": "outcome",
+      "series_by": "arm"
+    }
+  ]
+}

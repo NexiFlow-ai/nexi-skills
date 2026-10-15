@@ -1,0 +1,245 @@
+{
+  "skill_id": "skl_eda_plan",
+  "uri": "nexus://skill/skl_eda_plan",
+  "name": "Analysis plan",
+  "description": "From a dataset profile and a question, plan the stages this dataset's values support — a technique and a why per stage — the indices worth computing and the metric each stage must report.",
+  "origin": "platform",
+  "status": "published",
+  "version": "1.1.1",
+  "entry": "SKILL.md",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "metadata": {
+    "tags": [
+      "data",
+      "planning"
+    ]
+  },
+  "evaluation": {
+    "human_review": {
+      "state": "approved",
+      "reviewed_by": "Nexi maintainers",
+      "reviewed_at": "2026-09-23T12:28:00Z",
+      "reviewed_version": "1.1.1",
+      "notes": "Owner review 2026-09-23 15:28 (TBD-722): APPROVED skl_eda_plan 1.1.1 — the plan follows the values: technique menu, `technique` + `why` per stage, ≤ 12 stages with insights and suggestions last, `why` / `computes` sizes stated."
+    }
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-19T00:00:00Z"
+  },
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-19T00:00:00Z",
+  "published_at": "2026-09-19T00:00:00Z",
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "profile": {
+        "type": "object",
+        "description": "output of the ingest cell: metrics and the profile table"
+      },
+      "question": {
+        "type": "string",
+        "maxLength": 2000
+      },
+      "objective": {
+        "type": "string",
+        "maxLength": 4000
+      },
+      "columns": {
+        "type": "array",
+        "description": "the real schema from ingest: name · dtype · nulls per column",
+        "items": {
+          "type": "object"
+        }
+      }
+    },
+    "required": [
+      "profile",
+      "objective"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "stages": {
+        "type": "array",
+        "minItems": 3,
+        "maxItems": 12,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "name",
+            "technique",
+            "why",
+            "computes",
+            "criteria"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,31}$"
+            },
+            "name": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "technique": {
+              "type": "string",
+              "enum": [
+                "column_roles",
+                "segmentation",
+                "distribution_outliers",
+                "correlation",
+                "time_patterns",
+                "clustering",
+                "text_categories",
+                "duplicate_candidates",
+                "unit_spellings",
+                "data_quality",
+                "charts",
+                "insights",
+                "suggestions",
+                "other"
+              ]
+            },
+            "why": {
+              "type": "string",
+              "maxLength": 300
+            },
+            "computes": {
+              "type": "string",
+              "maxLength": 400
+            },
+            "criteria": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "maxItems": 6
+            }
+          }
+        }
+      },
+      "indices": {
+        "type": "array",
+        "maxItems": 12,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "formula",
+            "why"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "formula": {
+              "type": "string",
+              "maxLength": 300
+            },
+            "why": {
+              "type": "string",
+              "maxLength": 300
+            }
+          }
+        }
+      },
+      "notes": {
+        "type": "string",
+        "maxLength": 1000
+      }
+    },
+    "required": [
+      "stages",
+      "indices"
+    ]
+  },
+  "examples": [
+    {
+      "title": "observations with organisation, time, distance and score",
+      "input": {
+        "profile": {
+          "metrics": {
+            "rows": 20061,
+            "columns": 57
+          }
+        },
+        "columns": [
+          {
+            "name": "Організація",
+            "dtype": "object",
+            "nulls": 0
+          },
+          {
+            "name": "Дата",
+            "dtype": "object",
+            "nulls": 12
+          },
+          {
+            "name": "Бал",
+            "dtype": "float64",
+            "nulls": 0
+          },
+          {
+            "name": "Відстань",
+            "dtype": "float64",
+            "nulls": 40
+          }
+        ],
+        "question": "",
+        "objective": "understand the dataset from its values: column roles · a grouping · insights · suggestions · charts · data quality"
+      },
+      "expected_output": "{\"stages\": [{\"id\": \"roles\", \"name\": \"What each column is\", \"technique\": \"column_roles\", \"why\": \"57 columns, 4 numeric, the rest object — roles must come from the values\", \"computes\": \"one table: column · role · distinct · missing % · sample · evidence\", \"criteria\": [\"understanding.completed\"]}, {\"id\": \"by_org\", \"name\": \"Score and distance by organisation\", \"technique\": \"segmentation\", \"why\": \"`Організація` has 38 distinct values over 20 061 rows; `Бал` and `Відстань` are measures\", \"computes\": \"count · sum · mean of Бал and Відстань per organisation, top 10 charted\", \"criteria\": [\"structure.found\"]}, {\"id\": \"monthly\", \"name\": \"Observations per month\", \"technique\": \"time_patterns\", \"why\": \"`Дата` parses as dates in the samples (2025-03-02, 2025-03-02 …)\", \"computes\": \"count and mean score per month, a line chart\", \"criteria\": []}, {\"id\": \"outliers\", \"name\": \"Unusual scores and distances\", \"technique\": \"distribution_outliers\", \"why\": \"two measures with a wide range in the profile (Відстань max 1 240 vs median 12)\", \"computes\": \"quantiles and IQR fences, rows beyond them counted\", \"criteria\": []}, {\"id\": \"dq\", \"name\": \"Data quality\", \"technique\": \"data_quality\", \"why\": \"always\", \"computes\": \"empty and duplicated fields counted and listed\", \"criteria\": [\"dq.assessed\"]}, {\"id\": \"insights\", \"name\": \"What stands out\", \"technique\": \"insights\", \"why\": \"always\", \"computes\": \"Insights table: insight · number · evidence, ≥ 3 rows; insights.count = rows\", \"criteria\": [\"insights.count\"]}, {\"id\": \"suggestions\", \"name\": \"What to look at next\", \"technique\": \"suggestions\", \"why\": \"always\", \"computes\": \"Suggestions table: suggestion · because · next_step, ≥ 3 rows; suggestions.count = rows\", \"criteria\": [\"suggestions.count\"]}], \"indices\": [{\"name\": \"score per organisation per month\", \"formula\": \"sum(Бал) grouped by Організація, month(Дата)\", \"why\": \"the main comparison the columns allow\"}], \"notes\": \"no coordinates in the profile — nothing geographic is planned; no identifier column repeats, so no duplicate stage\"}"
+    },
+    {
+      "title": "a narrow csv",
+      "input": {
+        "profile": {
+          "metrics": {
+            "rows": 900,
+            "columns": 6
+          }
+        },
+        "columns": [
+          {
+            "name": "month",
+            "dtype": "object",
+            "nulls": 0
+          },
+          {
+            "name": "region",
+            "dtype": "object",
+            "nulls": 0
+          },
+          {
+            "name": "units",
+            "dtype": "int64",
+            "nulls": 0
+          },
+          {
+            "name": "revenue",
+            "dtype": "float64",
+            "nulls": 3
+          }
+        ],
+        "question": "which months are unusual?",
+        "objective": "understand the dataset from its values: column roles · a grouping · insights · suggestions · charts · data quality"
+      },
+      "expected_output": "{\"stages\": [{\"id\": \"roles\", \"name\": \"What each column is\", \"technique\": \"column_roles\", \"why\": \"6 columns: month parses as dates, region has 5 distinct values, units and revenue are measures\", \"computes\": \"the roles table\", \"criteria\": [\"understanding.completed\"]}, {\"id\": \"monthly\", \"name\": \"Monthly totals and unusual months\", \"technique\": \"time_patterns\", \"why\": \"the question asks about months and `month` parses as dates\", \"computes\": \"units and revenue per month with a z-score, the unusual months flagged, a line chart\", \"criteria\": [\"structure.found\"]}, {\"id\": \"by_region\", \"name\": \"Revenue by region\", \"technique\": \"segmentation\", \"why\": \"`region` has 5 distinct values over 900 rows\", \"computes\": \"sum and mean per region, a bar chart\", \"criteria\": []}, {\"id\": \"dq\", \"name\": \"Data quality\", \"technique\": \"data_quality\", \"why\": \"always\", \"computes\": \"empty and duplicated fields\", \"criteria\": [\"dq.assessed\"]}, {\"id\": \"insights\", \"name\": \"What stands out\", \"technique\": \"insights\", \"why\": \"always\", \"computes\": \"Insights table, ≥ 3 rows\", \"criteria\": [\"insights.count\"]}, {\"id\": \"suggestions\", \"name\": \"What to look at next\", \"technique\": \"suggestions\", \"why\": \"always\", \"computes\": \"Suggestions table, ≥ 3 rows\", \"criteria\": [\"suggestions.count\"]}], \"indices\": [{\"name\": \"revenue per unit per region\", \"formula\": \"sum(revenue) / sum(units) grouped by region\", \"why\": \"separates price from volume in the regional comparison\"}], \"notes\": \"only two measures — clustering would not add to the segmentation, not planned\"}"
+    }
+  ]
+}

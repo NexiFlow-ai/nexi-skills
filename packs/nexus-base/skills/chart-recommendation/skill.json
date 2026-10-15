@@ -1,0 +1,162 @@
+{
+  "skill_id": "skl_chart_recommendation",
+  "uri": "nexus://skill/skl_chart_recommendation",
+  "name": "Chart recommendation",
+  "description": "Choose the ChartSpec kind and series for a finding — the nearest native kind when the asked one does not exist — and say so honestly.",
+  "origin": "platform",
+  "status": "published",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "metadata": {
+    "tags": [
+      "data",
+      "charts"
+    ]
+  },
+  "evaluation": {
+    "human_review": {
+      "state": "approved",
+      "reviewed_by": "Nexi maintainers",
+      "reviewed_at": "2026-09-19T00:00:00Z",
+      "reviewed_version": "1.0.0"
+    }
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-19T00:00:00Z"
+  },
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-19T00:00:00Z",
+  "published_at": "2026-09-19T00:00:00Z",
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "finding": {
+        "type": "string",
+        "maxLength": 1000
+      },
+      "columns": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "type"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            }
+          }
+        },
+        "maxItems": 80
+      },
+      "requested_kind": {
+        "type": "string",
+        "maxLength": 40
+      }
+    },
+    "required": [
+      "finding",
+      "columns"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "kind": {
+        "type": "string",
+        "enum": [
+          "bar",
+          "line",
+          "area",
+          "pie",
+          "scatter",
+          "metric",
+          "table"
+        ]
+      },
+      "x": {
+        "type": "string",
+        "maxLength": 80
+      },
+      "series": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "maxItems": 12
+      },
+      "aggregate": {
+        "type": "string",
+        "enum": [
+          "sum",
+          "count",
+          "mean",
+          "median",
+          "min",
+          "max"
+        ]
+      },
+      "title": {
+        "type": "string",
+        "maxLength": 120
+      },
+      "fallback_note": {
+        "type": "string",
+        "maxLength": 300
+      }
+    },
+    "required": [
+      "kind",
+      "title"
+    ]
+  },
+  "examples": [
+    {
+      "title": "score by month",
+      "input": {
+        "finding": "score accrues over time",
+        "columns": [
+          {
+            "name": "score_accrual_date_kyiv",
+            "type": "datetime"
+          },
+          {
+            "name": "score",
+            "type": "number"
+          }
+        ]
+      },
+      "expected_output": "{\"kind\": \"bar\", \"x\": \"month(score_accrual_date_kyiv)\", \"series\": [\"score\"], \"aggregate\": \"sum\", \"title\": \"Score by month\"}"
+    },
+    {
+      "title": "heatmap asked",
+      "input": {
+        "finding": "hour × weekday pattern",
+        "columns": [
+          {
+            "name": "ts",
+            "type": "datetime"
+          }
+        ],
+        "requested_kind": "heatmap"
+      },
+      "expected_output": "{\"kind\": \"table\", \"title\": \"Observations by weekday and hour\", \"fallback_note\": \"heatmap is not a native chart kind; a weekday × hour table carries the same numbers\"}"
+    }
+  ]
+}

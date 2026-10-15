@@ -1,0 +1,51 @@
+{
+  "agent_id": "agt_web_source_curator",
+  "uri": "nexus://agent/agt_web_source_curator",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "name": "Web source curator",
+  "purpose": "Decides which pages of a web source are knowledge worth keeping — never fetches, never signs in",
+  "status": "published",
+  "version": 1,
+  "instructions": "",
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-09-24T00:00:00Z",
+  "published_at": "2026-09-24T00:00:00Z",
+  "skill_refs": [
+    "nexus://skill/skl_web_source_curation"
+  ],
+  "inference": {
+    "role": "classifier"
+  },
+  "permissions": {
+    "max_classification": "confidential"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-24T00:00:00Z"
+  },
+  "capability": {
+    "intents": [
+      "classify"
+    ],
+    "domains": [
+      "general",
+      "legal",
+      "compliance"
+    ],
+    "inputs": [
+      "url",
+      "text"
+    ],
+    "outputs": [
+      "record"
+    ],
+    "side_effects": false,
+    "background_supported": true,
+    "cost_class": "low",
+    "latency_class": "background",
+    "classification_max": "confidential"
+  }
+}

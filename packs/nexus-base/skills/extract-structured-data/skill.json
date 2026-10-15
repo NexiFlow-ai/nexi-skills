@@ -1,0 +1,183 @@
+{
+  "skill_id": "skl_extract_structured_data",
+  "uri": "nexus://skill/skl_extract_structured_data",
+  "name": "Extract structured data",
+  "description": "Records out of documents into a target JSON Schema, with a quote and location for every field and an explicit list of what was missing.",
+  "origin": "platform",
+  "status": "published",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "shortcut": "/extract",
+  "metadata": {
+    "tags": [
+      "extraction",
+      "data"
+    ]
+  },
+  "evaluation": {
+    "human_review": {
+      "state": "approved",
+      "reviewed_by": "Nexi maintainers",
+      "reviewed_at": "2026-09-17T00:00:00Z",
+      "reviewed_version": "1.0.0"
+    }
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-17T00:00:00Z"
+  },
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-17T00:00:00Z",
+  "published_at": "2026-09-17T00:00:00Z",
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "text": {
+        "type": "string"
+      },
+      "target_schema": {
+        "type": "object",
+        "description": "JSON Schema (type: object) of one record"
+      }
+    },
+    "required": [
+      "text",
+      "target_schema"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "records": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "maxItems": 500
+      },
+      "provenance": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "record_index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "fields": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "quote": {
+                    "type": "string"
+                  },
+                  "location": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "field",
+                  "quote",
+                  "location"
+                ]
+              }
+            }
+          },
+          "required": [
+            "record_index",
+            "fields"
+          ]
+        }
+      },
+      "missing": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "record_index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "field": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string",
+              "enum": [
+                "absent",
+                "illegible",
+                "ambiguous"
+              ]
+            }
+          },
+          "required": [
+            "record_index",
+            "field",
+            "reason"
+          ]
+        }
+      },
+      "confidence": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        }
+      },
+      "notes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 20
+      }
+    },
+    "required": [
+      "records",
+      "provenance",
+      "missing",
+      "confidence",
+      "notes"
+    ]
+  },
+  "examples": [
+    {
+      "title": "Invoice lines",
+      "input": {
+        "text": "…",
+        "target_schema": {
+          "type": "object",
+          "properties": {
+            "item": {
+              "type": "string"
+            },
+            "amount": {
+              "type": "number"
+            }
+          }
+        }
+      },
+      "expected_output": "{\"records\": [{\"item\": \"Licence\", \"amount\": 1200.0}], \"provenance\": [...], \"missing\": [], …}"
+    }
+  ]
+}

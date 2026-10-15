@@ -1,0 +1,10 @@
+# Every commit of a pull request carries a DCO sign-off — the check lives in the organization's .github repository.
+name: dco
+on:
+  pull_request:
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  dco:
+    uses: NexiFlow-ai/.github/.github/workflows/dco.yml@main

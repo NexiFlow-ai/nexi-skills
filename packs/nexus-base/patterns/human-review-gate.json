@@ -1,0 +1,90 @@
+{
+  "api_version": "nexus/v1",
+  "kind": "FlowPattern",
+  "metadata": {
+    "id": "human-review-gate",
+    "name": "Human review gate",
+    "version": "1.0",
+    "category": "human",
+    "layer": "flow_pattern",
+    "human_reviewed_by": "Nexi maintainers",
+    "reviewed_at": "2026-09-17T12:00:00Z"
+  },
+  "description": "An agent prepares a result; a person approves, rejects or sends it back — at most three rounds.",
+  "use_when": [
+    "human_accountability",
+    "external_or_sensitive_output",
+    "revision_rounds"
+  ],
+  "examples": [
+    "Customer-facing letter",
+    "Anything that leaves the organisation"
+  ],
+  "characteristics": {
+    "autonomy": "low",
+    "cost": "low",
+    "latency": "high",
+    "reliability": "high"
+  },
+  "diagram": {
+    "columns": [
+      [
+        "trigger"
+      ],
+      [
+        "loop"
+      ],
+      [
+        "end"
+      ]
+    ],
+    "loop": [
+      "agent",
+      "approval",
+      "evaluator"
+    ],
+    "aria": "Trigger, a loop of prepare, human review and decide, at most three rounds, end."
+  },
+  "template": {
+    "workflow_uri": "nexus://workflow/template/human-review-gate",
+    "version": "1.1.0",
+    "file": "templates/human-review-gate.json"
+  },
+  "requires": {
+    "node_types": [
+      "loop",
+      "agent",
+      "approval",
+      "evaluator"
+    ]
+  },
+  "placeholders": [
+    {
+      "node_id": "work",
+      "role": "summarizer"
+    }
+  ],
+  "recommended": {
+    "human_review": "always"
+  },
+  "learn_more": [
+    {
+      "term": "Human-in-the-loop",
+      "note": "The approval is a first-class wait; the revision count is bounded by the loop."
+    }
+  ],
+  "ui": {
+    "icon": "user-check"
+  },
+  "i18n": {
+    "uk": {
+      "name": "Перевірка людиною",
+      "description": "Агент готує результат; людина погоджує, відхиляє або повертає на доопрацювання — не більше трьох раундів.",
+      "examples": [
+        "Лист клієнту",
+        "Усе, що виходить за межі організації"
+      ],
+      "diagram_aria": "Тригер, цикл підготовки, перевірки людиною та рішення, не більше трьох раундів, кінець."
+    }
+  }
+}

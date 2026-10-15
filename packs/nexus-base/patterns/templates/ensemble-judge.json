@@ -1,0 +1,427 @@
+{
+  "spec_version": "1.1",
+  "workflow_id": "flw_tpl_ensemble_judge",
+  "uri": "nexus://workflow/template/ensemble-judge",
+  "tenancy": {
+    "enterprise_id": "pack",
+    "tenant_id": "pack"
+  },
+  "project_id": null,
+  "name": "Ensemble & judge",
+  "description": "Several candidates solve the same task; a judge picks or merges the best answer. Economical models by default.",
+  "version": 1,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.1.0"
+  },
+  "requires": {},
+  "presentation": {
+    "title": {
+      "en": "Ensemble and judge",
+      "uk": "Ансамбль і суддя"
+    },
+    "stage_labels": [
+      {
+        "node_id": "candidate_a",
+        "label": {
+          "en": "Candidate A",
+          "uk": "Кандидат A"
+        }
+      },
+      {
+        "node_id": "candidate_b",
+        "label": {
+          "en": "Candidate B",
+          "uk": "Кандидат B"
+        }
+      },
+      {
+        "node_id": "candidate_c",
+        "label": {
+          "en": "Candidate C",
+          "uk": "Кандидат C"
+        }
+      },
+      {
+        "node_id": "judge",
+        "label": {
+          "en": "Judging",
+          "uk": "Суджу"
+        }
+      },
+      {
+        "node_id": "human",
+        "label": {
+          "en": "Your decision",
+          "uk": "Ваше рішення"
+        }
+      }
+    ],
+    "person_steps": [
+      "human"
+    ],
+    "receipt_fields": [
+      {
+        "key": "result",
+        "label": {
+          "en": "Result",
+          "uk": "Результат"
+        }
+      }
+    ],
+    "result_kind": "answer"
+  },
+  "trigger": {
+    "kind": "manual"
+  },
+  "inputs": [
+    {
+      "name": "request",
+      "type": "string",
+      "required": true,
+      "description": "What the flow works on"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "object"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "Start"
+    },
+    {
+      "id": "candidate_a",
+      "kind": "agent",
+      "label": "Candidate A",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "analysis"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_general",
+        "context_scope": "project",
+        "inference": {
+          "role": "reasoner",
+          "strategy": "cheapest_qualified"
+        }
+      },
+      "input_mapping": {
+        "request": "$.inputs.request"
+      }
+    },
+    {
+      "id": "candidate_b",
+      "kind": "agent",
+      "label": "Candidate B",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "analysis"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_analyst",
+        "context_scope": "project",
+        "inference": {
+          "role": "reasoner",
+          "strategy": "cheapest_qualified"
+        }
+      },
+      "input_mapping": {
+        "request": "$.inputs.request"
+      }
+    },
+    {
+      "id": "candidate_c",
+      "kind": "agent",
+      "label": "Candidate C",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "analysis"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_writer",
+        "context_scope": "project",
+        "inference": {
+          "role": "reasoner",
+          "strategy": "cheapest_qualified"
+        }
+      },
+      "input_mapping": {
+        "request": "$.inputs.request"
+      }
+    },
+    {
+      "id": "join",
+      "kind": "join",
+      "label": "All candidates in",
+      "timeout_s": 900,
+      "join": {
+        "mode": "all",
+        "timeout_s": 900,
+        "on_timeout": "fail"
+      }
+    },
+    {
+      "id": "judge",
+      "kind": "agent",
+      "label": "Judge",
+      "timeout_s": 180,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "evaluation"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_reviewer",
+        "context_scope": "project",
+        "inference": {
+          "role": "evaluator"
+        },
+        "output_schema": {
+          "type": "object",
+          "required": [
+            "agreement",
+            "verdict"
+          ],
+          "properties": {
+            "agreement": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Share of candidates whose answers are consistent with each other (0–1)"
+            },
+            "verdict": {
+              "type": "string",
+              "enum": [
+                "pass",
+                "fail"
+              ]
+            },
+            "reasons": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "input_mapping": {
+        "request": "$.inputs.request",
+        "candidates": "$.node.join.output.results"
+      },
+      "description": "A separate agent compares the candidates and reports how far they agree. It does not decide."
+    },
+    {
+      "id": "check",
+      "kind": "evaluator",
+      "label": "Agreement ≥ 0.67",
+      "timeout_s": 30,
+      "evaluator": {
+        "kind": "deterministic",
+        "criteria_source": "inline",
+        "metrics_path": "$.node.judge.output",
+        "criteria": [
+          {
+            "metric": "agreement",
+            "operator": "gte",
+            "value": 0.67,
+            "description": "Share of candidates the judge finds consistent"
+          }
+        ]
+      },
+      "description": "The engine compares the judge's measurement with the threshold; below it, a person decides."
+    },
+    {
+      "id": "agreed",
+      "kind": "condition",
+      "label": "Agreement ≥ 0.67?",
+      "condition": {
+        "language": "nexus-expr-v1",
+        "source": "$.node.check.output.passed == true"
+      }
+    },
+    {
+      "id": "human",
+      "kind": "approval",
+      "label": "Human decides",
+      "timeout_s": 259200,
+      "approval": {
+        "approver": {
+          "relation": "owner"
+        },
+        "title_template": "Candidates disagree on {{inputs.request}}",
+        "on_timeout": "fail"
+      }
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Done",
+      "input_mapping": {
+        "result": "$.node.judge.output",
+        "candidates": "$.node.join.output.results",
+        "verdict": "$.node.check.output",
+        "human_decision": "$.node.human.output"
+      },
+      "description": "What the run returns: `result` is the substantive answer; the other keys are the steps' outputs for review and debugging."
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-candidate_a",
+      "source": "trigger",
+      "target": "candidate_a"
+    },
+    {
+      "id": "e-trigger-candidate_b",
+      "source": "trigger",
+      "target": "candidate_b"
+    },
+    {
+      "id": "e-trigger-candidate_c",
+      "source": "trigger",
+      "target": "candidate_c"
+    },
+    {
+      "id": "e-candidate_a-join",
+      "source": "candidate_a",
+      "target": "join"
+    },
+    {
+      "id": "e-candidate_b-join",
+      "source": "candidate_b",
+      "target": "join"
+    },
+    {
+      "id": "e-candidate_c-join",
+      "source": "candidate_c",
+      "target": "join"
+    },
+    {
+      "id": "e-join-judge",
+      "source": "join",
+      "target": "judge"
+    },
+    {
+      "id": "e-judge-check",
+      "source": "judge",
+      "target": "check"
+    },
+    {
+      "id": "e-check-agreed",
+      "source": "check",
+      "target": "agreed"
+    },
+    {
+      "id": "e-agreed-end-true",
+      "source": "agreed",
+      "target": "end",
+      "when": "true",
+      "label": "agree"
+    },
+    {
+      "id": "e-agreed-human-false",
+      "source": "agreed",
+      "target": "human",
+      "when": "false",
+      "label": "disagree"
+    },
+    {
+      "id": "e-human-end-approved",
+      "source": "human",
+      "target": "end",
+      "when": "approved"
+    },
+    {
+      "id": "e-human-end-rejected",
+      "source": "human",
+      "target": "end",
+      "when": "rejected"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": true,
+    "max_run_duration_s": 3600,
+    "run_as": "initiator"
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 200,
+        "y": 0
+      },
+      "candidate_a": {
+        "x": -80,
+        "y": 116
+      },
+      "candidate_b": {
+        "x": 200,
+        "y": 116
+      },
+      "candidate_c": {
+        "x": 480,
+        "y": 116
+      },
+      "join": {
+        "x": 200,
+        "y": 232
+      },
+      "judge": {
+        "x": 200,
+        "y": 348
+      },
+      "agreed": {
+        "x": 200,
+        "y": 580
+      },
+      "human": {
+        "x": 480,
+        "y": 696
+      },
+      "end": {
+        "x": 200,
+        "y": 812
+      },
+      "check": {
+        "x": 200,
+        "y": 464
+      }
+    }
+  },
+  "governance": {
+    "state": "approved"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-09-17T12:00:00Z",
+  "published_at": "2026-09-17T12:00:00Z"
+}

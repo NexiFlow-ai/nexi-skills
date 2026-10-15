@@ -1,0 +1,51 @@
+{
+  "profile_id": "sbx_confidential_analytics",
+  "uri": "nexus://sandbox/profile/sbx_confidential_analytics",
+  "name": "Confidential analytics sandbox",
+  "description": "docker_api-suitable analytics profile for the Agentic Data Scientist and data-scientist turns. No network, allowlist only (pandas · numpy · scipy · scikit-learn · pyarrow · openpyxl), 2 vCPU / 1 536 MiB / 300 s / 32 MiB output / 20 artifacts / 1 concurrent per run. Runs data up to confidential. A root profile beside public-dev (wider limits than public-dev, so it cannot be its child — a child may only narrow); dsk-analytics (gVisor) is the ceiling for real deployments.",
+  "layer": "base",
+  "runtimes": [
+    "python"
+  ],
+  "network": {
+    "policy": "none"
+  },
+  "packages": {
+    "policy": "allowlist_only",
+    "allowlist": [
+      "numpy",
+      "pandas",
+      "scipy",
+      "scikit-learn",
+      "pyarrow",
+      "openpyxl"
+    ]
+  },
+  "limits": {
+    "cpu_millicores": 2000,
+    "memory_mb": 1536,
+    "timeout_s": 300,
+    "max_output_mb": 32,
+    "max_artifacts": 20,
+    "max_concurrent_per_run": 1
+  },
+  "isolation": {
+    "host_filesystem": "none",
+    "credentials": "none",
+    "input_datasets": "read_only",
+    "artifact_dir": "writable",
+    "ephemeral": true,
+    "isolation_backend": "container-seccomp"
+  },
+  "classification_max": "confidential",
+  "image": {
+    "ref": "nexus-sandbox-python:0.6"
+  },
+  "audit": {
+    "enabled": true,
+    "retain_stdout_days": 30,
+    "retain_code_days": 30
+  },
+  "version": "1.0.4",
+  "created_at": "2026-09-19T00:00:00Z"
+}

@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.nexiflow.ai/v1/goal-spec.schema.json",
+  "title": "GoalSpec",
+  "description": "Machine-readable definition of success for dynamic goal achievement. Replaces 'keep working until you are done' with deterministic criteria the flow engine evaluates. Owner apps/chat (embedded in WorkflowSpec.goal or supplied as a FlowRunRequest input). Criteria values are compared by the engine; an LLM evaluator may propose but never asserts a criterion as met.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "objective",
+    "success_criteria",
+    "max_iterations",
+    "max_runtime_s"
+  ],
+  "properties": {
+    "objective": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 4000
+    },
+    "success_criteria": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "$ref": "#/$defs/Criterion"
+      }
+    },
+    "required_outputs": {
+      "type": "array",
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]{0,63}$"
+      },
+      "description": "Names of outputs / artifact roles that must exist before the goal can be complete (e.g. analysis_report, trained_model)."
+    },
+    "max_iterations": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100
+    },
+    "max_runtime_s": {
+      "type": "integer",
+      "minimum": 60,
+      "maximum": 604800
+    },
+    "budget": {
+      "$ref": "workflow-spec.schema.json#/$defs/Budget"
+    },
+    "on_no_progress": {
+      "$ref": "vocabulary.schema.json#/$defs/FlowLoopStallAction"
+    },
+    "no_progress_after": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 20
+    },
+    "human_review_required": {
+      "type": "boolean",
+      "description": "When true the loop exits with needs_human even if all criteria pass — the completion itself is a human decision (regulated Blueprints set this by default)."
+    },
+    "classification_max": {
+      "$ref": "vocabulary.schema.json#/$defs/DataClassification",
+      "description": "Highest classification the goal run may touch; inherited from the Project when absent."
+    }
+  },
+  "$defs": {
+    "Criterion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric",
+        "operator",
+        "value"
+      ],
+      "description": "metric is a key in the evaluator's metrics object (or `output.<name>` for required outputs). Deterministic comparison only.",
+      "properties": {
+        "metric": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.]{0,79}$"
+        },
+        "operator": {
+          "$ref": "vocabulary.schema.json#/$defs/GoalOperator"
+        },
+        "value": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "maxLength": 200
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "array",
+              "maxItems": 50,
+              "items": {
+                "type": [
+                  "number",
+                  "string",
+                  "boolean"
+                ]
+              }
+            }
+          ]
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Contribution to the aggregate score (all criteria must still pass for complete)."
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 300
+        }
+      }
+    }
+  }
+}

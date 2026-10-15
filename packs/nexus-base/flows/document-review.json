@@ -1,0 +1,430 @@
+{
+  "spec_version": "1.1",
+  "workflow_id": "flw_tpl_document_review",
+  "uri": "nexus://workflow/template/flw_tpl_document_review",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "project_id": null,
+  "name": "Document review",
+  "description": "Upload → classify sensitivity → review (summary, key points, open questions) → the Project owner approves when the document is confidential or above → the review is saved as an artifact and posted to the thread.",
+  "version": 1,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.1.0"
+  },
+  "requires": {
+    "models": [
+      {
+        "role": "extractor"
+      },
+      {
+        "role": "reasoner"
+      }
+    ],
+    "tools": [
+      "nexus://tool/project.file_read",
+      "nexus://tool/artifact.create_document"
+    ]
+  },
+  "presentation": {
+    "title": {
+      "en": "Document review",
+      "uk": "Перевірка документа"
+    },
+    "stage_labels": [
+      {
+        "node_id": "read",
+        "label": {
+          "en": "Reading the document",
+          "uk": "Читаю документ"
+        }
+      },
+      {
+        "node_id": "classify",
+        "label": {
+          "en": "Classifying sensitivity",
+          "uk": "Визначаю чутливість"
+        }
+      },
+      {
+        "node_id": "review",
+        "label": {
+          "en": "Reviewing",
+          "uk": "Перевіряю"
+        }
+      },
+      {
+        "node_id": "approve",
+        "label": {
+          "en": "Owner approval",
+          "uk": "Погодження власника"
+        }
+      },
+      {
+        "node_id": "save",
+        "label": {
+          "en": "Saving the review",
+          "uk": "Зберігаю перевірку"
+        }
+      }
+    ],
+    "person_steps": [
+      "approve"
+    ],
+    "receipt_fields": [
+      {
+        "key": "review",
+        "label": {
+          "en": "Review",
+          "uk": "Перевірка"
+        }
+      }
+    ],
+    "result_kind": "artifacts"
+  },
+  "trigger": {
+    "kind": "manual"
+  },
+  "inputs": [
+    {
+      "name": "document",
+      "type": "file",
+      "required": true,
+      "description": "The Project attachment to review"
+    },
+    {
+      "name": "focus",
+      "type": "string",
+      "required": false,
+      "description": "What the reviewer should pay attention to"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "review",
+      "type": "resource_uri"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "Start"
+    },
+    {
+      "id": "read",
+      "kind": "tool",
+      "label": "Read the document",
+      "timeout_s": 120,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "read"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/project.file_read",
+        "operation": "read",
+        "mutating": false
+      },
+      "input_mapping": {
+        "attachment": "$.inputs.document"
+      }
+    },
+    {
+      "id": "classify",
+      "kind": "agent",
+      "label": "Classify sensitivity",
+      "timeout_s": 300,
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "classification"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_analyst",
+        "context_scope": "project",
+        "skill_uris": [
+          "nexus://skill/skl_classify_sensitivity"
+        ],
+        "output_schema": {
+          "type": "object",
+          "required": [
+            "classification",
+            "reasons"
+          ],
+          "properties": {
+            "classification": {
+              "type": "string",
+              "enum": [
+                "public",
+                "confidential",
+                "dsk",
+                "secret",
+                "top_secret"
+              ]
+            },
+            "reasons": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "input_mapping": {
+        "text": "$.node.read.output.text"
+      }
+    },
+    {
+      "id": "review",
+      "kind": "agent",
+      "label": "Review the document",
+      "timeout_s": 300,
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "review"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_reviewer",
+        "context_scope": "project",
+        "skill_uris": [
+          "nexus://skill/skl_summarize_sources",
+          "nexus://skill/skl_answer_from_sources"
+        ],
+        "output_schema": {
+          "type": "object",
+          "required": [
+            "summary",
+            "key_points",
+            "open_questions"
+          ],
+          "properties": {
+            "summary": {
+              "type": "string"
+            },
+            "key_points": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "open_questions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "input_mapping": {
+        "text": "$.node.read.output.text",
+        "focus": "$.inputs.focus"
+      }
+    },
+    {
+      "id": "needs_approval",
+      "kind": "condition",
+      "label": "Confidential or above?",
+      "condition": {
+        "language": "nexus-expr-v1",
+        "source": "$.node.classify.output.classification != 'public'"
+      }
+    },
+    {
+      "id": "approve",
+      "kind": "approval",
+      "label": "Owner approves the review",
+      "timeout_s": 259200,
+      "approval": {
+        "approver": {
+          "relation": "owner"
+        },
+        "title_template": "Review of {{inputs.document}} — approve before it is saved",
+        "on_timeout": "fail"
+      }
+    },
+    {
+      "id": "save",
+      "kind": "tool",
+      "label": "Save the review",
+      "timeout_s": 120,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "save"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/artifact.create_document",
+        "operation": "create",
+        "mutating": true
+      },
+      "idempotency": {
+        "key_template": "document-review:{{run_id}}",
+        "dedupe_window_s": 86400
+      },
+      "input_mapping": {
+        "title": "$.inputs.document",
+        "body": "$.node.review.output.summary"
+      }
+    },
+    {
+      "id": "notify",
+      "kind": "notify",
+      "label": "Post to the thread",
+      "retry": {
+        "max_attempts": 3,
+        "backoff": "exponential",
+        "initial_delay_s": 5,
+        "max_delay_s": 60
+      },
+      "idempotency": {
+        "key_template": "notify:{{run_id}}",
+        "dedupe_window_s": 86400
+      },
+      "notify": {
+        "channel_uri": "nexus://chat/thread/{{run.thread_id}}",
+        "template": "Review of {{inputs.document}} is ready ({{node.classify.output.classification}}).",
+        "channel": "thread"
+      }
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Done"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-read",
+      "source": "trigger",
+      "target": "read"
+    },
+    {
+      "id": "e-read-classify",
+      "source": "read",
+      "target": "classify"
+    },
+    {
+      "id": "e-classify-review",
+      "source": "classify",
+      "target": "review"
+    },
+    {
+      "id": "e-review-needs_approval",
+      "source": "review",
+      "target": "needs_approval"
+    },
+    {
+      "id": "e-needs_approval-approve-true",
+      "source": "needs_approval",
+      "target": "approve",
+      "when": "true",
+      "label": "confidential+"
+    },
+    {
+      "id": "e-needs_approval-save-false",
+      "source": "needs_approval",
+      "target": "save",
+      "when": "false",
+      "label": "public"
+    },
+    {
+      "id": "e-approve-save-approved",
+      "source": "approve",
+      "target": "save",
+      "when": "approved"
+    },
+    {
+      "id": "e-approve-end-rejected",
+      "source": "approve",
+      "target": "end",
+      "when": "rejected"
+    },
+    {
+      "id": "e-save-notify",
+      "source": "save",
+      "target": "notify"
+    },
+    {
+      "id": "e-notify-end",
+      "source": "notify",
+      "target": "end"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": false,
+    "max_run_duration_s": 604800,
+    "allowed_tool_uris": [
+      "nexus://tool/project.file_read",
+      "nexus://tool/artifact.create_document"
+    ],
+    "run_as": "initiator",
+    "sensitive_outputs": [],
+    "max_loop_depth": 1,
+    "sandbox_profile_uri": "nexus://sandbox/profile/public-dev"
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 200,
+        "y": 0
+      },
+      "read": {
+        "x": 200,
+        "y": 116
+      },
+      "classify": {
+        "x": 200,
+        "y": 232
+      },
+      "review": {
+        "x": 200,
+        "y": 348
+      },
+      "needs_approval": {
+        "x": 200,
+        "y": 464
+      },
+      "approve": {
+        "x": 200,
+        "y": 580
+      },
+      "save": {
+        "x": 200,
+        "y": 696
+      },
+      "notify": {
+        "x": 200,
+        "y": 812
+      },
+      "end": {
+        "x": 200,
+        "y": 928
+      }
+    }
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-17T00:00:00Z"
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-09-17T00:00:00Z",
+  "published_at": "2026-09-17T00:00:00Z"
+}

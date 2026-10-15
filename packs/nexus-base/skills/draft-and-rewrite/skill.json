@@ -1,0 +1,118 @@
+{
+  "skill_id": "skl_draft_and_rewrite",
+  "uri": "nexus://skill/skl_draft_and_rewrite",
+  "name": "Draft and rewrite",
+  "description": "Writes a text from a brief or rewrites a given one under tone, length, audience and format controls; keeps every fact, marks placeholders.",
+  "origin": "platform",
+  "status": "published",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "shortcut": "/draft",
+  "metadata": {
+    "tags": [
+      "writing"
+    ]
+  },
+  "evaluation": {
+    "human_review": {
+      "state": "approved",
+      "reviewed_by": "Nexi maintainers",
+      "reviewed_at": "2026-09-17T00:00:00Z",
+      "reviewed_version": "1.0.0"
+    }
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-17T00:00:00Z"
+  },
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-17T00:00:00Z",
+  "published_at": "2026-09-17T00:00:00Z",
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "brief": {
+        "type": "string"
+      },
+      "source_text": {
+        "type": "string"
+      },
+      "tone": {
+        "type": "string",
+        "enum": [
+          "neutral",
+          "formal",
+          "friendly",
+          "direct"
+        ]
+      },
+      "length": {
+        "type": "string"
+      },
+      "audience": {
+        "type": "string"
+      },
+      "format": {
+        "type": "string",
+        "enum": [
+          "email",
+          "memo",
+          "announcement",
+          "bullet_list",
+          "plain"
+        ]
+      },
+      "language": {
+        "type": "string"
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "text": {
+        "type": "string"
+      },
+      "changes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 8
+      },
+      "placeholders": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 20
+      }
+    },
+    "required": [
+      "text",
+      "changes",
+      "placeholders"
+    ]
+  },
+  "examples": [
+    {
+      "title": "Rewrite a delay notice",
+      "input": {
+        "source_text": "…",
+        "tone": "formal",
+        "length": "shorter",
+        "format": "email"
+      },
+      "expected_output": "{\"text\": \"Dear [recipient name], …\", \"changes\": [\"shortened to three paragraphs\"], \"placeholders\": [\"[recipient name]\"]}"
+    }
+  ]
+}

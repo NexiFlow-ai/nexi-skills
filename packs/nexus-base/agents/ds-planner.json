@@ -1,0 +1,59 @@
+{
+  "agent_id": "agt_ds_planner",
+  "uri": "nexus://agent/agt_ds_planner",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "name": "Analysis planner",
+  "purpose": "Turns a dataset profile and a question into stages, candidate indices and criteria",
+  "status": "published",
+  "version": 8,
+  "instructions": "",
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-19T00:00:00Z",
+  "published_at": "2026-09-19T00:00:00Z",
+  "skill_refs": [
+    "nexus://skill/skl_dataset_profile",
+    "nexus://skill/skl_eda_plan"
+  ],
+  "inference": {
+    "role": "planner",
+    "strategy": "quality_first",
+    "capabilities": [
+      "structured_output"
+    ],
+    "quality_min": 0.75
+  },
+  "permissions": {
+    "max_classification": "confidential"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-19T00:00:00Z"
+  },
+  "capability": {
+    "intents": [
+      "analyze",
+      "plan",
+      "data_query"
+    ],
+    "domains": [
+      "data",
+      "general"
+    ],
+    "inputs": [
+      "table",
+      "text"
+    ],
+    "outputs": [
+      "document"
+    ],
+    "side_effects": false,
+    "background_supported": true,
+    "cost_class": "medium",
+    "latency_class": "background",
+    "classification_max": "confidential",
+    "routable": false
+  }
+}

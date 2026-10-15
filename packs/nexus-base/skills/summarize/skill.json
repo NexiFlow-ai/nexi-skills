@@ -1,0 +1,144 @@
+{
+  "skill_id": "skl_summarize_sources",
+  "uri": "nexus://skill/skl_summarize_sources",
+  "name": "Summarize",
+  "description": "Faithful summary of a text or the pinned sources: summary, key points, action items, open questions — with length and audience controls.",
+  "origin": "platform",
+  "status": "published",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "shortcut": "/summary",
+  "metadata": {
+    "tags": [
+      "summarization",
+      "general"
+    ]
+  },
+  "evaluation": {
+    "human_review": {
+      "state": "approved",
+      "reviewed_by": "Nexi maintainers",
+      "reviewed_at": "2026-09-17T00:00:00Z",
+      "reviewed_version": "1.0.0"
+    }
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-17T00:00:00Z"
+  },
+  "created_by": "nexus-platform",
+  "created_at": "2026-09-17T00:00:00Z",
+  "published_at": "2026-09-17T00:00:00Z",
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "text": {
+        "type": "string",
+        "description": "The material to summarize (message body or pinned sources)"
+      },
+      "length": {
+        "type": "string",
+        "enum": [
+          "brief",
+          "standard",
+          "detailed"
+        ]
+      },
+      "audience": {
+        "type": "string",
+        "enum": [
+          "executive",
+          "technical",
+          "general"
+        ]
+      }
+    },
+    "required": [
+      "text"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "summary": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "key_points": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400
+        },
+        "maxItems": 12
+      },
+      "action_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 400
+            },
+            "owner": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "due": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "action"
+          ]
+        },
+        "maxItems": 30
+      },
+      "open_questions": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400
+        },
+        "maxItems": 12
+      }
+    },
+    "required": [
+      "summary",
+      "key_points",
+      "action_items",
+      "open_questions"
+    ]
+  },
+  "examples": [
+    {
+      "title": "Board memo → executive brief",
+      "input": {
+        "text": "…the Q3 memo…",
+        "length": "brief",
+        "audience": "executive"
+      },
+      "expected_output": "{\"summary\": \"Revenue grew 8% while costs were flat; the board is asked to approve the hiring plan.\", …}"
+    }
+  ]
+}

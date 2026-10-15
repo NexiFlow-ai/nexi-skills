@@ -1,0 +1,460 @@
+{
+  "blueprint_id": "nexus-base",
+  "uri": "nexus://core/blueprint/nexus-base",
+  "name": "Nexi Base",
+  "description": "The base layer every organization starts from: generic, vendor-free, human-reviewed skills, agents, flow templates, platform tools, connector kinds, model roles and sandbox profiles. Child layers (organization, project) may only tighten it.",
+  "layer": "base",
+  "version": "1.12.0",
+  "status": "published",
+  "source_pack_uri": "nexus://core/pack/nexus-base",
+  "deployment_targets": [
+    "on_prem",
+    "azure",
+    "disconnected"
+  ],
+  "defaults": {
+    "agents": [
+      "nexus://agent/agt_general",
+      "nexus://agent/agt_analyst",
+      "nexus://agent/agt_writer",
+      "nexus://agent/agt_reviewer",
+      "nexus://agent/agt_governance",
+      "nexus://agent/agt_ds_planner",
+      "nexus://agent/agt_data_scientist",
+      "nexus://agent/agt_web_source_curator",
+      "nexus://agent/agt_research_planner",
+      "nexus://agent/agt_web_researcher",
+      "nexus://agent/agt_research_narrator",
+      "nexus://agent/agt_goal_planner",
+      "nexus://agent/agt_goal_verifier",
+      "nexus://agent/agt_goal_challenger",
+      "nexus://agent/agt_goal_coder",
+      "nexus://agent/agt_goal_recovery_analyst"
+    ],
+    "skills": [
+      "nexus://skill/skl_summarize_sources",
+      "nexus://skill/skl_extract_structured_data",
+      "nexus://skill/skl_classify_sensitivity",
+      "nexus://skill/skl_assess_governance_risk",
+      "nexus://skill/skl_answer_from_sources",
+      "nexus://skill/skl_compare_documents",
+      "nexus://skill/skl_draft_and_rewrite",
+      "nexus://skill/skl_translate",
+      "nexus://skill/skl_meeting_notes_to_actions",
+      "nexus://skill/skl_create_flow",
+      "nexus://skill/skl_pin_context",
+      "nexus://skill/skl_dataset_profile",
+      "nexus://skill/skl_eda_plan",
+      "nexus://skill/skl_chart_recommendation",
+      "nexus://skill/skl_analysis_report",
+      "nexus://skill/skl_web_source_curation",
+      "nexus://skill/skl_web_research_planning",
+      "nexus://skill/skl_web_page_reading",
+      "nexus://skill/skl_research_report",
+      "nexus://skill/skl_goal_planning",
+      "nexus://skill/skl_goal_verification",
+      "nexus://skill/skl_goal_challenge",
+      "nexus://skill/skl_goal_code",
+      "nexus://skill/skl_goal_recovery"
+    ],
+    "flows": {
+      "document_review": "nexus://workflow/template/flw_tpl_document_review",
+      "data_extraction": "nexus://workflow/template/flw_tpl_data_extraction",
+      "goal_loop": "nexus://workflow/template/goal-evaluator-loop",
+      "weekly_digest": "nexus://workflow/template/flw_tpl_weekly_digest",
+      "admin_governance": "nexus://workflow/template/flw_tpl_admin_governance",
+      "member_onboarding": "nexus://workflow/template/flw_tpl_member_onboarding",
+      "ads": "nexus://workflow/template/flw_tpl_agentic_data_scientist",
+      "web_source": "nexus://workflow/template/flw_tpl_web_source",
+      "mail_triage": "nexus://workflow/template/flw_tpl_mail_triage",
+      "auto_resolver": "nexus://workflow/template/flw_tpl_auto_resolver",
+      "web_research": "nexus://workflow/template/flw_tpl_web_research",
+      "goal_resolution": "nexus://workflow/template/flw_tpl_goal_resolution"
+    },
+    "general_agent_uri": "nexus://agent/agt_general",
+    "suggested_capabilities": [
+      "Summarize a document",
+      "Analyse a spreadsheet",
+      "Extract a table from a contract",
+      "Classify the sensitivity of a file",
+      "Answer a question from the project sources",
+      "Compare two versions of a document",
+      "Turn meeting notes into actions"
+    ],
+    "projects": [
+      {
+        "role": "data_science",
+        "name": "Data science",
+        "description": "Attach a workbook or CSV and ask — the Agentic Data Scientist profiles it, plans the analysis with you, runs pandas in the confidential sandbox and leaves the tables and charts as drafts.",
+        "flows": [
+          "ads"
+        ],
+        "suggested_capabilities": [
+          "Profile this spreadsheet and find duplicates",
+          "Group the rows by organization and chart the top 5",
+          "What is the distribution of scores by category?"
+        ]
+      }
+    ]
+  },
+  "tool_policy": {
+    "allowlist": [
+      "nexus://tool/project.search",
+      "nexus://tool/knowledge.search",
+      "nexus://tool/project.file_read",
+      "nexus://tool/blob.read_text",
+      "nexus://tool/blob.head",
+      "nexus://tool/artifact.create_document",
+      "nexus://tool/artifact.create_table",
+      "nexus://tool/artifact.create_chart",
+      "nexus://tool/artifact.read",
+      "nexus://tool/dataset.query",
+      "nexus://tool/dataset.describe",
+      "nexus://tool/bi.dashboard.describe",
+      "nexus://tool/bi.alert.evaluate",
+      "nexus://tool/bi.dashboard.propose",
+      "nexus://tool/sandbox.run_python",
+      "nexus://tool/task.create",
+      "nexus://tool/task.read",
+      "nexus://tool/flow.run",
+      "nexus://tool/artifact.publish",
+      "nexus://tool/web.map",
+      "nexus://tool/web.fetch",
+      "nexus://tool/web.extract",
+      "nexus://tool/graph.source.pin",
+      "nexus://tool/graph.source.report",
+      "nexus://tool/capability.inventory",
+      "nexus://tool/rights.dryrun",
+      "nexus://tool/state.read",
+      "nexus://tool/plan.step",
+      "nexus://tool/connection.request",
+      "nexus://tool/capability.request",
+      "nexus://tool/authoring.draft",
+      "nexus://tool/skill.trial",
+      "nexus://tool/web.search",
+      "nexus://tool/research.run",
+      "nexus://tool/browser.open",
+      "nexus://tool/browser.follow",
+      "nexus://tool/goal.rank",
+      "nexus://tool/goal.bind",
+      "nexus://tool/goal.classify_anomaly",
+      "nexus://tool/goal.open",
+      "nexus://tool/goal.board.read",
+      "nexus://tool/goal.plan.validate",
+      "nexus://tool/goal.plan.challenge",
+      "nexus://tool/goal.situation",
+      "nexus://tool/goal.next",
+      "nexus://tool/goal.dispatch",
+      "nexus://tool/goal.agent.run",
+      "nexus://tool/goal.board.write",
+      "nexus://tool/goal.checkpoint",
+      "nexus://tool/goal.complete"
+    ],
+    "builder_only": [
+      "nexus://tool/mcp.invoke",
+      "nexus://tool/http.request"
+    ],
+    "side_effect_requires_approval": true
+  },
+  "model_policy": {
+    "allowed_endpoint_kinds": [
+      "local",
+      "contour",
+      "cloud"
+    ],
+    "max_classification_for_cloud": "confidential",
+    "max_tier": 3,
+    "allow_explicit_model": false,
+    "default_quality_min": {
+      "reasoner": 0.6,
+      "extractor": 0.6,
+      "classifier": 0.5,
+      "chat": 0.5,
+      "coder": 0.6,
+      "planner": 0.6,
+      "evaluator": 0.6
+    }
+  },
+  "tuning": {
+    "auto": {
+      "capability_arm": {
+        "min_score": 0.6,
+        "base_cue": 0.45,
+        "tool_match": 0.25,
+        "connection_present": 0.15,
+        "scope_held": 0.1,
+        "verb_read": 0.05
+      },
+      "resolver": {
+        "enabled": true,
+        "composite_trigger": false,
+        "visible_in_studio": true,
+        "survey_scopes": [
+          "work",
+          "bi",
+          "graph",
+          "connections"
+        ],
+        "research_enabled": true,
+        "budget": {
+          "max_iterations": 8,
+          "max_duration_s": 360,
+          "max_tokens": 60000,
+          "max_cost_units": 20,
+          "max_drafts": 3,
+          "max_requests": 3,
+          "wait_max_s": 604800
+        },
+        "dedupe_window_s": 86400,
+        "trial": {
+          "mode": "examples_through_model",
+          "fallback": "schema_only"
+        }
+      }
+    },
+    "web_research": {
+      "enabled": true,
+      "max_pages": 30,
+      "max_depth": 2,
+      "per_host_pages": 8,
+      "per_host_inflight": 1,
+      "per_host_delay_ms": 2000,
+      "max_minutes": 6,
+      "max_bytes": 25165824,
+      "render": "http"
+    },
+    "goal": {
+      "enabled": true,
+      "intake_threshold": {
+        "min_signals": 3,
+        "or_signals": [
+          "long_duration",
+          "approvals_expected"
+        ]
+      },
+      "rank_weights": {
+        "progress": 0.35,
+        "information_gain": 0.2,
+        "reuse": 0.15,
+        "cost": 0.1,
+        "latency": 0.05,
+        "risk": 0.1,
+        "human_friction": 0.05
+      },
+      "budget": {
+        "max_duration_s": 604800,
+        "max_tokens": 2000000,
+        "max_cost_units": 200,
+        "max_cycles": 40,
+        "max_plan_revisions": 5,
+        "max_no_progress_cycles": 3,
+        "max_steps_in_flight": 3,
+        "max_source_fetches": 10,
+        "max_web_searches": 15,
+        "max_ads_runs": 4,
+        "max_code_runs": 20,
+        "max_child_runs": 12
+      },
+      "max_live_goals_per_thread": 1,
+      "max_parallel_steps": 3,
+      "max_plan_depth": 3,
+      "result_min_interval_s": 60,
+      "retry": {
+        "max_attempts": 3,
+        "backoff_s": 30
+      },
+      "issue_threshold": 3,
+      "issue_window_s": 86400,
+      "wait_expiry_days": 14,
+      "board_ttl_days": 30,
+      "min_evidence_coverage": 0.8,
+      "stale_alert_hours": 72,
+      "challenge": {
+        "enabled": true,
+        "max_rounds": 1
+      },
+      "code": {
+        "max_runs_per_step": 5,
+        "sandbox_profile_uri": "nexus://sandbox/profile/public-dev",
+        "max_cpu_s": 120
+      },
+      "web": {
+        "max_queries": 15,
+        "max_pages_per_query": 10
+      },
+      "ladders": {
+        "knowledge": [
+          {
+            "rung": "board",
+            "enabled": true
+          },
+          {
+            "rung": "project_docs",
+            "enabled": true
+          },
+          {
+            "rung": "nexgraph",
+            "enabled": true
+          },
+          {
+            "rung": "connected_systems",
+            "enabled": true,
+            "eligibility_rule": "connection.usable"
+          },
+          {
+            "rung": "research_named",
+            "enabled": true,
+            "eligibility_rule": "web_research.enabled",
+            "budget": {
+              "max_pages": 10
+            }
+          },
+          {
+            "rung": "web_search",
+            "enabled": true,
+            "eligibility_rule": "web_search.enabled",
+            "budget": {
+              "max_queries": 15
+            }
+          },
+          {
+            "rung": "ask_user",
+            "enabled": true
+          }
+        ],
+        "data": [
+          {
+            "rung": "metric",
+            "enabled": true,
+            "eligibility_rule": "bi.metric_certified"
+          },
+          {
+            "rung": "data_query",
+            "enabled": true,
+            "eligibility_rule": "bi.dataset_usable"
+          },
+          {
+            "rung": "ads",
+            "enabled": true,
+            "eligibility_rule": "ads.installed",
+            "budget": {
+              "max_runs": 4
+            }
+          }
+        ],
+        "capability": [
+          {
+            "rung": "pack_flow",
+            "enabled": true,
+            "eligibility_rule": "flow.published"
+          },
+          {
+            "rung": "project_agent",
+            "enabled": true
+          },
+          {
+            "rung": "skill",
+            "enabled": true
+          },
+          {
+            "rung": "tool",
+            "enabled": true,
+            "eligibility_rule": "tool.bound"
+          },
+          {
+            "rung": "connected_capability",
+            "enabled": true,
+            "eligibility_rule": "connection.requestable"
+          },
+          {
+            "rung": "composition",
+            "enabled": true
+          },
+          {
+            "rung": "sandbox_code",
+            "enabled": true,
+            "eligibility_rule": "sandbox.code_allowed",
+            "budget": {
+              "max_runs": 5
+            }
+          },
+          {
+            "rung": "try_api",
+            "enabled": true,
+            "eligibility_rule": "synapse.test_mode"
+          },
+          {
+            "rung": "draft_tool",
+            "enabled": true,
+            "eligibility_rule": "authoring.drafts_allowed"
+          },
+          {
+            "rung": "draft_skill",
+            "enabled": true,
+            "eligibility_rule": "authoring.drafts_allowed"
+          },
+          {
+            "rung": "draft_agent",
+            "enabled": true,
+            "eligibility_rule": "authoring.drafts_allowed"
+          },
+          {
+            "rung": "draft_flow",
+            "enabled": true,
+            "eligibility_rule": "authoring.drafts_allowed"
+          }
+        ]
+      },
+      "situation": {
+        "enabled": true,
+        "door_budget_ms": 2000,
+        "max_terms": 8
+      },
+      "next": {
+        "enabled": true,
+        "one_turn": true,
+        "one_turn_budget_ms": 1500,
+        "max_doors": 3,
+        "weights": {
+          "recency": 0.3,
+          "relation": 0.3,
+          "same_party": 0.25,
+          "capability_match": 0.15
+        }
+      },
+      "authoring": {
+        "reuse_threshold": 0.72,
+        "eval_pass": 1,
+        "retire_after_days": 90,
+        "max_rounds": 1
+      }
+    }
+  },
+  "sandbox_profile_uri": "nexus://sandbox/profile/public-dev",
+  "approvals": {
+    "external_write_threshold": "confidential",
+    "goal_completion_requires_human": true,
+    "capability_request_approver": "owner",
+    "package_request_approver": "owner",
+    "allow_self_approval": false
+  },
+  "retention": {
+    "artifact_days": 730,
+    "run_days": 365,
+    "sandbox_output_days": 90
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-17T00:00:00Z"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-09-17T00:00:00Z",
+  "published_at": "2026-09-17T00:00:00Z",
+  "analysis": {
+    "datasets_enabled": true,
+    "merges_gate": {
+      "enabled": true,
+      "uncertain_pairs_threshold": 20
+    }
+  }
+}

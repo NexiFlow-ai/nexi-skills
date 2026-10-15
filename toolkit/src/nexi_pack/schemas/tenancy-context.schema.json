@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.nexiflow.ai/v1/tenancy-context.schema.json",
+  "title": "TenancyContext",
+  "description": "Hierarchical enterprise tenancy. Data isolation boundary: enterprise → tenant → unit → workspace.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "enterprise_id",
+    "tenant_id"
+  ],
+  "properties": {
+    "enterprise_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Top-level organisation (e.g. MoD, Acme Group). One enterprise may contain many tenants."
+    },
+    "tenant_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Tenant within enterprise — primary data contour and policy boundary."
+    },
+    "unit_id": {
+      "type": "string",
+      "description": "Optional sub-tenant partition (department, brigade, programme unit). Data scoped below tenant."
+    },
+    "workspace_id": {
+      "type": "string",
+      "description": "Optional collaboration scope within tenant/unit. May span units only when policy allows."
+    },
+    "contour_id": {
+      "type": "string",
+      "description": "Optional deployment or classification contour (e.g. restricted, disconnected)."
+    },
+    "company_id": {
+      "type": "string",
+      "description": "Optional joined external company context when actor acts on behalf of a joined company."
+    }
+  }
+}

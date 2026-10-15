@@ -1,0 +1,91 @@
+{
+  "api_version": "nexus/v1",
+  "kind": "FlowPattern",
+  "metadata": {
+    "id": "execute-test-repair",
+    "name": "Execute, test, repair",
+    "version": "1.0",
+    "category": "quality",
+    "layer": "flow_pattern",
+    "human_reviewed_by": "Nexi maintainers",
+    "reviewed_at": "2026-09-17T12:00:00Z"
+  },
+  "description": "Generate, run it in the sandbox, validate with tests; on failure diagnose and repair — a few times, then ask a person.",
+  "use_when": [
+    "generated_code_or_config",
+    "deterministic_validation_exists",
+    "self_correction"
+  ],
+  "examples": [
+    "Data transformation script that must pass tests",
+    "Report generator that must produce a valid file"
+  ],
+  "characteristics": {
+    "autonomy": "high",
+    "cost": "medium",
+    "latency": "high",
+    "reliability": "high"
+  },
+  "diagram": {
+    "columns": [
+      [
+        "trigger"
+      ],
+      [
+        "loop"
+      ],
+      [
+        "end"
+      ]
+    ],
+    "loop": [
+      "agent",
+      "tool",
+      "evaluator"
+    ],
+    "aria": "Trigger, a loop of generate, run in sandbox, validate until tests pass, end."
+  },
+  "template": {
+    "workflow_uri": "nexus://workflow/template/execute-test-repair",
+    "version": "1.1.0",
+    "file": "templates/execute-test-repair.json"
+  },
+  "requires": {
+    "node_types": [
+      "loop",
+      "agent",
+      "tool",
+      "evaluator",
+      "approval"
+    ]
+  },
+  "placeholders": [
+    {
+      "node_id": "generate",
+      "role": "coder"
+    }
+  ],
+  "recommended": {
+    "human_review": "on_stall"
+  },
+  "learn_more": [
+    {
+      "term": "Reflexion with external feedback",
+      "note": "Validation is deterministic (tests, schema, metric) — never the generating model judging itself."
+    }
+  ],
+  "ui": {
+    "icon": "wrench"
+  },
+  "i18n": {
+    "uk": {
+      "name": "Виконати, перевірити, виправити",
+      "description": "Згенерувати, запустити у пісочниці, перевірити тестами; при збої — діагностувати і виправити, кілька разів, потім запитати людину.",
+      "examples": [
+        "Скрипт трансформації даних, що має пройти тести",
+        "Генератор звіту, що має створити валідний файл"
+      ],
+      "diagram_aria": "Тригер, цикл генерації, запуску в пісочниці та перевірки до проходження тестів, кінець."
+    }
+  }
+}

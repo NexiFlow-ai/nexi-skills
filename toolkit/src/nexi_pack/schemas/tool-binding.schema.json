@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.nexiflow.ai/v1/tool-binding.schema.json",
+  "title": "ToolBinding",
+  "description": "Who may use a tool. Owned by NexChat (nexus://tool/binding/<id>) and attached to exactly one scope — an Agent, a Project or a Flow. A binding never widens a ToolDefinition: `constraints` narrow inputs/classification and `approval` may only tighten. Runtime permission is the intersection UserPermission ∩ ProjectPermission ∩ AgentToolGrant ∩ ToolPolicy ∩ DataClassificationPolicy ∩ DeploymentPolicy — the binding is only one factor.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "binding_id",
+    "uri",
+    "tool_id",
+    "scope",
+    "granted_by",
+    "granted_at"
+  ],
+  "properties": {
+    "binding_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "uri": {
+      "$ref": "resource-uri.schema.json"
+    },
+    "tool_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "connection_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Required for kind=integration|custom tools; absent for platform tools."
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "maxProperties": 1,
+      "properties": {
+        "agent_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "project_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "flow_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "Exactly one of agent_id | project_id | flow_id."
+    },
+    "operations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 120
+      },
+      "description": "Subset of a collection's tools/operations granted (\"3 of 7 tools\"). Absent = the whole definition."
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "input_allow": {
+          "type": "object",
+          "description": "JSON Schema subset the inputs must additionally satisfy (e.g. supplier_id pattern)."
+        },
+        "max_classification": {
+          "$ref": "vocabulary.schema.json#/$defs/DataClassification",
+          "description": "May only be ≤ the definition's classification_max."
+        }
+      }
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode"
+      ],
+      "properties": {
+        "mode": {
+          "$ref": "vocabulary.schema.json#/$defs/ToolApprovalMode"
+        }
+      },
+      "description": "May only tighten the definition's mode (none → policy → always)."
+    },
+    "granted_by": {
+      "type": "string",
+      "description": "Human actor (Project owner / agent author). Agents never bind capabilities — only governed CapabilityRequests do."
+    },
+    "granted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "capability_request_ref": {
+      "$ref": "resource-uri.schema.json",
+      "description": "Set when the binding was created by approving a CapabilityRequest."
+    }
+  }
+}

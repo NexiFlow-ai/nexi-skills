@@ -1,0 +1,230 @@
+{
+  "spec_version": "1.1",
+  "workflow_id": "flw_tpl_sequential_chain",
+  "uri": "nexus://workflow/template/sequential-chain",
+  "tenancy": {
+    "enterprise_id": "pack",
+    "tenant_id": "pack"
+  },
+  "project_id": null,
+  "name": "Sequential chain",
+  "description": "Three steps in a fixed order; each step works on the previous step's result.",
+  "version": 1,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.1.0"
+  },
+  "requires": {},
+  "presentation": {
+    "title": {
+      "en": "Sequential chain",
+      "uk": "Послідовний ланцюжок"
+    },
+    "stage_labels": [
+      {
+        "node_id": "step_a",
+        "label": {
+          "en": "Step A",
+          "uk": "Крок A"
+        }
+      },
+      {
+        "node_id": "step_b",
+        "label": {
+          "en": "Step B",
+          "uk": "Крок B"
+        }
+      },
+      {
+        "node_id": "step_c",
+        "label": {
+          "en": "Step C",
+          "uk": "Крок C"
+        }
+      }
+    ],
+    "receipt_fields": [
+      {
+        "key": "result",
+        "label": {
+          "en": "Result",
+          "uk": "Результат"
+        }
+      }
+    ],
+    "result_kind": "answer"
+  },
+  "trigger": {
+    "kind": "manual"
+  },
+  "inputs": [
+    {
+      "name": "request",
+      "type": "string",
+      "required": true,
+      "description": "What the flow works on"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "object"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "Start"
+    },
+    {
+      "id": "step_a",
+      "kind": "agent",
+      "label": "Step A",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "analysis"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_general",
+        "context_scope": "project",
+        "inference": {
+          "role": "reasoner"
+        }
+      },
+      "input_mapping": {
+        "request": "$.inputs.request"
+      },
+      "description": "First step, e.g. extract."
+    },
+    {
+      "id": "step_b",
+      "kind": "agent",
+      "label": "Step B",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "analysis"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_general",
+        "context_scope": "project",
+        "inference": {
+          "role": "reasoner"
+        }
+      },
+      "input_mapping": {
+        "previous": "$.node.step_a.output"
+      },
+      "description": "Second step, e.g. validate."
+    },
+    {
+      "id": "step_c",
+      "kind": "agent",
+      "label": "Step C",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "analysis"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_writer",
+        "context_scope": "project",
+        "inference": {
+          "role": "summarizer"
+        }
+      },
+      "input_mapping": {
+        "previous": "$.node.step_b.output"
+      },
+      "description": "Last step, e.g. format the result."
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Done",
+      "input_mapping": {
+        "result": "$.node.step_c.output",
+        "step_a": "$.node.step_a.output",
+        "step_b": "$.node.step_b.output"
+      },
+      "description": "What the run returns: `result` is the substantive answer; the other keys are the steps' outputs for review and debugging."
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-step_a",
+      "source": "trigger",
+      "target": "step_a"
+    },
+    {
+      "id": "e-step_a-step_b",
+      "source": "step_a",
+      "target": "step_b"
+    },
+    {
+      "id": "e-step_b-step_c",
+      "source": "step_b",
+      "target": "step_c"
+    },
+    {
+      "id": "e-step_c-end",
+      "source": "step_c",
+      "target": "end"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": true,
+    "max_run_duration_s": 3600,
+    "run_as": "initiator"
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 200,
+        "y": 0
+      },
+      "step_a": {
+        "x": 200,
+        "y": 116
+      },
+      "step_b": {
+        "x": 200,
+        "y": 232
+      },
+      "step_c": {
+        "x": 200,
+        "y": 348
+      },
+      "end": {
+        "x": 200,
+        "y": 464
+      }
+    }
+  },
+  "governance": {
+    "state": "approved"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-09-17T12:00:00Z",
+  "published_at": "2026-09-17T12:00:00Z"
+}

@@ -1,0 +1,228 @@
+{
+  "uri": "nexus://bi/template/nexus_infrastructure",
+  "id": "nexus_infrastructure",
+  "title": [
+    {
+      "text": "Nexi infrastructure",
+      "lang": "en"
+    },
+    {
+      "text": "Інфраструктура Nexi",
+      "lang": "uk"
+    }
+  ],
+  "decision_kinds": [
+    "operate_platform"
+  ],
+  "platform": true,
+  "pack_ref": "nexus://core/pack/nexus-base",
+  "version": "1.0.0",
+  "slots": [
+    {
+      "id": "sec_services",
+      "kind": "section",
+      "role": "services",
+      "required": true,
+      "recommended_size": {
+        "w": 12,
+        "h": 1
+      }
+    },
+    {
+      "id": "services_up",
+      "kind": "metric",
+      "role": "outcome",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "services_up",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "health_latency",
+      "kind": "metric",
+      "role": "driver",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "health_latency_ms_avg",
+      "metric_hint": "driver"
+    },
+    {
+      "id": "tools_failed",
+      "kind": "metric",
+      "role": "risk",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "tool_calls_failed_total",
+      "metric_hint": "risk"
+    },
+    {
+      "id": "flows_failed",
+      "kind": "metric",
+      "role": "risk",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "flow_runs_failed_total"
+    },
+    {
+      "id": "up_trend",
+      "kind": "chart",
+      "role": "trend_over_days",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "services_up_history",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "latency_trend",
+      "kind": "chart",
+      "role": "trend_over_days",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "health_latency_history",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "sec_pipelines",
+      "kind": "section",
+      "role": "pipelines_and_stores",
+      "required": true,
+      "recommended_size": {
+        "w": 12,
+        "h": 1
+      }
+    },
+    {
+      "id": "graph_failed",
+      "kind": "metric",
+      "role": "risk",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "graph_runs_failed_24h"
+    },
+    {
+      "id": "model_calls",
+      "kind": "metric",
+      "role": "volume",
+      "required": false,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "model_calls_total"
+    },
+    {
+      "id": "datasets",
+      "kind": "metric",
+      "role": "volume",
+      "required": false,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "bi_datasets_total"
+    },
+    {
+      "id": "graph_failed_trend",
+      "kind": "chart",
+      "role": "trend_over_days",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "graph_runs_failed_history",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "flows_failed_trend",
+      "kind": "chart",
+      "role": "trend_over_days",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "flow_runs_failed_history",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "sec_supply",
+      "kind": "section",
+      "role": "supply_chain",
+      "required": true,
+      "recommended_size": {
+        "w": 12,
+        "h": 1
+      }
+    },
+    {
+      "id": "audit",
+      "kind": "metric",
+      "role": "risk",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "audit_critical_high"
+    },
+    {
+      "id": "secrets",
+      "kind": "metric",
+      "role": "risk",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "secret_hits_total"
+    },
+    {
+      "id": "audit_trend",
+      "kind": "chart",
+      "role": "trend_over_commits",
+      "required": false,
+      "recommended_size": {
+        "w": 12,
+        "h": 4
+      },
+      "metric_key": "audit_history",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "scope",
+      "kind": "text",
+      "role": "enterprise_only",
+      "required": false,
+      "recommended_size": {
+        "w": 4,
+        "h": 2
+      }
+    }
+  ],
+  "deployment_targets": [
+    "on_prem",
+    "disconnected"
+  ]
+}

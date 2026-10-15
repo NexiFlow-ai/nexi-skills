@@ -1,0 +1,83 @@
+{
+  "kind": "tool_groups",
+  "description": "The seven platform tool groups of the base pack mapped onto the platform tools NexCore really serves. `enabled: false` = shipped off in the base layer; a project may enable it later. `available: false` = named in the pack but no platform tool executes it yet — honest, not hidden.",
+  "groups": [
+    {
+      "key": "documents",
+      "label": "Documents · read & parse",
+      "tool_uris": [
+        "nexus://tool/project.file_read",
+        "nexus://tool/blob.read_text",
+        "nexus://tool/blob.head"
+      ],
+      "enabled": true,
+      "available": true,
+      "formats": [
+        "pdf",
+        "docx",
+        "xlsx",
+        "csv",
+        "md",
+        "txt"
+      ]
+    },
+    {
+      "key": "sources",
+      "label": "Sources · search",
+      "tool_uris": [
+        "nexus://tool/project.search",
+        "nexus://tool/knowledge.search"
+      ],
+      "enabled": true,
+      "available": true
+    },
+    {
+      "key": "artifacts",
+      "label": "Artifacts · write",
+      "tool_uris": [
+        "nexus://tool/artifact.create_document",
+        "nexus://tool/artifact.create_table",
+        "nexus://tool/artifact.create_chart",
+        "nexus://tool/artifact.read"
+      ],
+      "enabled": true,
+      "available": true
+    },
+    {
+      "key": "tables",
+      "label": "Tables · query",
+      "tool_uris": [
+        "nexus://tool/dataset.query",
+        "nexus://tool/dataset.describe"
+      ],
+      "enabled": true,
+      "available": true
+    },
+    {
+      "key": "sandbox",
+      "label": "Sandbox · Python",
+      "tool_uris": [
+        "nexus://tool/sandbox.run_python"
+      ],
+      "enabled": true,
+      "available": true,
+      "sandbox_profile_uri": "nexus://sandbox/profile/public-dev"
+    },
+    {
+      "key": "web",
+      "label": "Web · fetch",
+      "tool_uris": [],
+      "enabled": false,
+      "available": false,
+      "note": "No platform tool fetches the open web yet; when one lands it ships off in the base layer and a project enables it explicitly."
+    },
+    {
+      "key": "connections",
+      "label": "Connections · call",
+      "tool_uris": [],
+      "enabled": true,
+      "available": true,
+      "note": "Integration tools reach external systems only through a governed Synapse connection the organization creates in Core › Connections; they appear per connection, never pre-bound."
+    }
+  ]
+}

@@ -1,0 +1,1982 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.nexiflow.ai/v1/workflow-spec.schema.json",
+  "title": "WorkflowSpec",
+  "description": "Canonical, versioned flow definition. Owner apps/chat (Flow Studio inside NexChat). Execution semantics live in `nodes`/`edges`/`policy`; React Flow positions live only in `layout` and never affect execution. Published versions are immutable — behaviour changes create a new version. Structural rules JSON Schema cannot express (edge endpoints exist, exactly one trigger, reachability, bounded cycles, loop body membership, evaluator wiring, template bindings resolved) are enforced by the validator and reported as FlowValidationCode. A 1.0 document is a valid 1.1 document. 1.2: additive `origin.pattern_uri` / `pattern_version` / `imported_from` and the `capability` routing block.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "spec_version",
+    "workflow_id",
+    "uri",
+    "tenancy",
+    "project_id",
+    "name",
+    "version",
+    "status",
+    "classification",
+    "trigger",
+    "nodes",
+    "edges",
+    "policy",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "spec_version": {
+      "type": "string",
+      "pattern": "^1\\.(0|1|2)$",
+      "description": "1.0 = UAT-2b; 1.1 = UAT-2d (goal / loop / evaluator / sandbox / template blocks); 1.2 = UAT-2. Additive — 1.0 and 1.1 documents validate unchanged."
+    },
+    "workflow_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "uri": {
+      "$ref": "resource-uri.schema.json"
+    },
+    "tenancy": {
+      "$ref": "tenancy-context.schema.json"
+    },
+    "project_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "description": "Owning Project. null only for installed templates (template.is_template = true) that are not yet instantiated into a Project."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "$ref": "vocabulary.schema.json#/$defs/FlowDefinitionStatus"
+    },
+    "classification": {
+      "$ref": "vocabulary.schema.json#/$defs/DataClassification"
+    },
+    "trigger": {
+      "$ref": "#/$defs/Trigger"
+    },
+    "goal": {
+      "$ref": "goal-spec.schema.json",
+      "description": "Machine-readable definition of success. Required by the validator when any loop node uses until.kind = goal or any evaluator uses criteria_source = goal. Success criteria are evaluated deterministically; an agent evaluator may only propose."
+    },
+    "template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "is_template"
+      ],
+      "description": "Template vs instance. A template carries `requires` and unresolved bindings and can never be RUN (FlowRunRequest against a template is rejected); it is shipped in a NexusPack and installed into the registry (tenancy stamped by the installer, project_id null). Instantiation resolves dependencies → binds models → binds tools/connections → applies the effective Blueprint → yields a runnable Project instance whose `template.source_*` point back to the origin.",
+      "properties": {
+        "is_template": {
+          "type": "boolean"
+        },
+        "source_template_uri": {
+          "$ref": "resource-uri.schema.json"
+        },
+        "source_template_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "source_pack_uri": {
+          "$ref": "resource-uri.schema.json"
+        },
+        "resolved_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "parameters": {
+          "type": "array",
+          "maxItems": 24,
+          "description": "what an instantiator must supply. Every `{{param.<name>}}` token in the template's string fields (trigger cron/timezone/event_filter, node input_mapping, condition source, notify template) is replaced at instantiate by the value given in FlowInstantiateRequest.parameters; a required parameter without a value (and no default) refuses the instantiate (422 missing_parameter). Only templates carry this; a Project instance has no unresolved tokens.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "type"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,63}$"
+              },
+              "type": {
+                "$ref": "vocabulary.schema.json#/$defs/FlowTemplateParameterType"
+              },
+              "required": {
+                "type": "boolean",
+                "default": true
+              },
+              "default": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean",
+                  "null"
+                ]
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 400
+              }
+            }
+          }
+        }
+      }
+    },
+    "requires": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Portable dependency declaration — never concrete endpoints, model API keys or connection ids. Filled by pack authors; satisfied by `bindings` at instantiation (validator: unresolved_binding).",
+      "properties": {
+        "models": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "role"
+            ],
+            "properties": {
+              "role": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,63}$"
+              },
+              "capabilities": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 40
+                }
+              },
+              "min_context_tokens": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "inference": {
+                "$ref": "inference-policy.schema.json",
+                "description": "Full policy for this required model role; `role`/`capabilities` above remain the short form."
+              }
+            }
+          }
+        },
+        "tools": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "resource-uri.schema.json"
+          },
+          "description": "ToolDefinition URIs (nexus://tool/<id>) the flow needs bound in the target deployment."
+        },
+        "connections": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "tool_uri"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,63}$"
+              },
+              "tool_uri": {
+                "$ref": "resource-uri.schema.json"
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 300
+              }
+            }
+          }
+        },
+        "sandbox_runtimes": {
+          "type": "array",
+          "items": {
+            "$ref": "vocabulary.schema.json#/$defs/SandboxRuntime"
+          }
+        }
+      }
+    },
+    "bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Instantiation result: role → model id, connection name → ToolConnection URI. Credentials are never here (Credential Broker resolves connection.credential_ref server-side).",
+      "properties": {
+        "models": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 120
+          }
+        },
+        "connections": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "resource-uri.schema.json"
+          }
+        },
+        "blueprint_uri": {
+          "$ref": "resource-uri.schema.json",
+          "description": "Effective Blueprint applied at instantiation (nexus://core/blueprint/<id>)."
+        }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Lifecycle Draft → Test → Evaluation → Security review → Approval → Published. Suites are portable pack resources; results are recorded, never self-asserted by an agent.",
+      "properties": {
+        "suite_uris": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "$ref": "resource-uri.schema.json"
+          }
+        },
+        "last_result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "passed",
+            "evaluated_at"
+          ],
+          "properties": {
+            "passed": {
+              "type": "boolean"
+            },
+            "run_uri": {
+              "$ref": "resource-uri.schema.json"
+            },
+            "score": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "evaluated_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      }
+    },
+    "security_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "$ref": "vocabulary.schema.json#/$defs/SecurityReviewState"
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "record_uri": {
+          "$ref": "resource-uri.schema.json"
+        }
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/$defs/Param"
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/$defs/Param"
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 200,
+      "items": {
+        "$ref": "#/$defs/Node"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "maxItems": 400,
+      "items": {
+        "$ref": "#/$defs/Edge"
+      }
+    },
+    "policy": {
+      "$ref": "#/$defs/FlowPolicy"
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Editor-only metadata (React Flow). Ignored by the runtime; may be regenerated by auto-layout.",
+      "properties": {
+        "positions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "x",
+              "y"
+            ],
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "viewport": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "zoom": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "AI-first creation provenance (D15: NL→Flow is a first-party Skill, not a hardcoded function).",
+      "properties": {
+        "intent": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "skill_uri": {
+          "$ref": "resource-uri.schema.json"
+        },
+        "generated_by_run": {
+          "$ref": "resource-uri.schema.json"
+        },
+        "resolver_run": {
+          "$ref": "resource-uri.schema.json",
+          "description": "1.88.0: the Auto resolver run that drafted this flow on the person's behalf — publish stays the person's; the publish writes `draft_published` to that run's plan decision."
+        },
+        "modified_from_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "open_questions": {
+          "type": "array",
+          "maxItems": 10,
+          "description": "1.12.0 — what the drafting Skill left for the author to decide; the author removes an item when it is settled. Kept with the draft so the editor can show it after the plan card is gone.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "text"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 300
+              },
+              "node_id": {
+                "type": "string"
+              },
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          }
+        },
+        "pattern_uri": {
+          "$ref": "resource-uri.schema.json",
+          "description": "1.2: nexus://chat/pattern/<id> — the pattern this Flow was instantiated from. Informational provenance only: the Flow has no live link to the pattern and a pattern version bump never touches it."
+        },
+        "pattern_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$",
+          "description": "1.2 — pattern `metadata.version` at instantiation."
+        },
+        "imported_from": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "filename",
+            "sha256"
+          ],
+          "description": "1.2: set by Import. The file supplied topology only — ids, tenancy, owner, version, governance and `is_template` were stripped / re-stamped by the server.",
+          "properties": {
+            "filename": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "imported_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      }
+    },
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "1.25.0: declared ROUTING metadata the capability catalog read model projects into a RoutableCapability. Authored by a human in Studio; absent block → derived defaults (`intents = []`, `side_effects` from tool bindings / requires). Never read by the runtime; never a permission.",
+      "properties": {
+        "intents": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "vocabulary.schema.json#/$defs/IntentName"
+          }
+        },
+        "domains": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "vocabulary.schema.json#/$defs/IntentDomain"
+          }
+        },
+        "inputs": {
+          "type": "array",
+          "maxItems": 10,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "vocabulary.schema.json#/$defs/CapabilityInputKind"
+          }
+        },
+        "outputs": {
+          "type": "array",
+          "maxItems": 10,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "vocabulary.schema.json#/$defs/CapabilityOutputKind"
+          }
+        },
+        "side_effects": {
+          "type": "boolean",
+          "description": "true ⇒ Auto never auto-starts it."
+        },
+        "background_supported": {
+          "type": "boolean"
+        },
+        "cost_class": {
+          "$ref": "vocabulary.schema.json#/$defs/ModelCostClass"
+        },
+        "latency_class": {
+          "$ref": "vocabulary.schema.json#/$defs/LatencyClass"
+        },
+        "classification_max": {
+          "$ref": "vocabulary.schema.json#/$defs/DataClassification"
+        },
+        "routable": {
+          "type": "boolean",
+          "description": "1.76.0: false ⇒ the capability catalog never projects this Flow — Auto never ranks it; it starts only through its own door (the resolver: the hand-off predicate, `RouteKind.resolve`). Absent = true. Studio still lists it."
+        },
+        "follow_up_agent_uri": {
+          "$ref": "resource-uri.schema.json",
+          "description": "1.35.0: the agent that carries the conversation after this Flow ran — an on-topic follow-up in the thread is a sticky hop to it (Auto → <agent> · sticky_thread), never a second run of the Flow. Routing metadata; the PDP decides whether the person may invoke the agent."
+        }
+      }
+    },
+    "presentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "stage_labels",
+        "result_kind"
+      ],
+      "description": "1.129.0: how a conversation shows this Flow's run — the one `TurnCard` reads it; the thread holds no template URI, Flow name or node-kind test. Text is a LocalizedText map; a Flow without the block renders the generic presentation (humanised node ids). Declared by the pack author; a Blueprint layer may only tighten.",
+      "properties": {
+        "title": {
+          "$ref": "#/$defs/LocalizedText",
+          "description": "The card's title while it runs and after (*Research*, *Looking into it*)."
+        },
+        "stage_labels": {
+          "type": "array",
+          "maxItems": 24,
+          "description": "The stages the card shows, in order — a node id and the words a person reads for it. Nodes absent here are not shown (plumbing).",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "node_id",
+              "label"
+            ],
+            "properties": {
+              "node_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "label": {
+                "$ref": "#/$defs/LocalizedText"
+              }
+            }
+          }
+        },
+        "person_steps": {
+          "type": "array",
+          "maxItems": 24,
+          "uniqueItems": true,
+          "description": "Node ids whose step waits on the person (an approval, a choice, a connection, a tool request) — the card reads *waiting on you* there, never *running*.",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        },
+        "receipt_fields": {
+          "type": "array",
+          "maxItems": 12,
+          "description": "Output keys of the run named on the receipt (*3 sources · 2 drafts*) — a key of the run's `outputs` and its words.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "key",
+              "label"
+            ],
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "label": {
+                "$ref": "#/$defs/LocalizedText"
+              }
+            }
+          }
+        },
+        "result_kind": {
+          "$ref": "vocabulary.schema.json#/$defs/FlowResultKind",
+          "description": "What the card ends with: a report to open (`outputs.report {answer, citations[], findings[]}`) · artifacts named on the receipt · an analysis (the staged face: stages with the drafts of every pass, the datasets kept, the report and the Dataset Card, the review decided in the thread) · the answer itself in the thread · a plan the person accepts before the work (the Auto resolver's gate: Accept · Change · Not now) · nothing beyond the receipt. The thread chooses the card's face from this value alone."
+        },
+        "child_of": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "When this Flow runs as a child of another Flow's step (the resolver's `research`), the parent step's node id whose staged view embeds this run — the thread shows one card, not two."
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "$ref": "vocabulary.schema.json#/$defs/GovernanceState"
+        },
+        "record_uri": {
+          "$ref": "resource-uri.schema.json"
+        },
+        "user_message_key": {
+          "type": "string"
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the review happened."
+        }
+      }
+    },
+    "created_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "project_id": {
+            "type": "null"
+          }
+        },
+        "required": [
+          "project_id"
+        ]
+      },
+      "then": {
+        "required": [
+          "template"
+        ],
+        "properties": {
+          "template": {
+            "properties": {
+              "is_template": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "template": {
+            "properties": {
+              "is_template": {
+                "const": true
+              }
+            },
+            "required": [
+              "is_template"
+            ]
+          }
+        },
+        "required": [
+          "template"
+        ]
+      },
+      "then": {
+        "required": [
+          "requires"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "LocalizedText": {
+      "type": "object",
+      "description": "1.129.0: the words a person reads, per language — `en` and `uk` are required; other BCP-47 primary tags may be added. Never a key into an app bundle: a pack ships its own words.",
+      "required": [
+        "en",
+        "uk"
+      ],
+      "properties": {
+        "en": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "uk": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        }
+      },
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "propertyNames": {
+        "pattern": "^[a-z]{2,3}$"
+      }
+    },
+    "Param": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "type"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "type": {
+          "type": "string",
+          "pattern": "^(string|number|integer|boolean|object|array|resource_uri|date-time|file)$",
+          "description": "1.15.0: `file` — the value is the URI of a Project attachment (nexus://chat/attachment/<id>, attachment.schema.json) the initiator may read; an `agent` step receives it as a quoted document, never as an instruction."
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "classification": {
+          "$ref": "vocabulary.schema.json#/$defs/DataClassification"
+        }
+      }
+    },
+    "Expression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "language",
+        "source"
+      ],
+      "description": "Deterministic boolean/value expression. `nexus-expr-v1` = comparisons, boolean ops, path refs (`$.node.<id>.output.<field>`, `$.inputs.<name>`), literals. No function calls, no code execution.",
+      "properties": {
+        "language": {
+          "type": "string",
+          "const": "nexus-expr-v1"
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "Retry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_attempts",
+        "backoff"
+      ],
+      "properties": {
+        "max_attempts": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "backoff": {
+          "$ref": "vocabulary.schema.json#/$defs/FlowBackoff"
+        },
+        "initial_delay_s": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600
+        },
+        "max_delay_s": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 86400
+        }
+      }
+    },
+    "Idempotency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key_template"
+      ],
+      "description": "Required for every mutating node (tool/integration/notify with mutating=true). Template may reference run_id, node_id, inputs.",
+      "properties": {
+        "key_template": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "dedupe_window_s": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2592000
+        }
+      }
+    },
+    "NodePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pep_action": {
+          "$ref": "vocabulary.schema.json#/$defs/PepAction"
+        },
+        "purpose": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "require_approval": {
+          "type": "boolean",
+          "description": "Author-requested approval. Policy may additionally inject approval for external writes even when false."
+        }
+      }
+    },
+    "Trigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "$ref": "vocabulary.schema.json#/$defs/FlowTriggerKind"
+        },
+        "event_subject": {
+          "type": "string",
+          "pattern": "^nexus\\.[a-z]+\\.[a-z_.]+\\.v[0-9]+$"
+        },
+        "event_filter": {
+          "$ref": "#/$defs/Expression"
+        },
+        "schedule_cron": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "schedule_timezone": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "api_path": {
+          "type": "string",
+          "pattern": "^/[a-z0-9/_-]*$"
+        },
+        "webhook": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "hook_id",
+            "signature"
+          ],
+          "description": "1.20.0: the inbound hook this flow starts from. The URL is POST /chat/hooks/{hook_id} on chat-api; `secret_ref` names the broker entry the HMAC secret lives in (never the value); `tolerance_s` bounds |now − timestamp|; `replay_window_s` is how long a (hook_id, signature) pair is remembered.",
+          "properties": {
+            "hook_id": {
+              "type": "string",
+              "pattern": "^hk_[a-z0-9]{8,32}$"
+            },
+            "signature": {
+              "$ref": "vocabulary.schema.json#/$defs/WebhookSignatureScheme"
+            },
+            "secret_ref": {
+              "$ref": "resource-uri.schema.json"
+            },
+            "tolerance_s": {
+              "type": "integer",
+              "minimum": 30,
+              "maximum": 900,
+              "default": 300
+            },
+            "replay_window_s": {
+              "type": "integer",
+              "minimum": 60,
+              "maximum": 86400,
+              "default": 600
+            }
+          }
+        },
+        "event_subjects": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^nexus\\.[a-z]+\\.[a-z_.]+\\.v[0-9]+$"
+          },
+          "description": "1.161.0: the subjects one `event` trigger listens on — one of `event_subject` / `event_subjects`; one run per event; the same `event_filter` applies to each."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "webhook"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "webhook"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "webhook": {
+                "properties": {
+                  "signature": {
+                    "const": "hmac_sha256"
+                  }
+                },
+                "required": [
+                  "signature"
+                ]
+              }
+            },
+            "required": [
+              "webhook"
+            ]
+          },
+          "then": {
+            "properties": {
+              "webhook": {
+                "required": [
+                  "secret_ref"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "label"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+        },
+        "kind": {
+          "$ref": "vocabulary.schema.json#/$defs/FlowNodeKind"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "timeout_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2592000
+        },
+        "retry": {
+          "$ref": "#/$defs/Retry"
+        },
+        "idempotency": {
+          "$ref": "#/$defs/Idempotency"
+        },
+        "policy": {
+          "$ref": "#/$defs/NodePolicy"
+        },
+        "on_failure": {
+          "$ref": "vocabulary.schema.json#/$defs/FlowOnFailure"
+        },
+        "compensation_node_id": {
+          "type": "string"
+        },
+        "sandbox_profile_uri": {
+          "$ref": "resource-uri.schema.json",
+          "description": "Optional per-node SandboxProfile (nexus://sandbox/profile/<id>) for tool nodes that execute code. May only TIGHTEN the effective Blueprint/Project profile — validator: sandbox_profile_loosened."
+        },
+        "input_mapping": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "description": "target input name → nexus-expr-v1 path/literal"
+        },
+        "agent": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "agent_uri"
+          ],
+          "properties": {
+            "agent_uri": {
+              "$ref": "resource-uri.schema.json"
+            },
+            "model_id": {
+              "type": "string",
+              "description": "DEPRECATED since spec 1.2: pins a concrete model. Use `inference.role`. Validator warning: model_id_pinned."
+            },
+            "context_scope": {
+              "type": "string",
+              "pattern": "^(project|run_inputs|node_inputs)$"
+            },
+            "output_schema": {
+              "type": "object",
+              "description": "JSON Schema the agent result must validate against; model text never mutates state directly."
+            },
+            "skill_uris": {
+              "type": "array",
+              "maxItems": 20,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "resource-uri.schema.json"
+              },
+              "description": "Skills (nexus://skill/<id>) this agent step applies — reusable methods, never executables. Each must be in the referenced agent's skill_refs (validator: skill_not_attached).."
+            },
+            "inference": {
+              "$ref": "inference-policy.schema.json",
+              "description": "Role-based model requirement. Preferred over model_id; when both are present the validator warns model_id_pinned and the runtime honours `inference`."
+            }
+          }
+        },
+        "skill": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "skill_uri"
+          ],
+          "properties": {
+            "skill_uri": {
+              "$ref": "resource-uri.schema.json"
+            }
+          },
+          "description": "DEPRECATED: a standalone skill node is rejected by the validator (skill_node_deprecated). Apply skills inside an agent node via agent.skill_uris.",
+          "deprecated": true
+        },
+        "condition": {
+          "$ref": "#/$defs/Expression"
+        },
+        "approval": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "approver"
+          ],
+          "description": "Creates a NexTasks approval; run persists WAITING and resumes on nexus.tasks.approval.completed.v1.",
+          "properties": {
+            "approver": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "relation": {
+                  "$ref": "vocabulary.schema.json#/$defs/ProjectRelation"
+                },
+                "actor_uri": {
+                  "$ref": "resource-uri.schema.json"
+                },
+                "role": {
+                  "type": "string",
+                  "maxLength": 80
+                }
+              },
+              "minProperties": 1
+            },
+            "title_template": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "on_timeout": {
+              "type": "string",
+              "pattern": "^(fail|escalate|auto_reject)$"
+            },
+            "escalate_to": {
+              "$ref": "resource-uri.schema.json"
+            },
+            "decision": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind"
+              ],
+              "description": "1.52.0: this gate is a recorded decision point. The engine resolves `features` (name → context path, like input_mapping) when it opens the approval and hands `{kind, features}` to the app's approval port, which persists the decision record (state features · action space · propensity 1.0 for 'ask the human') and writes the human's answer back as its outcome (`human_explicit`). `kind` is the app's closed decision kind (ChatDecisionKind for chat flows).",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$"
+                },
+                "features": {
+                  "type": "object",
+                  "maxProperties": 24,
+                  "propertyNames": {
+                    "pattern": "^[a-z][a-z0-9_]{0,63}$"
+                  },
+                  "additionalProperties": {
+                    "type": "string",
+                    "maxLength": 300
+                  }
+                }
+              }
+            }
+          }
+        },
+        "human_task": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "assignee"
+          ],
+          "properties": {
+            "assignee": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "relation": {
+                  "$ref": "vocabulary.schema.json#/$defs/ProjectRelation"
+                },
+                "actor_uri": {
+                  "$ref": "resource-uri.schema.json"
+                }
+              },
+              "minProperties": 1
+            },
+            "title_template": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "form_schema": {
+              "type": "object"
+            }
+          }
+        },
+        "tool": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "tool_uri",
+            "operation",
+            "mutating"
+          ],
+          "description": "ToolDefinition reference. `mutating` must agree with the definition's side_effect (validator). Code execution is a platform tool (nexus://tool/sandbox.run_python | sandbox.run_sql | notebook.run) — never a raw endpoint, credential or host shell.",
+          "properties": {
+            "tool_uri": {
+              "$ref": "resource-uri.schema.json"
+            },
+            "operation": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "mutating": {
+              "type": "boolean"
+            },
+            "connection_ref": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,63}$",
+              "description": "Name from `requires.connections`, resolved through `bindings.connections` at instantiation."
+            },
+            "external_ref_path": {
+              "type": "string",
+              "maxLength": 200,
+              "description": "Where the remote request/reference id lives in the response (for recovery)."
+            }
+          }
+        },
+        "loop": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "entry_node_id",
+            "body_node_ids",
+            "until",
+            "max_iterations",
+            "max_duration_s"
+          ],
+          "description": "Generic Loop Container. Body nodes form a sub-graph rendered as a container in Flow Studio (double-click opens it). Each iteration runs the body from entry_node_id; the evaluator's verdict decides complete (exit edge when=complete) / continue / needs_human / needs_capability. Exhaustion of iterations, duration or budget exits via when=exhausted; stall handling via on_no_progress. No AgenticLoopNode exists — every agentic loop is this primitive plus a GoalSpec.",
+          "properties": {
+            "entry_node_id": {
+              "type": "string"
+            },
+            "body_node_ids": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 50,
+              "uniqueItems": true,
+              "items": {
+                "type": "string"
+              }
+            },
+            "until": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "evaluator_node_id"
+              ],
+              "properties": {
+                "evaluator_node_id": {
+                  "type": "string",
+                  "description": "Evaluator node inside the body whose verdict ends the iteration."
+                },
+                "kind": {
+                  "type": "string",
+                  "pattern": "^(goal|expression)$",
+                  "description": "goal = evaluate spec.goal.success_criteria; expression = deterministic nexus-expr-v1 over body outputs."
+                },
+                "expression": {
+                  "$ref": "#/$defs/Expression"
+                }
+              }
+            },
+            "max_iterations": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "max_duration_s": {
+              "type": "integer",
+              "minimum": 60,
+              "maximum": 604800
+            },
+            "budget": {
+              "$ref": "#/$defs/Budget"
+            },
+            "on_no_progress": {
+              "$ref": "vocabulary.schema.json#/$defs/FlowLoopStallAction"
+            },
+            "no_progress_after": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20,
+              "description": "Iterations without evaluator score improvement before on_no_progress fires."
+            },
+            "iteration_context": {
+              "$ref": "vocabulary.schema.json#/$defs/FlowIterationContext"
+            },
+            "on_failure_flow_uri": {
+              "$ref": "resource-uri.schema.json",
+              "description": "Recovery flow (subflow) started when a body node fails non-retryably."
+            },
+            "memory": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "rows_path",
+                "source_path"
+              ],
+              "description": "1.50.0: the loop works through plan rows an earlier step produced, and the app may already hold a current result for some of them. Before the first pass the engine resolves `rows_path` and `source_path`, asks the app's memory port which rows are current for that source, writes `reuse_from` (+ `reused_at`) on those rows and a `memory` block on the same node output, and seeds the loop's accumulated metrics with what the port returns — so the evaluator sees a reused row as done and a body step is told not to redo it. The engine never judges reuse itself: the port decides, records the decision with its full action space (rule 85) and says so on the thread. Absent → every pass is first contact.",
+              "properties": {
+                "rows_path": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "pattern": "^\\$\\.nodes?\\.[A-Za-z][A-Za-z0-9_-]*\\.output\\.[A-Za-z][A-Za-z0-9_]*$",
+                  "description": "`$.node.<id>.output.<field>` — an array of objects with `id` (string) and whatever key the port matches on (the ADS plan's `technique`)."
+                },
+                "source_path": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "description": "nexus-expr-v1 path to the input the memory is about (the ADS file: `$.inputs.dataset`)."
+                },
+                "recompute_path": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "description": "Optional path to an array of row ids the person asked to compute again (the Recompute door, Q-722) — never reused, recorded as the person's choice."
+                },
+                "profile_path": {
+                  "type": "string",
+                  "maxLength": 300,
+                  "description": "Optional path to an earlier step's output the port may turn into decision state features."
+                },
+                "never": {
+                  "type": "array",
+                  "maxItems": 20,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "description": "Row keys (`technique` values) that are never a reuse decision — synthesis rows that belong to this question (insights · suggestions · charts)."
+                }
+              }
+            }
+          }
+        },
+        "evaluator": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ],
+          "description": "Judges an iteration/result and emits EvaluatorVerdict + score + criteria_results. deterministic = nexus-expr over metrics/outputs; eval_suite = recorded evaluation suite; agent = LLM judge whose verdict is a PROPOSAL — it may never alone gate an external write, publish or mark a claim verified.",
+          "properties": {
+            "kind": {
+              "$ref": "vocabulary.schema.json#/$defs/EvaluatorKind"
+            },
+            "criteria_source": {
+              "type": "string",
+              "pattern": "^(goal|inline)$"
+            },
+            "criteria": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "$ref": "goal-spec.schema.json#/$defs/Criterion"
+              }
+            },
+            "metrics_path": {
+              "type": "string",
+              "maxLength": 300,
+              "description": "nexus-expr-v1 path to the metrics object produced by the body (e.g. $.node.train.output.metrics)."
+            },
+            "agent_uri": {
+              "$ref": "resource-uri.schema.json"
+            },
+            "eval_suite_uri": {
+              "$ref": "resource-uri.schema.json"
+            },
+            "pass_threshold": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "output_schema": {
+              "type": "object"
+            }
+          }
+        },
+        "integration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "integration_uri",
+            "operation",
+            "mutating"
+          ],
+          "properties": {
+            "integration_uri": {
+              "$ref": "resource-uri.schema.json"
+            },
+            "operation": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "mutating": {
+              "type": "boolean"
+            },
+            "external_ref_path": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        },
+        "data_query": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "dataset_uri"
+          ],
+          "properties": {
+            "dataset_uri": {
+              "$ref": "resource-uri.schema.json"
+            },
+            "query_ref": {
+              "$ref": "resource-uri.schema.json"
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "transform": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mapping"
+          ],
+          "properties": {
+            "mapping": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "maxLength": 300
+              }
+            }
+          }
+        },
+        "wait": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "$ref": "vocabulary.schema.json#/$defs/FlowWaitKind"
+            },
+            "duration_s": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2592000
+            },
+            "event_subject": {
+              "type": "string",
+              "pattern": "^nexus\\.[a-z]+\\.[a-z_.]+\\.v[0-9]+$"
+            },
+            "event_filter": {
+              "$ref": "#/$defs/Expression"
+            }
+          }
+        },
+        "join": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode"
+          ],
+          "properties": {
+            "mode": {
+              "$ref": "vocabulary.schema.json#/$defs/FlowJoinMode"
+            },
+            "quorum": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "timeout_s": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "on_timeout": {
+              "type": "string",
+              "pattern": "^(fail|continue_partial)$"
+            }
+          }
+        },
+        "notify": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "channel_uri",
+            "template"
+          ],
+          "properties": {
+            "channel_uri": {
+              "anyOf": [
+                {
+                  "$ref": "resource-uri.schema.json"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^nexus://[a-z]+/[a-z0-9._-]+/\\{\\{[A-Za-z0-9_.]+\\}\\}$",
+                  "description": "A resource uri with one run-time placeholder, e.g. nexus://chat/thread/{{run.thread_id}} — resolved by the engine when the node runs."
+                }
+              ]
+            },
+            "template": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "mutating": {
+              "type": "boolean",
+              "const": true
+            },
+            "channel": {
+              "$ref": "vocabulary.schema.json#/$defs/NotifyChannel",
+              "description": "1.20.0: thread (default — a runtime-authored message on the run's thread / channel_uri) or nats (an outbox row on `subject`, published by the relay to nexus.ext.*)."
+            },
+            "subject": {
+              "type": "string",
+              "pattern": "^nexus\\.ext\\.[a-z0-9_]+(\\.[a-z0-9_]+)*\\.v[0-9]+$",
+              "maxLength": 200,
+              "description": "Required when channel = nats; must be in the integration's egress_subjects (NOTIFY_SUBJECT_NOT_ALLOWED otherwise)."
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "channel": {
+                    "const": "nats"
+                  }
+                },
+                "required": [
+                  "channel"
+                ]
+              },
+              "then": {
+                "required": [
+                  "subject"
+                ]
+              }
+            }
+          ]
+        },
+        "subflow": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "workflow_uri",
+            "version"
+          ],
+          "properties": {
+            "workflow_uri": {
+              "$ref": "resource-uri.schema.json"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "agent"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "agent",
+              "timeout_s"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "skill"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "skill",
+              "timeout_s"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "condition"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "condition"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "approval"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "approval"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "human_task"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "human_task"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "tool"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "tool",
+              "timeout_s",
+              "retry"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "integration"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "integration",
+              "timeout_s",
+              "retry"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "data_query"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "data_query",
+              "timeout_s"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "transform"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "transform"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "wait"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "wait"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "join"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "join"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "notify"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "notify",
+              "idempotency",
+              "retry"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "subflow"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "subflow",
+              "timeout_s"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "loop"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "loop"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "evaluator"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "evaluator",
+              "timeout_s"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "evaluator"
+              },
+              "evaluator": {
+                "properties": {
+                  "kind": {
+                    "const": "agent"
+                  }
+                }
+              }
+            },
+            "required": [
+              "evaluator"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evaluator": {
+                "required": [
+                  "agent_uri",
+                  "output_schema"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "evaluator"
+              },
+              "evaluator": {
+                "properties": {
+                  "kind": {
+                    "const": "eval_suite"
+                  }
+                }
+              }
+            },
+            "required": [
+              "evaluator"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evaluator": {
+                "required": [
+                  "eval_suite_uri"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "anyOf": [
+              {
+                "properties": {
+                  "kind": {
+                    "const": "tool"
+                  },
+                  "tool": {
+                    "properties": {
+                      "mutating": {
+                        "const": true
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "tool"
+                ]
+              },
+              {
+                "properties": {
+                  "kind": {
+                    "const": "integration"
+                  },
+                  "integration": {
+                    "properties": {
+                      "mutating": {
+                        "const": true
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "integration"
+                ]
+              }
+            ]
+          },
+          "then": {
+            "required": [
+              "idempotency"
+            ]
+          }
+        }
+      ]
+    },
+    "Edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "source",
+        "target"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "when": {
+          "type": "string",
+          "pattern": "^(true|false|default|approved|rejected|timeout|success|failure|complete|exhausted|needs_human)$",
+          "description": "Branch selector for condition/approval/failure routing; complete | exhausted | needs_human are loop-container exits. Absent = unconditional."
+        }
+      }
+    },
+    "FlowPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approval_for_external_writes",
+        "max_run_duration_s"
+      ],
+      "properties": {
+        "approval_for_external_writes": {
+          "type": "boolean",
+          "description": "When true (default for classification ≥ confidential; UAT-2b Q12), any mutating tool/integration node without a preceding approval gets one injected by policy at publish time."
+        },
+        "max_run_duration_s": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 7776000
+        },
+        "allowed_tool_uris": {
+          "type": "array",
+          "items": {
+            "$ref": "resource-uri.schema.json"
+          },
+          "description": "Least-privilege allowlist. Empty/absent = only tools already bound to the referenced agents."
+        },
+        "run_as": {
+          "type": "string",
+          "pattern": "^(initiator|flow_owner)$",
+          "description": "Identity whose rights bound the run (delegated to the flow's agent identity)."
+        },
+        "sensitive_outputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Output names never written to logs/events."
+        },
+        "budget": {
+          "$ref": "#/$defs/Budget",
+          "description": "Run-level ceiling; loop budgets must fit inside it."
+        },
+        "max_loop_depth": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3,
+          "description": "Nested loop containers allowed (default 2; validator: loop_depth_exceeded)."
+        },
+        "sandbox_profile_uri": {
+          "$ref": "resource-uri.schema.json",
+          "description": "Flow-level SandboxProfile; may only tighten the Project's effective Blueprint profile."
+        }
+      }
+    },
+    "Budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Hard ceilings enforced by the engine (FlowFailureCategory.budget_exhausted / FlowLoopExit.budget_exhausted). Tokens are counted through the Model Gateway, never self-reported by the agent.",
+      "properties": {
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 100000000
+        },
+        "max_tool_calls": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000
+        },
+        "max_sandbox_runtime_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 604800
+        },
+        "max_cost_units": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "minProperties": 1
+    }
+  }
+}

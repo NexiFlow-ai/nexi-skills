@@ -1,0 +1,252 @@
+{
+  "skill_id": "skl_web_source_curation",
+  "uri": "nexus://skill/skl_web_source_curation",
+  "name": "Web source curation",
+  "description": "From web.map's candidate list (the delta — new and maybe-changed pages, noise dropped, ≤ 80) and the person's goal, choose the pages worth fetching this run, most important first; optionally class what is left out. A known, unchanged page is never on the list.",
+  "origin": "platform",
+  "status": "published",
+  "version": "1.2.0",
+  "entry": "SKILL.md",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "metadata": {
+    "tags": [
+      "web",
+      "knowledge",
+      "curation"
+    ]
+  },
+  "evaluation": {
+    "human_review": {
+      "state": "approved",
+      "reviewed_by": "Nexi maintainers",
+      "reviewed_at": "2026-09-25T15:58:00Z",
+      "reviewed_version": "1.2.0"
+    }
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-09-25T12:09:00Z"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-09-24T00:00:00Z",
+  "published_at": "2026-09-24T00:00:00Z",
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "goal": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "What the person wants from this source, in their words (may be empty)."
+      },
+      "candidates": {
+        "type": "array",
+        "maxItems": 80,
+        "items": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string"
+            },
+            "source": {
+              "type": "string",
+              "enum": [
+                "start",
+                "sitemap",
+                "link"
+              ]
+            },
+            "lastmod": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "depth": {
+              "type": "integer"
+            },
+            "known": {
+              "type": "boolean"
+            },
+            "hint": {
+              "type": "string",
+              "enum": [
+                "new",
+                "maybe_changed",
+                "unchanged_hint"
+              ]
+            }
+          },
+          "required": [
+            "url",
+            "known",
+            "hint"
+          ]
+        },
+        "description": "web.map's shortlist for this run: the delta only (hint new · maybe_changed), noise shapes dropped, newest and shallowest first, at most 80."
+      },
+      "candidates_count": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "minimum": 0,
+        "description": "How many candidates the map produced (equals the list's length)."
+      },
+      "max_pages": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "minimum": 1,
+        "maximum": 500,
+        "description": "How many pages this run may fetch at most — web.map's `max_pages` (the binding's max_pages_per_run). The candidate list already fits under it: there is no smaller budget to ration."
+      }
+    },
+    "required": [
+      "candidates"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "urls": {
+        "type": "array",
+        "maxItems": 80,
+        "items": {
+          "type": "string"
+        },
+        "description": "The pages to fetch this run, most important first — only URLs that appear in `candidates`."
+      },
+      "classes": {
+        "type": "array",
+        "maxItems": 80,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "url": {
+              "type": "string"
+            },
+            "page_class": {
+              "type": "string",
+              "enum": [
+                "relevant",
+                "navigation",
+                "noise",
+                "duplicate",
+                "out_of_scope"
+              ]
+            },
+            "why": {
+              "type": "string",
+              "maxLength": 160
+            }
+          },
+          "required": [
+            "url",
+            "page_class"
+          ]
+        },
+        "description": "Optional: the candidates left out of `urls`, each with its class and a short why. Omit when every candidate is fetched."
+      },
+      "notes": {
+        "type": "string",
+        "maxLength": 600,
+        "description": "What was left out and why, in one or two sentences the run card can show."
+      }
+    },
+    "required": [
+      "urls"
+    ]
+  },
+  "examples": [
+    {
+      "title": "A legislation section, second run",
+      "input": {
+        "goal": "закони та зміни до них",
+        "max_pages": 50,
+        "candidates": [
+          {
+            "url": "https://docs.ex.org/laws/",
+            "source": "start",
+            "lastmod": null,
+            "depth": 0,
+            "known": true,
+            "hint": "maybe_changed"
+          },
+          {
+            "url": "https://docs.ex.org/laws/2",
+            "source": "sitemap",
+            "lastmod": "2026-09-20",
+            "depth": 1,
+            "known": true,
+            "hint": "maybe_changed"
+          },
+          {
+            "url": "https://docs.ex.org/laws/?page=2",
+            "source": "link",
+            "lastmod": null,
+            "depth": 1,
+            "known": false,
+            "hint": "new"
+          }
+        ],
+        "candidates_count": 3
+      },
+      "expected_output": "{\"urls\": [\"https://docs.ex.org/laws/2\", \"https://docs.ex.org/laws/\"], \"classes\": [{\"url\": \"https://docs.ex.org/laws/?page=2\", \"page_class\": \"navigation\", \"why\": \"a listing page; its laws are in the sitemap\"}], \"notes\": \"One law changed since the last run; the index is re-read for new entries. The listing page is skipped.\"}"
+    },
+    {
+      "title": "A whole site, broad goal, first run",
+      "input": {
+        "goal": "all",
+        "max_pages": 200,
+        "candidates": [
+          {
+            "url": "https://ministry.ex.gov/",
+            "source": "start",
+            "lastmod": null,
+            "depth": 0,
+            "known": false,
+            "hint": "new"
+          },
+          {
+            "url": "https://ministry.ex.gov/news/digital-resilience",
+            "source": "link",
+            "lastmod": null,
+            "depth": 1,
+            "known": false,
+            "hint": "new"
+          },
+          {
+            "url": "https://ministry.ex.gov/team",
+            "source": "sitemap",
+            "lastmod": "2026-09-01",
+            "depth": 1,
+            "known": false,
+            "hint": "new"
+          },
+          {
+            "url": "https://ministry.ex.gov/privacy",
+            "source": "link",
+            "lastmod": null,
+            "depth": 1,
+            "known": false,
+            "hint": "new"
+          }
+        ],
+        "candidates_count": 4
+      },
+      "expected_output": "{\"urls\": [\"https://ministry.ex.gov/team\", \"https://ministry.ex.gov/news/digital-resilience\", \"https://ministry.ex.gov/\"], \"classes\": [{\"url\": \"https://ministry.ex.gov/privacy\", \"page_class\": \"noise\", \"why\": \"legal notice\"}], \"notes\": \"Broad goal, 4 candidates under a budget of 200: every content page is fetched this run; only the privacy notice is left out.\"}"
+    }
+  ]
+}

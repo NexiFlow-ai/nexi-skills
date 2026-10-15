@@ -1,0 +1,266 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.nexiflow.ai/v1/nexus-pack-manifest.schema.json",
+  "title": "NexusPackManifest",
+  "description": "manifest.yaml of a `.nexuspack` — the exportable intelligence/process layer of a deployment: blueprints, flow templates, agents, skills, tool definitions/collections, policies, ontology, schemas, evaluations, prompts, sandbox profiles, UI config, migrations. Owner NexCore (nexus://core/pack/<id>). A pack NEVER contains credentials, API keys, connection endpoints or tenant data — connections are resolved at install from `requires`. Signed (ed25519) like policy bundles; unsigned packs are rejected in enterprise mode.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "layer",
+    "resources",
+    "requires",
+    "contains_secrets",
+    "signature"
+  ],
+  "properties": {
+    "api_version": {
+      "type": "string",
+      "const": "nexus/v1"
+    },
+    "kind": {
+      "type": "string",
+      "const": "NexusPack"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "publisher",
+        "created_at"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,63}$",
+          "description": "e.g. nexus-base, nexus-banking-eu, nexus-defence-ua"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "display_name": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "publisher": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "license": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "homepage": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 300
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "layer": {
+      "$ref": "vocabulary.schema.json#/$defs/BlueprintLayer"
+    },
+    "depends_on": {
+      "type": "array",
+      "maxItems": 20,
+      "description": "Parent packs, e.g. nexus-banking-eu depends on nexus-banking depends on nexus-base.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "version_range"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,63}$"
+          },
+          "version_range": {
+            "type": "string",
+            "maxLength": 60
+          }
+        }
+      }
+    },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "nexus_min_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "spec_versions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "description": "e.g. workflow-spec: 1.1"
+        },
+        "deployment_targets": {
+          "type": "array",
+          "items": {
+            "$ref": "vocabulary.schema.json#/$defs/DeploymentTarget"
+          }
+        }
+      }
+    },
+    "resources": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "path",
+          "digest"
+        ],
+        "properties": {
+          "kind": {
+            "$ref": "vocabulary.schema.json#/$defs/PackResourceKind"
+          },
+          "path": {
+            "type": "string",
+            "pattern": "^(blueprints|profiles|flows|agents|skills|tools|policies|ontology|schemas|evaluations|prompts|sandbox|ui|migrations|patterns|dashboards|module|projects|fields)/[A-Za-z0-9._/-]+$"
+          },
+          "uri": {
+            "$ref": "resource-uri.schema.json",
+            "description": "Canonical URI the resource gets after install (pack-relative ids are rewritten)."
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "digest": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        }
+      }
+    },
+    "requires": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "What the installer must bind in the target deployment. Values are placeholders, never concrete secrets/endpoints.",
+      "properties": {
+        "connections": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "tool_uri"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,63}$"
+              },
+              "tool_uri": {
+                "$ref": "resource-uri.schema.json"
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 300
+              },
+              "optional": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "models": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "role"
+            ],
+            "properties": {
+              "role": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,63}$"
+              },
+              "capabilities": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 40
+                }
+              }
+            }
+          }
+        },
+        "sandbox_runtimes": {
+          "type": "array",
+          "items": {
+            "$ref": "vocabulary.schema.json#/$defs/SandboxRuntime"
+          }
+        },
+        "platform_tools": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "$ref": "resource-uri.schema.json"
+          }
+        }
+      }
+    },
+    "contains_secrets": {
+      "type": "boolean",
+      "const": false
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "alg",
+        "key_id",
+        "value"
+      ],
+      "properties": {
+        "alg": {
+          "type": "string",
+          "const": "ed25519"
+        },
+        "key_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "readme_path": {
+      "type": "string",
+      "const": "README.md"
+    }
+  }
+}

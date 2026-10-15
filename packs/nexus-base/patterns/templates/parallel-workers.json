@@ -1,0 +1,256 @@
+{
+  "spec_version": "1.1",
+  "workflow_id": "flw_tpl_parallel_workers",
+  "uri": "nexus://workflow/template/parallel-workers",
+  "tenancy": {
+    "enterprise_id": "pack",
+    "tenant_id": "pack"
+  },
+  "project_id": null,
+  "name": "Parallel workers",
+  "description": "Independent workers run at the same time; a join waits for all; one step combines the results.",
+  "version": 1,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.1.0"
+  },
+  "requires": {},
+  "presentation": {
+    "title": {
+      "en": "Parallel workers",
+      "uk": "Паралельні виконавці"
+    },
+    "stage_labels": [
+      {
+        "node_id": "worker_a",
+        "label": {
+          "en": "Worker A",
+          "uk": "Виконавець A"
+        }
+      },
+      {
+        "node_id": "worker_b",
+        "label": {
+          "en": "Worker B",
+          "uk": "Виконавець B"
+        }
+      },
+      {
+        "node_id": "combine",
+        "label": {
+          "en": "Combining the results",
+          "uk": "Об'єдную результати"
+        }
+      }
+    ],
+    "receipt_fields": [
+      {
+        "key": "result",
+        "label": {
+          "en": "Result",
+          "uk": "Результат"
+        }
+      }
+    ],
+    "result_kind": "answer"
+  },
+  "trigger": {
+    "kind": "manual"
+  },
+  "inputs": [
+    {
+      "name": "request",
+      "type": "string",
+      "required": true,
+      "description": "What the flow works on"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "object"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "Start"
+    },
+    {
+      "id": "worker_a",
+      "kind": "agent",
+      "label": "Worker A",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "analysis"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_general",
+        "context_scope": "project",
+        "inference": {
+          "role": "reasoner"
+        }
+      },
+      "input_mapping": {
+        "request": "$.inputs.request"
+      },
+      "description": "One independent analysis."
+    },
+    {
+      "id": "worker_b",
+      "kind": "agent",
+      "label": "Worker B",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "analysis"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_general",
+        "context_scope": "project",
+        "inference": {
+          "role": "reasoner"
+        }
+      },
+      "input_mapping": {
+        "request": "$.inputs.request"
+      },
+      "description": "Another independent analysis. Add more workers as needed."
+    },
+    {
+      "id": "join",
+      "kind": "join",
+      "label": "Wait for all",
+      "timeout_s": 900,
+      "join": {
+        "mode": "all",
+        "timeout_s": 900,
+        "on_timeout": "fail"
+      }
+    },
+    {
+      "id": "combine",
+      "kind": "agent",
+      "label": "Combine results",
+      "timeout_s": 300,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "analysis"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_writer",
+        "context_scope": "project",
+        "inference": {
+          "role": "summarizer"
+        }
+      },
+      "input_mapping": {
+        "a": "$.node.worker_a.output",
+        "b": "$.node.worker_b.output"
+      },
+      "description": "One result from all worker outputs."
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Done",
+      "input_mapping": {
+        "result": "$.node.combine.output",
+        "worker_a": "$.node.worker_a.output",
+        "worker_b": "$.node.worker_b.output"
+      },
+      "description": "What the run returns: `result` is the substantive answer; the other keys are the steps' outputs for review and debugging."
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-worker_a",
+      "source": "trigger",
+      "target": "worker_a"
+    },
+    {
+      "id": "e-trigger-worker_b",
+      "source": "trigger",
+      "target": "worker_b"
+    },
+    {
+      "id": "e-worker_a-join",
+      "source": "worker_a",
+      "target": "join"
+    },
+    {
+      "id": "e-worker_b-join",
+      "source": "worker_b",
+      "target": "join"
+    },
+    {
+      "id": "e-join-combine",
+      "source": "join",
+      "target": "combine"
+    },
+    {
+      "id": "e-combine-end",
+      "source": "combine",
+      "target": "end"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": true,
+    "max_run_duration_s": 3600,
+    "run_as": "initiator"
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 200,
+        "y": 0
+      },
+      "worker_a": {
+        "x": 60,
+        "y": 116
+      },
+      "worker_b": {
+        "x": 340,
+        "y": 116
+      },
+      "join": {
+        "x": 200,
+        "y": 232
+      },
+      "combine": {
+        "x": 200,
+        "y": 348
+      },
+      "end": {
+        "x": 200,
+        "y": 464
+      }
+    }
+  },
+  "governance": {
+    "state": "approved"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-09-17T12:00:00Z",
+  "published_at": "2026-09-17T12:00:00Z"
+}
