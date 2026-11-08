@@ -1,15 +1,17 @@
-# Catalogue — Nexi Base 1.34.1
+# Catalogue — Nexi Base 1.46.1
 
 Generated from the pack at export time. A skill appears here only when a human reviewed its current version; an agent only
 when its governance review is approved and every skill it applies is here; a Flow only when every agent and skill it names
 is here. What is held back is listed by name under *Coming* — the name, never the content.
 
-## Skills (18)
+## Skills (21)
 
 | Skill | Version | Shortcut | What it does |
 |---|---|---|---|
 | [Assess governance risk](skills/assess-governance-risk/SKILL.md) | 1.0.0 | — | Reads one governance event (a join, an invitation, a suspension, a tool-policy change, a model or credential registration, a pack install) and proposes the ris… |
 | [Answer from sources](skills/answer-from-sources/SKILL.md) | 1.0.0 | `/ask` | Grounded Q&A over the given sources only — every statement cited, coverage and gaps declared, conflicts reported instead of resolved. |
+| [First minute](skills/first-minute/SKILL.md) | 1.1.0 | `/first-minute` | Nexi's first minute with a person, one message at a time: the hello (who she is, what is ready, what they can do, one open question), the next line after each… |
+| [Nexi guide](skills/lobby-guide/SKILL.md) | 1.1.0 | `/lobby` | Nexi guide — one skill, three rooms: `lobby` — a signed-in person with no organization (open · join · ask); `visitor` — a stranger at /request (an organization… |
 | [Classify sensitivity](skills/classify-sensitivity/SKILL.md) | 1.0.1 | `/classify` | Proposes the Nexi data classification (public · confidential · dsk · secret · top_secret) of a text with reasons, signals and suggested redactions. |
 | [Compare documents](skills/compare-documents/SKILL.md) | 1.0.0 | `/compare` | Meaningful differences between two documents or versions — kind, quotes, locations, materiality — plus the key terms that stayed the same. |
 | [Create Flow](skills/create-flow/SKILL.md) | 1.0.0 | `/flow` | Turn a natural-language automation request into a WorkflowSpec draft you can review in Flow Studio. |
@@ -26,27 +28,34 @@ is here. What is held back is listed by name under *Coming* — the name, never 
 | [Analysis report](skills/analysis-report/SKILL.md) | 1.1.1 | — | Write the report of an analysis run from its plan, metrics and artifacts — it leads with what stands out, every claim cites an artifact uri; 'possible' and 'no… |
 | [Web source curation](skills/web-source-curation/SKILL.md) | 1.2.0 | — | From web.map's candidate list (the delta — new and maybe-changed pages, noise dropped, ≤ 80) and the person's goal, choose the pages worth fetching this run, m… |
 | [Mail triage](skills/mail-triage/SKILL.md) | 1.0.0 | — | From a window of the person's mail (read through the Gmail read-only tools), name what needs their attention — by whom, about what, by when — and draft replies… |
+| [Question authoring](skills/question-authoring/SKILL.md) | 1.0.0 | — | From one portal section's pages as ingested, write benchmark question rows a second person reviews: en/uk twins with identical verbatim gold, negatives without… |
 
-## Agents (7)
+## Agents (10)
 
 | Agent | Version | Role | Routable | Skills | Purpose |
 |---|---|---|---|---|---|
 | [General](agents/general.json) | 4 | reasoner | yes | 11 | Everyday knowledge work in the Project |
 | [Analyst](agents/analyst.json) | 2 | extractor | yes | 3 | Extraction, classification and comparison with provenance |
 | [Writer](agents/writer.json) | 1 | chat | yes | 4 | Drafting, rewriting, translation and summaries |
+| [Nexi](agents/guide.json) | 1 | chat | no — a step agent | 1 | The first message a person reads in a new organization — who is here, what is here, how Nexi works, whom to ask. Speaks only from what the Flow hands it. |
+| [Nexi (guide)](agents/nexi-lobby.json) | 2 | reasoner | no — a step agent | 2 | Nexi with a person who has no organization yet or a stranger at the door: open · join · request access · ask about Nexi — proposes the one action. Propose, nev… |
 | [Reviewer](agents/reviewer.json) | 1 | reasoner | yes | 2 | Grounded answers and comparisons — citations mandatory |
 | [Governance](agents/governance.json) | 2 | classifier | yes | 3 | Assesses governance events for the administrators' flow and proposes risks; never decides |
 | [Analysis planner](agents/ds-planner.json) | 8 | planner | no — a step agent | 2 | Turns a dataset profile and a question into stages, candidate indices and criteria |
 | [Web source curator](agents/web-source-curator.json) | 1 | classifier | yes | 1 | Decides which pages of a web source are knowledge worth keeping — never fetches, never signs in |
+| [Question author](agents/question-author.json) | 1 | planner | no — a step agent | 1 | Writes benchmark question rows from a portal section's pages for a second person's review — proposes rows, never writes the question set |
 
-## Flows (19)
+## Flows (24)
 
 | Flow | Version | Trigger | Nodes | Agents | What it does |
 |---|---|---|---|---|---|
 | [Admin governance](flows/admin-governance.json) | 2 | event | 6 | agt_governance | every governance event of the organization (a person joined, an invitation or a join request was created, a member was suspended or deactivated, the tool polic… |
 | [Data extraction](flows/data-extraction.json) | 1 | manual | 8 | agt_analyst | Sources → extract records into a target schema with provenance → validate against the schema → a table artifact; anything the schema could not be filled from i… |
 | [Document review](flows/document-review.json) | 1 | manual | 9 | agt_analyst, agt_reviewer | Upload → classify sensitivity → review (summary, key points, open questions) → the Project owner approves when the document is confidential or above → the revi… |
-| [Member onboarding](flows/member-onboarding.json) | 2 | event | 4 | agt_writer | When a person joins (invitation accepted), the Writer agent posts a welcome in the General project's thread with what the organization's projects are and the t… |
+| [Member onboarding](flows/member-onboarding.json) | 2 | event | 12 | agt_guide | «Nexi writes first» — v2. When a person is added to an existing organization, Nexi (the Guide agent) writes the first message into that person's own global cha… |
+| [First hello](flows/first-hello.json) | 2 | event | 7 | agt_guide | «Nexi writes first». When a person creates an organization, Nexi (the Guide agent) writes the first message into that person's own global chat — who she is, wh… |
+| [Owner next step](flows/owner-next-step.json) | 1 | event | 17 | agt_guide | «Nexi onboards in Core». After each getting-started step the Owner takes in Core — a member joined · a model key was set · a pack was installed — Nexi writes t… |
+| [Owner first run](flows/owner-first-run.json) | 1 | event | 7 | agt_guide | «Nexi onboards in Core» (C-J-5, Q-J-8). When the first human turn of the organization completes — somebody asked Nexi from a composer and she answered — the fi… |
 | [Weekly digest](flows/weekly-digest.json) | 1 | schedule | 6 | agt_writer | Every Monday 08:00: search the Project for the week's activity, summarize it for an executive reader, save the digest as a document and post it to the thread.… |
 | [Mail triage](flows/mail-triage.json) | 1 | schedule | 7 | agt_general | Every Monday 08:00: read the past week's mail through the person's Gmail connection (read-only), name what needs their attention, draft replies as a document a… |
 | [Sequential chain](patterns/templates/sequential-chain.json) | 1 | manual | 5 | agt_general, agt_writer | Three steps in a fixed order; each step works on the previous step's result. |
@@ -62,6 +71,8 @@ is here. What is held back is listed by name under *Coming* — the name, never 
 | [BI metric alert](flows/bi-metric-alert.json) | 1 | event | 5 | — | When a new version of the alert's dataset is published: NexBI runs the metric as the initiator, compares it with the threshold and counts consecutive versions;… |
 | [BI subscription](flows/bi-subscription.json) | 1 | schedule | 4 | — | On the schedule the subscriber chose: read the dashboard's published version as the initiator and deliver its KPIs and link to the Project thread. Members only… |
 | [Web source](flows/web-source.json) | 2 | event | 12 | agt_web_source_curator | When a web source of this Project is due (its schedule, or *Check now*): map the site politely — robots first, then sitemaps, then one link pass inside the con… |
+| [Question author](flows/question-author.json) | 1 | manual | 20 | agt_question_author | The bench question set grows by review, never by a model's word: the question-author writes rows from one portal section's pages as ingested (or a validated se… |
+| [Pipeline tuner](flows/pipeline-tuner.json) | 1 | manual | 22 | — | The Project's retrieval and processing dials are tuned by measurement, never by a model's word: each pass of the loop takes the next point of a dial grid the o… |
 
 ## Patterns (9)
 
@@ -82,9 +93,10 @@ is here. What is held back is listed by name under *Coming* — the name, never 
 - **blueprint** (1): [Nexi Base](blueprints/nexus-base.json)
 - **sandbox_profile** (4): [public-dev](sandbox/public-dev.json) · [dsk-analytics](sandbox/dsk-analytics.json) · [confidential-analytics](sandbox/confidential-analytics.json) · [skill-trial](sandbox/skill-trial.json)
 - **policy** (5): [skill-sensitivity](policies/skill-sensitivity.json) · [tool-groups](policies/tool-groups.json) · [connector-kinds](policies/connector-kinds.json) · [model-roles](policies/model-roles.json) · [kpis](policies/kpis.json)
-- **dashboard_template** (10): [Data overview](dashboards/data_overview.json) · [Executive overview](dashboards/executive_overview.json) · [Operational control](dashboards/operational_control.json) · [Performance vs target](dashboards/performance_vs_target.json) · [Risk & exceptions](dashboards/risk_exceptions.json) · [Nexi quality](dashboards/nexus_quality.json) · [Nexi people & activity](dashboards/nexus_usage.json) · [Nexi infrastructure](dashboards/nexus_infrastructure.json) · [NexGraph knowledge](dashboards/nexus_graph.json) · [Vibeban work](dashboards/nexus_vibeban.json)
+- **dashboard_template** (11): [Data overview](dashboards/data_overview.json) · [Executive overview](dashboards/executive_overview.json) · [Operational control](dashboards/operational_control.json) · [Performance vs target](dashboards/performance_vs_target.json) · [Risk & exceptions](dashboards/risk_exceptions.json) · [Nexi quality](dashboards/nexus_quality.json) · [Nexi people & activity](dashboards/nexus_usage.json) · [Nexi infrastructure](dashboards/nexus_infrastructure.json) · [NexGraph knowledge](dashboards/nexus_graph.json) · [NexGraph quality](dashboards/nexgraph_quality.json) · [Vibeban work](dashboards/nexus_vibeban.json)
+- **ui_config** (2): [Lobby lines](ui/lobby-lines.json) · [Lobby guide (knowledge)](ui/lobby-guide.md)
 
-## Coming (32)
+## Coming (33)
 
 Content that exists in the platform but is not published yet. It appears here the day its review is complete.
 
@@ -118,6 +130,7 @@ Content that exists in the platform but is not published yet. It appears here th
 | agent | Goal coder | 1 | governance not_reviewed |
 | agent | Goal recovery analyst | 1 | governance not_reviewed |
 | flow | Agentic Data Scientist | 1 | names 5 held resource(s) |
+| flow | Automation | 1 | its parameter tokens in tool and channel uris are not yet described by the published WorkflowSpec schema |
 | flow | Nexi Auto resolver | 1 | names 6 held resource(s) |
 | flow | Web research | 1 | names 6 held resource(s) |
 | flow | Nexi Goal resolution | 7 | names 10 held resource(s) |

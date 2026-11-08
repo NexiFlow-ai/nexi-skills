@@ -4,7 +4,7 @@
   "name": "Nexi Base",
   "description": "The base layer every organization starts from: generic, vendor-free, human-reviewed skills, agents, flow templates, platform tools, connector kinds, model roles and sandbox profiles. Child layers (organization, project) may only tighten it.",
   "layer": "base",
-  "version": "1.12.0",
+  "version": "1.18.0",
   "status": "published",
   "source_pack_uri": "nexus://core/pack/nexus-base",
   "deployment_targets": [
@@ -29,7 +29,10 @@
       "nexus://agent/agt_goal_verifier",
       "nexus://agent/agt_goal_challenger",
       "nexus://agent/agt_goal_coder",
-      "nexus://agent/agt_goal_recovery_analyst"
+      "nexus://agent/agt_goal_recovery_analyst",
+      "nexus://agent/agt_guide",
+      "nexus://agent/agt_nexi_lobby",
+      "nexus://agent/agt_question_author"
     ],
     "skills": [
       "nexus://skill/skl_summarize_sources",
@@ -55,7 +58,10 @@
       "nexus://skill/skl_goal_verification",
       "nexus://skill/skl_goal_challenge",
       "nexus://skill/skl_goal_code",
-      "nexus://skill/skl_goal_recovery"
+      "nexus://skill/skl_goal_recovery",
+      "nexus://skill/skl_first_minute",
+      "nexus://skill/skl_lobby_guide",
+      "nexus://skill/skl_question_authoring"
     ],
     "flows": {
       "document_review": "nexus://workflow/template/flw_tpl_document_review",
@@ -64,12 +70,17 @@
       "weekly_digest": "nexus://workflow/template/flw_tpl_weekly_digest",
       "admin_governance": "nexus://workflow/template/flw_tpl_admin_governance",
       "member_onboarding": "nexus://workflow/template/flw_tpl_member_onboarding",
+      "first_hello": "nexus://workflow/template/flw_tpl_first_hello",
+      "owner_next_step": "nexus://workflow/template/flw_tpl_owner_next_step",
+      "owner_first_run": "nexus://workflow/template/flw_tpl_owner_first_run",
       "ads": "nexus://workflow/template/flw_tpl_agentic_data_scientist",
       "web_source": "nexus://workflow/template/flw_tpl_web_source",
       "mail_triage": "nexus://workflow/template/flw_tpl_mail_triage",
       "auto_resolver": "nexus://workflow/template/flw_tpl_auto_resolver",
       "web_research": "nexus://workflow/template/flw_tpl_web_research",
-      "goal_resolution": "nexus://workflow/template/flw_tpl_goal_resolution"
+      "goal_resolution": "nexus://workflow/template/flw_tpl_goal_resolution",
+      "question_author": "nexus://workflow/template/flw_tpl_question_author",
+      "pipeline_tuner": "nexus://workflow/template/flw_tpl_pipeline_tuner"
     },
     "general_agent_uri": "nexus://agent/agt_general",
     "suggested_capabilities": [
@@ -94,6 +105,20 @@
           "Group the rows by organization and chart the top 5",
           "What is the distribution of scores by category?"
         ]
+      },
+      {
+        "role": "onboarding",
+        "name": "Onboarding",
+        "description": "Where a new member starts: the Owner pins the handbook, the policies and the first-week material here; Nexi welcomes every new member in their own chat of this project and answers from these sources.",
+        "classification": "confidential",
+        "flows": [
+          "member_onboarding"
+        ],
+        "suggested_capabilities": [
+          "What should I read first?",
+          "Summarize the employee handbook",
+          "Whom do I ask about access?"
+        ]
       }
     ]
   },
@@ -101,6 +126,7 @@
     "allowlist": [
       "nexus://tool/project.search",
       "nexus://tool/knowledge.search",
+      "nexus://tool/knowledge.sources",
       "nexus://tool/project.file_read",
       "nexus://tool/blob.read_text",
       "nexus://tool/blob.head",
@@ -148,7 +174,22 @@
       "nexus://tool/goal.agent.run",
       "nexus://tool/goal.board.write",
       "nexus://tool/goal.checkpoint",
-      "nexus://tool/goal.complete"
+      "nexus://tool/goal.complete",
+      "nexus://tool/core.me.context",
+      "nexus://tool/core.organization.create",
+      "nexus://tool/core.invitation.accept",
+      "nexus://tool/core.join.request",
+      "nexus://tool/core.organization_request.create",
+      "nexus://tool/graph.bench.pages",
+      "nexus://tool/graph.bench.batch.write",
+      "nexus://tool/graph.bench.batch.validate",
+      "nexus://tool/graph.bench.batch.close",
+      "nexus://tool/graph.bench.run",
+      "nexus://tool/graph.bench.read",
+      "nexus://tool/graph.bench.tuning.decide",
+      "nexus://tool/graph.profile.draft",
+      "nexus://tool/graph.profile.shadow",
+      "nexus://tool/graph.profile.activate"
     ],
     "builder_only": [
       "nexus://tool/mcp.invoke",

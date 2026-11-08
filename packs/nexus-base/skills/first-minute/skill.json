@@ -1,0 +1,984 @@
+{
+  "skill_id": "skl_first_minute",
+  "uri": "nexus://skill/skl_first_minute",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "name": "First minute",
+  "description": "Nexi's first minute with a person, one message at a time: the hello (who she is, what is ready, what they can do, one open question), the next line after each getting-started step (what happened · the next step) and the closing line on the first run. Only from the structured input; nothing invented.",
+  "shortcut": "/first-minute",
+  "origin": "platform",
+  "status": "published",
+  "version": "1.1.0",
+  "entry": "SKILL.md",
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "way",
+      "person",
+      "organization",
+      "projects",
+      "hits",
+      "onboarding"
+    ],
+    "properties": {
+      "way": {
+        "type": "string",
+        "enum": [
+          "A",
+          "B",
+          "B+",
+          "next_step",
+          "first_run"
+        ],
+        "description": "A — the person created the organization (owner). B — the person was added to an existing organization (member). B+ — the second message for a member, written only from onboarding sources. next_step — the Owner's next line after a getting-started step happened (`event` + `steps`). first_run — the closing line after the Owner's first run."
+      },
+      "person": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "first_name",
+          "locale"
+        ],
+        "properties": {
+          "first_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120,
+            "description": "As the person wrote it; null — greet without a name."
+          },
+          "locale": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "en",
+              "uk",
+              null
+            ],
+            "description": "null — write in English."
+          }
+        }
+      },
+      "organization": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "role"
+        ],
+        "properties": {
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 40
+          },
+          "owner_display_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          }
+        }
+      },
+      "pack": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "agents": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "skills": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "flows": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "description": "What the base pack brought, when known. null — the sentence about the pack is dropped."
+      },
+      "model": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "source"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "managed",
+              "own",
+              "local"
+            ]
+          },
+          "deployment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          }
+        },
+        "description": "Way A: the model that answers for the organization, when known — `managed` by the deployment named, `own` with the organization's key, or `local`. null — the sentence is dropped."
+      },
+      "projects": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "maxItems": 50,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "description": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 1000
+            },
+            "flows": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 200
+              }
+            }
+          }
+        },
+        "description": "Projects the person can see — already bounded by their own permissions. null — the facts were not available; the sentence is dropped. [] — they see none yet."
+      },
+      "hits": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "maxItems": 20,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "text"
+          ],
+          "properties": {
+            "title": {
+              "type": "string",
+              "maxLength": 300
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "uri": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 500
+            }
+          }
+        },
+        "description": "Passages from the Nexi documentation. Empty or null — the documentation could not be read; say so in one sentence."
+      },
+      "onboarding": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "maxItems": 50,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title"
+          ],
+          "properties": {
+            "title": {
+              "type": "string",
+              "maxLength": 300
+            },
+            "uri": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 500
+            }
+          }
+        },
+        "description": "Onboarding sources the person may read. Empty for way B+ — say so in one sentence."
+      },
+      "event": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "additionalProperties": false,
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "member.joined",
+              "connection.credential_set",
+              "pack.installed",
+              "first_run"
+            ]
+          },
+          "subject_display": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 40
+          },
+          "provider": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 80
+          },
+          "pack_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          }
+        },
+        "description": "Way next_step / first_run: what just happened — the kind and the one fact the sentence may name (who joined and as what · which provider got a key · which pack was installed). null for ways A, B, B+."
+      },
+      "steps": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "invite": {
+            "type": "string",
+            "enum": [
+              "open",
+              "done",
+              "blocked"
+            ]
+          },
+          "model_key": {
+            "type": "string",
+            "enum": [
+              "open",
+              "done",
+              "blocked"
+            ]
+          },
+          "connection": {
+            "type": "string",
+            "enum": [
+              "open",
+              "done",
+              "blocked"
+            ]
+          },
+          "pack": {
+            "type": "string",
+            "enum": [
+              "open",
+              "done",
+              "blocked"
+            ]
+          },
+          "first_run": {
+            "type": "string",
+            "enum": [
+              "open",
+              "done",
+              "blocked"
+            ]
+          },
+          "chat": {
+            "type": "string",
+            "enum": [
+              "open",
+              "done",
+              "blocked"
+            ]
+          }
+        },
+        "description": "Way next_step: the six getting-started steps as the Flow knows them — the first `open` one, in the order invite → model_key → connection → pack → first_run → chat, is the step to propose. null for the other ways."
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "text"
+    ],
+    "properties": {
+      "text": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2000
+      },
+      "proposal": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "additionalProperties": false,
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "detail": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 280
+          }
+        },
+        "description": "The card's words only — a short title (an invitation to act) and an optional one-sentence detail. The Flow sets the step and the door; never write a route or a screen name here. null when there is nothing to propose (way first_run, ways B and B+)."
+      }
+    },
+    "examples": [
+      {
+        "text": "Hi Olena — I'm Nexi. Nexiflow is ready: General is your first project, and the base pack brought 20 agents, 34 skills and 24 flows. Nexi answers from your organization's knowledge and shows where every answer came from; each project has its own chat, and files you attach there stay in that project. Shall we start with your team?",
+        "proposal": {
+          "title": "Invite your team",
+          "detail": "People you invite land in General with you."
+        }
+      }
+    ],
+    "description": "`examples[0]` is the answer NexCore's fixture model gateway gives on the e2e stacks (T1) — a hello with the card; the live model writes its own."
+  },
+  "examples": [
+    {
+      "title": "Way A · owner · en",
+      "input": {
+        "way": "A",
+        "person": {
+          "first_name": "Olena",
+          "locale": "en"
+        },
+        "organization": {
+          "name": "Nexiflow",
+          "role": "owner",
+          "owner_display_name": null
+        },
+        "pack": {
+          "agents": 20,
+          "skills": 34,
+          "flows": 24
+        },
+        "projects": [
+          {
+            "name": "General",
+            "description": "Where the organization starts.",
+            "flows": []
+          }
+        ],
+        "hits": [
+          {
+            "title": "How Nexi works",
+            "text": "Nexi answers from your organization's knowledge and shows where every answer came from. Each project has its own chat; files you attach there stay in that project.",
+            "uri": "nexus://docs/how-nexi-works"
+          }
+        ],
+        "onboarding": [],
+        "model": {
+          "name": "GPT-4.1",
+          "source": "managed",
+          "deployment": "Nexi Cloud"
+        }
+      },
+      "expected_output": "{\"text\": \"Hi Olena — I'm Nexi. Nexiflow is ready: General is your first project, and the base pack brought 20 agents, 34 skills and 24 flows. GPT-4.1 answers for you — managed by Nexi Cloud. Nexi answers from your organization's knowledge and shows where every answer came from; each project has its own chat, and files you attach there stay in that project. In a project chat you can ask, attach files, run a flow or hand me a goal. How can I help first?\", \"proposal\": {\"title\": \"Invite your first colleague\", \"detail\": \"Nexiflow is yours alone so far — People is where it grows.\"}}"
+    },
+    {
+      "title": "Way A · owner · uk",
+      "input": {
+        "way": "A",
+        "person": {
+          "first_name": "Олена",
+          "locale": "uk"
+        },
+        "organization": {
+          "name": "Nexiflow",
+          "role": "owner",
+          "owner_display_name": null
+        },
+        "pack": {
+          "agents": 20,
+          "skills": 34,
+          "flows": 24
+        },
+        "projects": [
+          {
+            "name": "General",
+            "description": "Звідси починається організація.",
+            "flows": []
+          }
+        ],
+        "hits": [
+          {
+            "title": "Як працює Nexi",
+            "text": "Nexi відповідає зі знань вашої організації і показує, звідки взято кожну відповідь. У кожного проєкту свій чат; файли, додані там, лишаються в цьому проєкті.",
+            "uri": "nexus://docs/how-nexi-works"
+          }
+        ],
+        "onboarding": [],
+        "model": {
+          "name": "GPT-4.1",
+          "source": "managed",
+          "deployment": "Nexi Cloud"
+        }
+      },
+      "expected_output": "{\"text\": \"Привіт, Олена — я Нексі. Nexiflow готовий: General — ваш перший проєкт, а базовий пакет приніс 20 агентів, 34 навички та 24 потоки. GPT-4.1 відповідає за вас — під управлінням Nexi Cloud. Nexi відповідає зі знань вашої організації і показує, звідки взято кожну відповідь; у кожного проєкту свій чат, і файли, додані там, лишаються в цьому проєкті. У чаті проєкту можна запитати, додати файли, запустити потік або доручити мені ціль. З чого почнемо?\", \"proposal\": {\"title\": \"Запросіть першого колегу\", \"detail\": \"Поки що Nexiflow — тільки ваш; People — місце, де він росте.\"}}"
+    },
+    {
+      "title": "Way A · documentation unavailable · en",
+      "input": {
+        "way": "A",
+        "person": {
+          "first_name": "Olena",
+          "locale": "en"
+        },
+        "organization": {
+          "name": "Nexiflow",
+          "role": "owner",
+          "owner_display_name": null
+        },
+        "pack": null,
+        "projects": [
+          {
+            "name": "General",
+            "description": "Where the organization starts.",
+            "flows": []
+          }
+        ],
+        "hits": [],
+        "onboarding": [],
+        "model": null
+      },
+      "expected_output": "{\"text\": \"Hi Olena — I'm Nexi. Nexiflow is ready: General is your first project. I couldn't read the Nexi documentation just now — it is in Docs whenever you need it. In a project chat you can ask, attach files, run a flow or hand me a goal. How can I help first?\"}"
+    },
+    {
+      "title": "Way A · documentation unavailable · uk",
+      "input": {
+        "way": "A",
+        "person": {
+          "first_name": "Олена",
+          "locale": "uk"
+        },
+        "organization": {
+          "name": "Nexiflow",
+          "role": "owner",
+          "owner_display_name": null
+        },
+        "pack": null,
+        "projects": [
+          {
+            "name": "General",
+            "description": "Звідси починається організація.",
+            "flows": []
+          }
+        ],
+        "hits": [],
+        "onboarding": [],
+        "model": null
+      },
+      "expected_output": "{\"text\": \"Привіт, Олена — я Нексі. Nexiflow готовий: General — ваш перший проєкт. Зараз не вдалося прочитати документацію Nexi — вона є в Docs, щойно знадобиться. У чаті проєкту можна запитати, додати файли, запустити потік або доручити мені ціль. З чого почнемо?\"}"
+    },
+    {
+      "title": "Way B · member · en",
+      "input": {
+        "way": "B",
+        "person": {
+          "first_name": "Marko",
+          "locale": "en"
+        },
+        "organization": {
+          "name": "Nexiflow",
+          "role": "member",
+          "owner_display_name": "Olena"
+        },
+        "pack": null,
+        "projects": [
+          {
+            "name": "General",
+            "description": "Where the organization starts.",
+            "flows": []
+          },
+          {
+            "name": "Supplier letters",
+            "description": "Drafts and replies to suppliers.",
+            "flows": [
+              "Web research"
+            ]
+          }
+        ],
+        "hits": [
+          {
+            "title": "How Nexi works",
+            "text": "Nexi answers from your organization's knowledge and shows where every answer came from.",
+            "uri": "nexus://docs/how-nexi-works"
+          }
+        ],
+        "onboarding": []
+      },
+      "expected_output": "{\"text\": \"Hi Marko — welcome to Nexiflow, you're here as a Member. You can see two projects: General — where the organization starts; Supplier letters — drafts and replies to suppliers. Nexi answers from your organization's knowledge and shows where every answer came from. Questions about access or projects — ask Olena, the Owner. What would you like to do first?\"}"
+    },
+    {
+      "title": "Way B · member · uk",
+      "input": {
+        "way": "B",
+        "person": {
+          "first_name": "Марко",
+          "locale": "uk"
+        },
+        "organization": {
+          "name": "Nexiflow",
+          "role": "member",
+          "owner_display_name": "Олена"
+        },
+        "pack": null,
+        "projects": [
+          {
+            "name": "General",
+            "description": "Звідси починається організація.",
+            "flows": []
+          },
+          {
+            "name": "Листи постачальникам",
+            "description": "Чернетки й відповіді постачальникам.",
+            "flows": [
+              "Веб-дослідження"
+            ]
+          }
+        ],
+        "hits": [
+          {
+            "title": "Як працює Nexi",
+            "text": "Nexi відповідає зі знань вашої організації і показує, звідки взято кожну відповідь.",
+            "uri": "nexus://docs/how-nexi-works"
+          }
+        ],
+        "onboarding": []
+      },
+      "expected_output": "{\"text\": \"Привіт, Марко — ласкаво просимо до Nexiflow, ви тут як Учасник. Вам видно два проєкти: General — звідси починається організація; Листи постачальникам — чернетки й відповіді постачальникам. Nexi відповідає зі знань вашої організації і показує, звідки взято кожну відповідь. Питання про доступ чи проєкти — до Олена, Власника. З чого хочете почати?\"}"
+    },
+    {
+      "title": "Way B+ · onboarding sources · en",
+      "input": {
+        "way": "B+",
+        "person": {
+          "first_name": "Marko",
+          "locale": "en"
+        },
+        "organization": {
+          "name": "Nexiflow",
+          "role": "member",
+          "owner_display_name": "Olena"
+        },
+        "pack": null,
+        "projects": [],
+        "hits": [],
+        "onboarding": [
+          {
+            "title": "Employee handbook",
+            "uri": "nexus://source/src_handbook"
+          },
+          {
+            "title": "Security policy",
+            "uri": "nexus://source/src_security"
+          }
+        ]
+      },
+      "expected_output": "{\"text\": \"Welcome aboard, Marko. Nexiflow has onboarding material in place: Employee handbook, Security policy. A good first step is the first chapter of the Employee handbook. Ask me anything about these documents; I answer from them and point to the page.\"}"
+    },
+    {
+      "title": "Way B+ · onboarding sources · uk",
+      "input": {
+        "way": "B+",
+        "person": {
+          "first_name": "Марко",
+          "locale": "uk"
+        },
+        "organization": {
+          "name": "Nexiflow",
+          "role": "member",
+          "owner_display_name": "Олена"
+        },
+        "pack": null,
+        "projects": [],
+        "hits": [],
+        "onboarding": [
+          {
+            "title": "Довідник працівника",
+            "uri": "nexus://source/src_handbook"
+          },
+          {
+            "title": "Політика безпеки",
+            "uri": "nexus://source/src_security"
+          }
+        ]
+      },
+      "expected_output": "{\"text\": \"Ласкаво просимо на борт, Марко. У Nexiflow є онбординг-матеріали: Довідник працівника, Політика безпеки. Гарний перший крок — перший розділ Довідника працівника. Запитуйте мене про ці документи; я відповідаю з них і вказую сторінку.\"}"
+    },
+    {
+      "title": "Way next_step · member joined · en",
+      "input": {
+        "way": "next_step",
+        "person": {
+          "first_name": "Olena",
+          "locale": "en"
+        },
+        "organization": {
+          "name": "Nexiflow",
+          "role": "owner",
+          "owner_display_name": null
+        },
+        "pack": null,
+        "model": null,
+        "projects": [],
+        "hits": [],
+        "onboarding": [],
+        "event": {
+          "kind": "member.joined",
+          "subject_display": "Marko",
+          "role": "member",
+          "provider": null,
+          "pack_name": null
+        },
+        "steps": {
+          "invite": "done",
+          "model_key": "open",
+          "connection": "open",
+          "pack": "done",
+          "first_run": "open",
+          "chat": "open"
+        }
+      },
+      "expected_output": "{\"text\": \"Marko joined as a Member. Next, a model key: with one in place, Nexi answers for everyone in Nexiflow.\", \"proposal\": {\"title\": \"Add a model key\", \"detail\": \"Connections › Models — one key is enough to start.\"}}"
+    },
+    {
+      "title": "Way next_step · member joined · uk",
+      "input": {
+        "way": "next_step",
+        "person": {
+          "first_name": "Олена",
+          "locale": "uk"
+        },
+        "organization": {
+          "name": "Nexiflow",
+          "role": "owner",
+          "owner_display_name": null
+        },
+        "pack": null,
+        "model": null,
+        "projects": [],
+        "hits": [],
+        "onboarding": [],
+        "event": {
+          "kind": "member.joined",
+          "subject_display": "Марко",
+          "role": "member",
+          "provider": null,
+          "pack_name": null
+        },
+        "steps": {
+          "invite": "done",
+          "model_key": "open",
+          "connection": "open",
+          "pack": "done",
+          "first_run": "open",
+          "chat": "open"
+        }
+      },
+      "expected_output": "{\"text\": \"Марко приєднався як Учасник. Далі — ключ моделі: щойно він є, Nexi відповідає всім у Nexiflow.\", \"proposal\": {\"title\": \"Додайте ключ моделі\", \"detail\": \"Connections › Models — для початку досить одного ключа.\"}}"
+    },
+    {
+      "title": "Way next_step · key set · en",
+      "input": {
+        "way": "next_step",
+        "person": {
+          "first_name": "Olena",
+          "locale": "en"
+        },
+        "organization": {
+          "name": "Nexiflow",
+          "role": "owner",
+          "owner_display_name": null
+        },
+        "pack": null,
+        "model": null,
+        "projects": [],
+        "hits": [],
+        "onboarding": [],
+        "event": {
+          "kind": "connection.credential_set",
+          "subject_display": null,
+          "role": null,
+          "provider": "OpenAI",
+          "pack_name": null
+        },
+        "steps": {
+          "invite": "done",
+          "model_key": "done",
+          "connection": "open",
+          "pack": "done",
+          "first_run": "open",
+          "chat": "open"
+        }
+      },
+      "expected_output": "{\"text\": \"OpenAI has its key — Nexi now answers with it. Next, a connection: link the system your people already work in, and Nexi reads from it as they may.\", \"proposal\": {\"title\": \"Connect your first system\", \"detail\": \"Connections — pick a kind and give it a credential.\"}}"
+    },
+    {
+      "title": "Way next_step · key set · uk",
+      "input": {
+        "way": "next_step",
+        "person": {
+          "first_name": "Олена",
+          "locale": "uk"
+        },
+        "organization": {
+          "name": "Nexiflow",
+          "role": "owner",
+          "owner_display_name": null
+        },
+        "pack": null,
+        "model": null,
+        "projects": [],
+        "hits": [],
+        "onboarding": [],
+        "event": {
+          "kind": "connection.credential_set",
+          "subject_display": null,
+          "role": null,
+          "provider": "OpenAI",
+          "pack_name": null
+        },
+        "steps": {
+          "invite": "done",
+          "model_key": "done",
+          "connection": "open",
+          "pack": "done",
+          "first_run": "open",
+          "chat": "open"
+        }
+      },
+      "expected_output": "{\"text\": \"OpenAI отримав ключ — тепер Nexi відповідає з ним. Далі — з'єднання: підключіть систему, у якій уже працюють ваші люди, і Nexi читатиме з неї в межах їхніх прав.\", \"proposal\": {\"title\": \"Підключіть першу систему\", \"detail\": \"Connections — оберіть тип і додайте облікові дані.\"}}"
+    },
+    {
+      "title": "Way next_step · pack installed · en",
+      "input": {
+        "way": "next_step",
+        "person": {
+          "first_name": "Olena",
+          "locale": "en"
+        },
+        "organization": {
+          "name": "Nexiflow",
+          "role": "owner",
+          "owner_display_name": null
+        },
+        "pack": null,
+        "model": null,
+        "projects": [],
+        "hits": [],
+        "onboarding": [],
+        "event": {
+          "kind": "pack.installed",
+          "subject_display": null,
+          "role": null,
+          "provider": null,
+          "pack_name": "Nexi Base"
+        },
+        "steps": {
+          "invite": "done",
+          "model_key": "done",
+          "connection": "done",
+          "pack": "done",
+          "first_run": "open",
+          "chat": "open"
+        }
+      },
+      "expected_output": "{\"text\": \"Nexi Base is installed — its agents, skills and flows are yours. Next, a first run: open Automations, pick a flow and run it once to see what it leaves behind.\", \"proposal\": {\"title\": \"Run your first flow\", \"detail\": \"Automations — Weekly digest is a good first one.\"}}"
+    },
+    {
+      "title": "Way next_step · pack installed · uk",
+      "input": {
+        "way": "next_step",
+        "person": {
+          "first_name": "Олена",
+          "locale": "uk"
+        },
+        "organization": {
+          "name": "Nexiflow",
+          "role": "owner",
+          "owner_display_name": null
+        },
+        "pack": null,
+        "model": null,
+        "projects": [],
+        "hits": [],
+        "onboarding": [],
+        "event": {
+          "kind": "pack.installed",
+          "subject_display": null,
+          "role": null,
+          "provider": null,
+          "pack_name": "Nexi Base"
+        },
+        "steps": {
+          "invite": "done",
+          "model_key": "done",
+          "connection": "done",
+          "pack": "done",
+          "first_run": "open",
+          "chat": "open"
+        }
+      },
+      "expected_output": "{\"text\": \"Nexi Base встановлено — його агенти, навички та потоки ваші. Далі — перший запуск: відкрийте Automations, оберіть потік і запустіть його раз, щоб побачити, що він лишає по собі.\", \"proposal\": {\"title\": \"Запустіть перший потік\", \"detail\": \"Automations — Weekly digest підійде для початку.\"}}"
+    },
+    {
+      "title": "Way first_run · en",
+      "input": {
+        "way": "first_run",
+        "person": {
+          "first_name": "Olena",
+          "locale": "en"
+        },
+        "organization": {
+          "name": "Nexiflow",
+          "role": "owner",
+          "owner_display_name": null
+        },
+        "pack": null,
+        "model": null,
+        "projects": [],
+        "hits": [],
+        "onboarding": [],
+        "event": {
+          "kind": "first_run",
+          "subject_display": null,
+          "role": null,
+          "provider": null,
+          "pack_name": null
+        },
+        "steps": null
+      },
+      "expected_output": "{\"text\": \"That was your first run, Olena — Nexiflow is up and working. From here on, ask me anything in any project chat.\", \"proposal\": null}"
+    },
+    {
+      "title": "Way first_run · uk",
+      "input": {
+        "way": "first_run",
+        "person": {
+          "first_name": "Олена",
+          "locale": "uk"
+        },
+        "organization": {
+          "name": "Nexiflow",
+          "role": "owner",
+          "owner_display_name": null
+        },
+        "pack": null,
+        "model": null,
+        "projects": [],
+        "hits": [],
+        "onboarding": [],
+        "event": {
+          "kind": "first_run",
+          "subject_display": null,
+          "role": null,
+          "provider": null,
+          "pack_name": null
+        },
+        "steps": null
+      },
+      "expected_output": "{\"text\": \"Це був ваш перший запуск, Олено — Nexiflow працює. Відтепер питайте мене про що завгодно в чаті будь-якого проєкту.\", \"proposal\": null}"
+    }
+  ],
+  "evaluation": {
+    "human_review": {
+      "state": "approved",
+      "reviewed_by": "Nexi maintainers",
+      "reviewed_at": "2026-10-20T00:00:00Z",
+      "reviewed_version": "1.1.0",
+      "notes": "«Nexi writes first» — copy mirrors turn.first.* of packages/i18n (en = uk); a sentence is dropped, never invented, when its facts are absent. 1.1.0: ways next_step and first_run, the model sentence of way A, the proposal's words — the step and the door are the Flow's, never the model's."
+    }
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-10-19T00:00:00Z"
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "metadata": {
+    "tags": [
+      "onboarding",
+      "first-minute",
+      "next-step",
+      "chat"
+    ]
+  },
+  "created_by": "nexus-platform",
+  "created_at": "2026-10-19T00:00:00Z",
+  "published_at": "2026-10-19T00:00:00Z"
+}

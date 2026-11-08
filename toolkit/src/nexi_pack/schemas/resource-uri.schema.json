@@ -6,7 +6,7 @@
   "anyOf": [
     {
       "type": "string",
-      "pattern": "^nexus://(chat|spin|tasks|bi|graph|core|map|care|forge|sales)/[a-z0-9._-]+/[A-Za-z0-9._:-]+$"
+      "pattern": "^nexus://(chat|spin|tasks|bi|graph|core|map|care|forge|sales|factory)/[a-z0-9._-]+/[A-Za-z0-9._:-]+$"
     },
     {
       "type": "string",

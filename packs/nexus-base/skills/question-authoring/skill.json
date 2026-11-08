@@ -1,0 +1,234 @@
+{
+  "skill_id": "skl_question_authoring",
+  "uri": "nexus://skill/skl_question_authoring",
+  "name": "Question authoring",
+  "description": "From one portal section's pages as ingested, write benchmark question rows a second person reviews: en/uk twins with identical verbatim gold, negatives without gold, closed ids and categories. On a second pass rewrite only the rows the validator failed.",
+  "origin": "platform",
+  "status": "published",
+  "version": "1.0.0",
+  "entry": "SKILL.md",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "metadata": {
+    "tags": [
+      "graph",
+      "quality",
+      "benchmark",
+      "authoring"
+    ]
+  },
+  "evaluation": {
+    "human_review": {
+      "state": "approved",
+      "reviewed_by": "Nexi maintainers",
+      "reviewed_at": "2026-11-02T09:26:00Z",
+      "reviewed_version": "1.0.0",
+      "notes": "Owner review 2026-11-02 11:26: APPROVED 019 UAT-3 S5 — SKILL.md read at the S5 UAT-3 gate; en/uk twins with identical verbatim gold, negatives without gold, closed ids and categories, second pass rewrites only the failing rows."
+    }
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-11-02T09:26:00Z"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-11-01T00:00:00Z",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "section",
+      "pages"
+    ],
+    "properties": {
+      "section": {
+        "type": "string",
+        "maxLength": 80,
+        "description": "The portal section the rows belong to (`guide/chat`, `technical`, …)."
+      },
+      "pages": {
+        "type": "array",
+        "maxItems": 80,
+        "items": {
+          "type": "object",
+          "properties": {
+            "page_id": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            },
+            "chars": {
+              "type": "integer"
+            }
+          }
+        },
+        "description": "The section's pages as ingested — route and text (bounded). Gold phrases are copied from `text`."
+      },
+      "max_rows": {
+        "type": "integer",
+        "minimum": 2,
+        "maximum": 200,
+        "description": "The ceiling for the batch (twins count as two rows)."
+      },
+      "failing_rows": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        },
+        "description": "Second pass only: the rows the validator failed, each with `problems[]` — rewrite these alone, same ids."
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "rows"
+    ],
+    "properties": {
+      "rows": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "lang",
+            "category",
+            "question",
+            "gold_facts",
+            "gold_pages",
+            "answerable"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{2,118}$",
+              "description": "`<section-stem>-<nn>-<lang>`; twins share the stem."
+            },
+            "lang": {
+              "type": "string",
+              "enum": [
+                "en",
+                "uk"
+              ]
+            },
+            "category": {
+              "type": "string",
+              "enum": [
+                "concept",
+                "how-to",
+                "access-rights",
+                "deploy",
+                "API",
+                "negative"
+              ]
+            },
+            "question": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 600
+            },
+            "gold_facts": {
+              "type": "array",
+              "maxItems": 12,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 400
+              },
+              "description": "Verbatim phrases of the gold page (the English text, for both twins). Empty for a negative."
+            },
+            "gold_pages": {
+              "type": "array",
+              "maxItems": 4,
+              "items": {
+                "type": "string"
+              },
+              "description": "Routes inside the section. Empty for a negative."
+            },
+            "answerable": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "notes": {
+        "type": "string",
+        "maxLength": 400
+      }
+    }
+  },
+  "examples": [
+    {
+      "title": "A first pass on a short section",
+      "input": {
+        "section": "guide/tasks",
+        "max_rows": 6,
+        "pages": [
+          {
+            "page_id": "guide/tasks",
+            "chars": 1800,
+            "text": "# NexTasks\n\nNexTasks is the suite's work app. A board holds work items in columns; the Inbox shows the approvals waiting for you. Press ⌘⏎ to approve the open card. Only a project owner can archive a board."
+          }
+        ]
+      },
+      "expected_output": "{\"rows\": [{\"id\": \"t-tasks-01-en\", \"lang\": \"en\", \"category\": \"concept\", \"question\": \"What does the Inbox in NexTasks show?\", \"gold_facts\": [\"the Inbox shows the approvals waiting for you\"], \"gold_pages\": [\"guide/tasks\"], \"answerable\": true}, {\"id\": \"t-tasks-01-uk\", \"lang\": \"uk\", \"category\": \"concept\", \"question\": \"Що показує Вхідні в NexTasks?\", \"gold_facts\": [\"the Inbox shows the approvals waiting for you\"], \"gold_pages\": [\"guide/tasks\"], \"answerable\": true}, {\"id\": \"t-tasks-02-en\", \"lang\": \"en\", \"category\": \"access-rights\", \"question\": \"Who can archive a board?\", \"gold_facts\": [\"Only a project owner can archive a board\"], \"gold_pages\": [\"guide/tasks\"], \"answerable\": true}, {\"id\": \"t-tasks-02-uk\", \"lang\": \"uk\", \"category\": \"access-rights\", \"question\": \"Хто може архівувати дошку?\", \"gold_facts\": [\"Only a project owner can archive a board\"], \"gold_pages\": [\"guide/tasks\"], \"answerable\": true}, {\"id\": \"t-tasks-03-en\", \"lang\": \"en\", \"category\": \"negative\", \"question\": \"Which shortcut exports a board to PDF?\", \"gold_facts\": [], \"gold_pages\": [], \"answerable\": false}, {\"id\": \"t-tasks-03-uk\", \"lang\": \"uk\", \"category\": \"negative\", \"question\": \"Яка комбінація клавіш експортує дошку в PDF?\", \"gold_facts\": [], \"gold_pages\": [], \"answerable\": false}], \"notes\": \"Three twins: two answerable from the one page, one negative the page does not cover.\"}"
+    },
+    {
+      "title": "A second pass: one gold phrase was not verbatim",
+      "input": {
+        "section": "guide/tasks",
+        "pages": [
+          {
+            "page_id": "guide/tasks",
+            "chars": 1800,
+            "text": "# NexTasks\n\nPress ⌘⏎ to approve the open card."
+          }
+        ],
+        "failing_rows": [
+          {
+            "id": "t-tasks-04-en",
+            "lang": "en",
+            "section": "guide/tasks",
+            "category": "how-to",
+            "question": "How do you approve the open card from the keyboard?",
+            "gold_facts": [
+              "press Cmd-Enter to approve the card"
+            ],
+            "gold_pages": [
+              "guide/tasks"
+            ],
+            "answerable": true,
+            "problems": [
+              "fact_not_in_page"
+            ]
+          },
+          {
+            "id": "t-tasks-04-uk",
+            "lang": "uk",
+            "section": "guide/tasks",
+            "category": "how-to",
+            "question": "Як підтвердити відкриту картку з клавіатури?",
+            "gold_facts": [
+              "press Cmd-Enter to approve the card"
+            ],
+            "gold_pages": [
+              "guide/tasks"
+            ],
+            "answerable": true,
+            "problems": [
+              "twin_gold_differs"
+            ]
+          }
+        ]
+      },
+      "expected_output": "{\"rows\": [{\"id\": \"t-tasks-04-en\", \"lang\": \"en\", \"category\": \"how-to\", \"question\": \"How do you approve the open card from the keyboard?\", \"gold_facts\": [\"Press ⌘⏎ to approve the open card\"], \"gold_pages\": [\"guide/tasks\"], \"answerable\": true}, {\"id\": \"t-tasks-04-uk\", \"lang\": \"uk\", \"category\": \"how-to\", \"question\": \"Як підтвердити відкриту картку з клавіатури?\", \"gold_facts\": [\"Press ⌘⏎ to approve the open card\"], \"gold_pages\": [\"guide/tasks\"], \"answerable\": true}], \"notes\": \"The gold phrase is now the page's own words; both twins carry it.\"}"
+    }
+  ]
+}

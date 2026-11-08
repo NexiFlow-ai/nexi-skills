@@ -1,0 +1,922 @@
+{
+  "spec_version": "1.2",
+  "workflow_id": "flw_tpl_question_author",
+  "uri": "nexus://workflow/template/flw_tpl_question_author",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "project_id": null,
+  "name": "Question author",
+  "description": "The bench question set grows by review, never by a model's word: the question-author writes rows from one portal section's pages as ingested (or a validated seed file is imported), a deterministic validator confirms every gold phrase verbatim, twins consistent and negatives empty — a batch with problems is re-authored on its failing rows and never reaches a person unclean — and one NexTasks approval per section batch puts the row table before a second person, who keeps or drops each row. Closing writes one `question_review` decision record per row (human_explicit) and the kept rows into the Project's question set; the run's initiator is refused as the reviewer twice (NexTasks and NexGraph). `approval_for_external_writes` is off: the Flow's one human gate is its own review node — `import` and `write` only fill a `drafting` batch inside NexGraph, nothing leaves the Project — and the gate the engine would inject before them is an owner's self-approval of their own unreviewed rows.",
+  "version": 1,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.0.2"
+  },
+  "requires": {
+    "models": [
+      {
+        "role": "planner",
+        "capabilities": [
+          "structured_output"
+        ]
+      }
+    ],
+    "tools": [
+      "nexus://tool/graph.bench.pages",
+      "nexus://tool/graph.bench.batch.write",
+      "nexus://tool/graph.bench.batch.validate",
+      "nexus://tool/graph.bench.batch.close"
+    ]
+  },
+  "capability": {
+    "intents": [
+      "draft_document",
+      "review_document"
+    ],
+    "domains": [
+      "general",
+      "engineering"
+    ],
+    "inputs": [
+      "text"
+    ],
+    "outputs": [
+      "record"
+    ],
+    "side_effects": true,
+    "background_supported": true,
+    "cost_class": "medium",
+    "latency_class": "background",
+    "classification_max": "confidential",
+    "routable": false
+  },
+  "presentation": {
+    "title": {
+      "en": "Question author",
+      "uk": "Автор запитань"
+    },
+    "stage_labels": [
+      {
+        "node_id": "pages",
+        "label": {
+          "en": "Reading the section",
+          "uk": "Читаю розділ"
+        }
+      },
+      {
+        "node_id": "authoring",
+        "label": {
+          "en": "Writing the questions",
+          "uk": "Пишу запитання"
+        }
+      },
+      {
+        "node_id": "import",
+        "label": {
+          "en": "Importing the rows",
+          "uk": "Імпортую рядки"
+        }
+      },
+      {
+        "node_id": "validate_import",
+        "label": {
+          "en": "Validating",
+          "uk": "Перевіряю"
+        }
+      },
+      {
+        "node_id": "review",
+        "label": {
+          "en": "Waiting for the review",
+          "uk": "Чекаю на перегляд"
+        }
+      },
+      {
+        "node_id": "review_import",
+        "label": {
+          "en": "Waiting for the review",
+          "uk": "Чекаю на перегляд"
+        }
+      },
+      {
+        "node_id": "close",
+        "label": {
+          "en": "Closing the batch",
+          "uk": "Закриваю пакет"
+        }
+      },
+      {
+        "node_id": "close_import",
+        "label": {
+          "en": "Closing the batch",
+          "uk": "Закриваю пакет"
+        }
+      }
+    ],
+    "person_steps": [
+      "review",
+      "review_import"
+    ],
+    "receipt_fields": [
+      {
+        "key": "kept",
+        "label": {
+          "en": "Questions kept",
+          "uk": "Залишено запитань"
+        }
+      },
+      {
+        "key": "dropped",
+        "label": {
+          "en": "Dropped",
+          "uk": "Відхилено"
+        }
+      }
+    ],
+    "result_kind": "none"
+  },
+  "trigger": {
+    "kind": "manual"
+  },
+  "inputs": [
+    {
+      "name": "section",
+      "type": "string",
+      "required": true,
+      "description": "The portal section (`guide/chat`, `technical`, …) — one batch per section"
+    },
+    {
+      "name": "rows_ref",
+      "type": "string",
+      "required": false,
+      "description": "The import entry: a validated seed file of the repo's platform set (`nexus_platform_qa/sections/<section>.jsonl`); given → no author runs"
+    },
+    {
+      "name": "source_version_ref",
+      "type": "string",
+      "required": false,
+      "description": "The docs SourceVersion the pages were read from, when known"
+    },
+    {
+      "name": "max_rows",
+      "type": "integer",
+      "required": false,
+      "description": "The author's ceiling for the batch (twins count as two); default 24"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "batch_ref",
+      "type": "resource_uri"
+    },
+    {
+      "name": "kept",
+      "type": "integer"
+    },
+    {
+      "name": "dropped",
+      "type": "integer"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "Start"
+    },
+    {
+      "id": "has_rows",
+      "kind": "condition",
+      "label": "Rows given?",
+      "description": "The import entry: a validated seed file named by `rows_ref` goes straight to the validator — no author runs; otherwise the author writes from the pages.",
+      "condition": {
+        "language": "nexus-expr-v1",
+        "source": "$.inputs.rows_ref != null"
+      }
+    },
+    {
+      "id": "import",
+      "kind": "tool",
+      "label": "Import the rows",
+      "description": "The seed file's rows of this section become one `drafting` batch of the Project (the import entry). Nothing is authored.",
+      "timeout_s": 60,
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "question_review"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/graph.bench.batch.write",
+        "operation": "write",
+        "mutating": true
+      },
+      "input_mapping": {
+        "section": "$.inputs.section",
+        "rows_ref": "$.inputs.rows_ref",
+        "source_version_ref": "$.inputs.source_version_ref"
+      },
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      },
+      "idempotency": {
+        "key_template": "question-import:{{run_id}}",
+        "dedupe_window_s": 86400
+      }
+    },
+    {
+      "id": "validate_import",
+      "kind": "tool",
+      "label": "Validate the batch",
+      "description": "The deterministic validator: every gold phrase verbatim in its page, every gold page ingested, en/uk twins with identical gold, negatives without gold. `problems` = 0 → the batch is `awaiting_review` and `batch` is the approval's subject.",
+      "timeout_s": 60,
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "question_review"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/graph.bench.batch.validate",
+        "operation": "validate",
+        "mutating": false
+      },
+      "input_mapping": {
+        "batch_id": "$.node.import.output.batch_id"
+      },
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      }
+    },
+    {
+      "id": "clean_import",
+      "kind": "condition",
+      "label": "No problems?",
+      "condition": {
+        "language": "nexus-expr-v1",
+        "source": "$.node.validate_import.output.problems == 0"
+      }
+    },
+    {
+      "id": "review_import",
+      "kind": "approval",
+      "label": "Review the questions",
+      "description": "One NexTasks approval per section batch: the card is the row table — id · language · category · question · gold facts · gold page — the reviewer keeps or drops each row. A Project editor who is not the run's initiator decides. Reject declines the batch whole.",
+      "timeout_s": 604800,
+      "policy": {
+        "pep_action": "approve",
+        "purpose": "question_review"
+      },
+      "approval": {
+        "approver": {
+          "relation": "editor"
+        },
+        "title_template": "Review {{node.validate_import.output.rows}} questions · {{inputs.section}}",
+        "on_timeout": "fail",
+        "subject": {
+          "kind": "question_batch",
+          "from": "$.node.validate_import.output.batch"
+        }
+      }
+    },
+    {
+      "id": "close_import",
+      "kind": "tool",
+      "label": "Close the batch",
+      "description": "Closes on NexTasks's record of the review (NexChat reads it; the arguments are replaced by it): approve → every keep row enters the question set with one `question_review` decision record per row (the reviewer's pick, human_explicit); reject → the batch is declined whole. NexGraph refuses the run's own initiator as the approver.",
+      "timeout_s": 60,
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "question_review"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/graph.bench.batch.close",
+        "operation": "close",
+        "mutating": true
+      },
+      "input_mapping": {
+        "batch_id": "$.node.import.output.batch_id",
+        "approval_ref": "$.node.review_import.output.approval_uri",
+        "decision": "$.node.review_import.output.decision",
+        "approver_id": "$.node.review_import.output.decided_by",
+        "decided_at": "$.node.review_import.output.decided_at",
+        "rows": "$.node.review_import.output.rows"
+      },
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      },
+      "idempotency": {
+        "key_template": "question-close:{{run_id}}:close_import",
+        "dedupe_window_s": 86400
+      }
+    },
+    {
+      "id": "pages",
+      "kind": "tool",
+      "label": "Read the section's pages",
+      "description": "The section's pages as ingested — route and text, bounded — the only material the author may ask about.",
+      "timeout_s": 60,
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "question_review"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/graph.bench.pages",
+        "operation": "read",
+        "mutating": false
+      },
+      "input_mapping": {
+        "section": "$.inputs.section",
+        "limit": "40"
+      },
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      }
+    },
+    {
+      "id": "authoring",
+      "kind": "loop",
+      "label": "Write, write down, validate",
+      "description": "One pass = the author writes rows (the first pass from the pages; a later pass rewrites only the rows the validator failed), the Flow writes them into the batch (the same batch after the first pass — `batch_id` is the previous write's) and the validator judges. The evaluator reads `problems` — deterministic; the loop leaves `complete` at 0, `exhausted` after three passes.",
+      "loop": {
+        "entry_node_id": "author",
+        "body_node_ids": [
+          "author",
+          "write",
+          "validate",
+          "clean"
+        ],
+        "until": {
+          "evaluator_node_id": "clean",
+          "kind": "expression",
+          "expression": {
+            "language": "nexus-expr-v1",
+            "source": "$.node.validate.output.problems == 0"
+          }
+        },
+        "max_iterations": 3,
+        "max_duration_s": 1500,
+        "budget": {
+          "max_tokens": 120000,
+          "max_tool_calls": 12
+        },
+        "on_no_progress": "finish",
+        "no_progress_after": 2,
+        "iteration_context": "summarize"
+      }
+    },
+    {
+      "id": "author",
+      "kind": "agent",
+      "label": "Write the questions",
+      "description": "The question-author: the section's pages and the ceiling; on a later pass the failing rows with their problem codes — it rewrites those alone, same ids. It holds no tools and proposes rows; nothing it writes enters the question set without the reviewer.",
+      "timeout_s": 480,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "question_review"
+      },
+      "input_mapping": {
+        "section": "$.inputs.section",
+        "pages": "$.node.pages.output.pages",
+        "max_rows": "$.inputs.max_rows",
+        "failing_rows": "$.node.validate.output.failing_rows"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_question_author",
+        "context_scope": "project",
+        "skill_uris": [
+          "nexus://skill/skl_question_authoring"
+        ],
+        "inference": {
+          "role": "planner"
+        },
+        "output_schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "rows"
+          ],
+          "properties": {
+            "rows": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "lang",
+                  "category",
+                  "question",
+                  "gold_facts",
+                  "gold_pages",
+                  "answerable"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9][a-z0-9-]{2,118}$",
+                    "description": "`<section-stem>-<nn>-<lang>`; twins share the stem."
+                  },
+                  "lang": {
+                    "type": "string",
+                    "enum": [
+                      "en",
+                      "uk"
+                    ]
+                  },
+                  "category": {
+                    "type": "string",
+                    "enum": [
+                      "concept",
+                      "how-to",
+                      "access-rights",
+                      "deploy",
+                      "API",
+                      "negative"
+                    ]
+                  },
+                  "question": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 600
+                  },
+                  "gold_facts": {
+                    "type": "array",
+                    "maxItems": 12,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 400
+                    },
+                    "description": "Verbatim phrases of the gold page (the English text, for both twins). Empty for a negative."
+                  },
+                  "gold_pages": {
+                    "type": "array",
+                    "maxItems": 4,
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Routes inside the section. Empty for a negative."
+                  },
+                  "answerable": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            },
+            "notes": {
+              "type": "string",
+              "maxLength": 400
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "write",
+      "kind": "tool",
+      "label": "Write the batch",
+      "description": "The author's rows into the Project's batch: a new `drafting` batch on the first pass, the same batch (rows replaced by id) on a later one.",
+      "timeout_s": 60,
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "question_review"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/graph.bench.batch.write",
+        "operation": "write",
+        "mutating": true
+      },
+      "input_mapping": {
+        "section": "$.inputs.section",
+        "rows": "$.node.author.output.rows",
+        "batch_id": "$.node.write.output.batch_id",
+        "source_version_ref": "$.inputs.source_version_ref"
+      },
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      },
+      "idempotency": {
+        "key_template": "question-write:{{run_id}}:{{loop.authoring.iteration}}",
+        "dedupe_window_s": 86400
+      }
+    },
+    {
+      "id": "validate",
+      "kind": "tool",
+      "label": "Validate the batch",
+      "description": "The deterministic validator on the whole batch; `failing_rows` go back to the author, `batch` is the approval's subject once `problems` = 0.",
+      "timeout_s": 60,
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "question_review"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/graph.bench.batch.validate",
+        "operation": "validate",
+        "mutating": false
+      },
+      "input_mapping": {
+        "batch_id": "$.node.write.output.batch_id"
+      },
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      }
+    },
+    {
+      "id": "clean",
+      "kind": "evaluator",
+      "label": "No problems?",
+      "description": "The engine reads the validator's `problems`: 0 closes the loop; anything else opens the next pass.",
+      "timeout_s": 30,
+      "evaluator": {
+        "kind": "deterministic",
+        "criteria_source": "inline",
+        "metrics_path": "$.node.validate.output",
+        "criteria": [
+          {
+            "metric": "problems",
+            "operator": "eq",
+            "value": 0,
+            "description": "The validator found nothing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "review",
+      "kind": "approval",
+      "label": "Review the questions",
+      "description": "One NexTasks approval per section batch: the card is the row table — id · language · category · question · gold facts · gold page — the reviewer keeps or drops each row. A Project editor who is not the run's initiator decides. Reject declines the batch whole.",
+      "timeout_s": 604800,
+      "policy": {
+        "pep_action": "approve",
+        "purpose": "question_review"
+      },
+      "approval": {
+        "approver": {
+          "relation": "editor"
+        },
+        "title_template": "Review {{node.validate.output.rows}} questions · {{inputs.section}}",
+        "on_timeout": "fail",
+        "subject": {
+          "kind": "question_batch",
+          "from": "$.node.validate.output.batch"
+        }
+      }
+    },
+    {
+      "id": "close",
+      "kind": "tool",
+      "label": "Close the batch",
+      "description": "Closes on NexTasks's record of the review (NexChat reads it; the arguments are replaced by it): approve → every keep row enters the question set with one `question_review` decision record per row (the reviewer's pick, human_explicit); reject → the batch is declined whole. NexGraph refuses the run's own initiator as the approver.",
+      "timeout_s": 60,
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "question_review"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/graph.bench.batch.close",
+        "operation": "close",
+        "mutating": true
+      },
+      "input_mapping": {
+        "batch_id": "$.node.write.output.batch_id",
+        "approval_ref": "$.node.review.output.approval_uri",
+        "decision": "$.node.review.output.decision",
+        "approver_id": "$.node.review.output.decided_by",
+        "decided_at": "$.node.review.output.decided_at",
+        "rows": "$.node.review.output.rows"
+      },
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      },
+      "idempotency": {
+        "key_template": "question-close:{{run_id}}:close",
+        "dedupe_window_s": 86400
+      }
+    },
+    {
+      "id": "notify",
+      "kind": "notify",
+      "label": "Tell the thread",
+      "retry": {
+        "max_attempts": 3,
+        "backoff": "exponential",
+        "initial_delay_s": 5,
+        "max_delay_s": 60
+      },
+      "idempotency": {
+        "key_template": "question-notify:{{run_id}}",
+        "dedupe_window_s": 86400
+      },
+      "notify": {
+        "channel_uri": "nexus://chat/thread/{{run.thread_id}}",
+        "template": "Question batch for {{inputs.section}} closed.",
+        "channel": "thread"
+      }
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Batch closed",
+      "input_mapping": {
+        "batch_ref": "$.node.write.output.batch_ref",
+        "kept": "$.node.close.output.kept",
+        "dropped": "$.node.close.output.dropped"
+      }
+    },
+    {
+      "id": "end_unclean",
+      "kind": "end",
+      "label": "Not sent to review",
+      "description": "A batch with validator problems > 0 cannot be sent to approval: the run ends here and the batch stays `drafting` with its problems on it.",
+      "input_mapping": {
+        "problems": "$.node.validate.output.problems",
+        "import_problems": "$.node.validate_import.output.problems"
+      }
+    },
+    {
+      "id": "imported",
+      "kind": "condition",
+      "label": "Imported?",
+      "description": "Which branch closed the batch — the receipt reads the right nodes.",
+      "condition": {
+        "language": "nexus-expr-v1",
+        "source": "$.inputs.rows_ref != null"
+      }
+    },
+    {
+      "id": "end_import",
+      "kind": "end",
+      "label": "Batch closed",
+      "input_mapping": {
+        "batch_ref": "$.node.import.output.batch_ref",
+        "kept": "$.node.close_import.output.kept",
+        "dropped": "$.node.close_import.output.dropped"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-has_rows",
+      "source": "trigger",
+      "target": "has_rows"
+    },
+    {
+      "id": "e-has_rows-import-true",
+      "source": "has_rows",
+      "target": "import",
+      "when": "true"
+    },
+    {
+      "id": "e-import-validate_import",
+      "source": "import",
+      "target": "validate_import"
+    },
+    {
+      "id": "e-validate_import-clean_import",
+      "source": "validate_import",
+      "target": "clean_import"
+    },
+    {
+      "id": "e-clean_import-review_import-true",
+      "source": "clean_import",
+      "target": "review_import",
+      "when": "true"
+    },
+    {
+      "id": "e-clean_import-end_unclean-false",
+      "source": "clean_import",
+      "target": "end_unclean",
+      "when": "false"
+    },
+    {
+      "id": "e-review_import-close_import-approved",
+      "source": "review_import",
+      "target": "close_import",
+      "when": "approved"
+    },
+    {
+      "id": "e-review_import-close_import-rejected",
+      "source": "review_import",
+      "target": "close_import",
+      "when": "rejected"
+    },
+    {
+      "id": "e-close_import-notify",
+      "source": "close_import",
+      "target": "notify"
+    },
+    {
+      "id": "e-has_rows-pages-false",
+      "source": "has_rows",
+      "target": "pages",
+      "when": "false"
+    },
+    {
+      "id": "e-pages-authoring",
+      "source": "pages",
+      "target": "authoring"
+    },
+    {
+      "id": "e-author-write",
+      "source": "author",
+      "target": "write"
+    },
+    {
+      "id": "e-write-validate",
+      "source": "write",
+      "target": "validate"
+    },
+    {
+      "id": "e-validate-clean",
+      "source": "validate",
+      "target": "clean"
+    },
+    {
+      "id": "e-authoring-review-complete",
+      "source": "authoring",
+      "target": "review",
+      "when": "complete"
+    },
+    {
+      "id": "e-authoring-end_unclean-exhausted",
+      "source": "authoring",
+      "target": "end_unclean",
+      "when": "exhausted"
+    },
+    {
+      "id": "e-authoring-end_unclean-needs_human",
+      "source": "authoring",
+      "target": "end_unclean",
+      "when": "needs_human"
+    },
+    {
+      "id": "e-review-close-approved",
+      "source": "review",
+      "target": "close",
+      "when": "approved"
+    },
+    {
+      "id": "e-review-close-rejected",
+      "source": "review",
+      "target": "close",
+      "when": "rejected"
+    },
+    {
+      "id": "e-close-notify",
+      "source": "close",
+      "target": "notify"
+    },
+    {
+      "id": "e-notify-imported",
+      "source": "notify",
+      "target": "imported"
+    },
+    {
+      "id": "e-imported-end_import-true",
+      "source": "imported",
+      "target": "end_import",
+      "when": "true"
+    },
+    {
+      "id": "e-imported-end-false",
+      "source": "imported",
+      "target": "end",
+      "when": "false"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": false,
+    "max_run_duration_s": 1209600,
+    "allowed_tool_uris": [
+      "nexus://tool/graph.bench.pages",
+      "nexus://tool/graph.bench.batch.write",
+      "nexus://tool/graph.bench.batch.validate",
+      "nexus://tool/graph.bench.batch.close"
+    ],
+    "run_as": "initiator",
+    "sensitive_outputs": [],
+    "budget": {
+      "max_tokens": 160000,
+      "max_tool_calls": 24
+    },
+    "max_loop_depth": 1
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 200,
+        "y": 0
+      },
+      "has_rows": {
+        "x": 200,
+        "y": 116
+      },
+      "import": {
+        "x": 0,
+        "y": 232
+      },
+      "validate_import": {
+        "x": 0,
+        "y": 348
+      },
+      "clean_import": {
+        "x": 0,
+        "y": 464
+      },
+      "review_import": {
+        "x": 0,
+        "y": 580
+      },
+      "close_import": {
+        "x": 0,
+        "y": 696
+      },
+      "pages": {
+        "x": 400,
+        "y": 232
+      },
+      "authoring": {
+        "x": 400,
+        "y": 348
+      },
+      "author": {
+        "x": 560,
+        "y": 348
+      },
+      "write": {
+        "x": 560,
+        "y": 464
+      },
+      "validate": {
+        "x": 560,
+        "y": 580
+      },
+      "clean": {
+        "x": 560,
+        "y": 696
+      },
+      "review": {
+        "x": 400,
+        "y": 812
+      },
+      "close": {
+        "x": 400,
+        "y": 928
+      },
+      "notify": {
+        "x": 200,
+        "y": 1044
+      },
+      "end": {
+        "x": 400,
+        "y": 1276
+      },
+      "end_unclean": {
+        "x": -200,
+        "y": 1160
+      },
+      "imported": {
+        "x": 200,
+        "y": 1160
+      },
+      "end_import": {
+        "x": 0,
+        "y": 1276
+      }
+    }
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-11-01T00:00:00Z"
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-11-01T00:00:00Z",
+  "published_at": "2026-11-01T00:00:00Z"
+}

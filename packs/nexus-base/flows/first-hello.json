@@ -1,0 +1,369 @@
+{
+  "spec_version": "1.2",
+  "workflow_id": "flw_tpl_first_hello",
+  "uri": "nexus://workflow/template/flw_tpl_first_hello",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "project_id": null,
+  "name": "First hello",
+  "description": "«Nexi writes first». When a person creates an organization, Nexi (the Guide agent) writes the first message into that person's own global chat — who she is, what is ready, two or three honest sentences from the platform documentation, what a project chat can do, one open question. Runs as the person who created the organization (`run_as: event_actor`): the documentation read is bounded by their own rights; a documentation that cannot be read is one honest sentence, never an invented one (`knowledge` continues on failure with no hits). Once per organization × person — a redelivered event finds its message already there. Existing organizations receive no retroactive hello. 1.1.0 — «Nexi onboards in Core» +: the hello ends with the first open step proposed — the card's words are the Guide's, the step (`invite`) and the door (`nexus://core/people?invite`) are this Flow's literals; the pack's counts and the model that answers ride on the event (`payload.pack` · `payload.model`), so the hello names them without reading anything.",
+  "version": 2,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.1.0"
+  },
+  "requires": {
+    "models": [
+      {
+        "role": "chat",
+        "capabilities": [
+          "structured_output"
+        ]
+      }
+    ],
+    "tools": [
+      "nexus://tool/knowledge.search"
+    ]
+  },
+  "capability": {
+    "intents": [
+      "conversation"
+    ],
+    "domains": [
+      "general"
+    ],
+    "inputs": [
+      "text"
+    ],
+    "outputs": [
+      "text"
+    ],
+    "side_effects": false,
+    "background_supported": true,
+    "cost_class": "low",
+    "latency_class": "background",
+    "classification_max": "confidential",
+    "routable": false
+  },
+  "presentation": {
+    "title": {
+      "en": "First hello",
+      "uk": "Перше привітання"
+    },
+    "stage_labels": [
+      {
+        "node_id": "knowledge",
+        "label": {
+          "en": "Reading the documentation",
+          "uk": "Читаю документацію"
+        }
+      },
+      {
+        "node_id": "guide",
+        "label": {
+          "en": "Writing the hello",
+          "uk": "Пишу привітання"
+        }
+      }
+    ],
+    "person_steps": [],
+    "receipt_fields": [
+      {
+        "key": "result",
+        "label": {
+          "en": "Hello",
+          "uk": "Привітання"
+        }
+      }
+    ],
+    "result_kind": "answer"
+  },
+  "trigger": {
+    "kind": "event",
+    "event_subject": "nexus.core.organization.created.v1"
+  },
+  "inputs": [],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "object"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "Start"
+    },
+    {
+      "id": "knowledge",
+      "kind": "tool",
+      "label": "Read how Nexi works",
+      "description": "The platform documentation tier alone — the only place the Guide's *how Nexi works* comes from. A read that fails is not the end of the hello: the step continues with no output and the Guide says, in one sentence, that the documentation could not be read (SC-0486).",
+      "timeout_s": 60,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      },
+      "on_failure": "continue",
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "first_hello"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/knowledge.search",
+        "operation": "search",
+        "mutating": false
+      },
+      "input_mapping": {
+        "query": "'how Nexi works project chat'",
+        "tier": "'base'"
+      }
+    },
+    {
+      "id": "person",
+      "kind": "transform",
+      "label": "Who the hello is for",
+      "description": "The person as the event describes them — a name as they wrote it and their locale; never looked up elsewhere.",
+      "transform": {
+        "mapping": {
+          "first_name": "$.event.payload.first_name",
+          "locale": "$.event.payload.locale"
+        }
+      }
+    },
+    {
+      "id": "organization",
+      "kind": "transform",
+      "label": "The organization",
+      "description": "Way A: the person created the organization — they are its Owner; there is nobody else to ask yet.",
+      "transform": {
+        "mapping": {
+          "name": "$.event.payload.organization_name",
+          "role": "'owner'",
+          "owner_display_name": "null"
+        }
+      }
+    },
+    {
+      "id": "guide",
+      "kind": "agent",
+      "label": "Write the hello",
+      "description": "Nexi drafts the first message from the structured input only (the first-minute skill): way A, the person, the organization, the first project, the documentation hits, the pack's counts and the model as the event carried them (null → the sentence is dropped, never guessed). The answer carries the card's words too (`proposal.title` · `detail`); the step and the door are the notify node's literals.",
+      "timeout_s": 120,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "first_hello"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_guide",
+        "context_scope": "project",
+        "skill_uris": [
+          "nexus://skill/skl_first_minute"
+        ],
+        "inference": {
+          "role": "chat"
+        },
+        "output_schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "text"
+          ],
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            "proposal": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "additionalProperties": false,
+              "required": [
+                "title"
+              ],
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "detail": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 280
+                }
+              }
+            }
+          },
+          "examples": [
+            {
+              "text": "Hi Olena — I'm Nexi. Nexiflow is ready: General is your first project, and the base pack brought 20 agents, 34 skills and 24 flows. Nexi answers from your organization's knowledge and shows where every answer came from; each project has its own chat, and files you attach there stay in that project. Shall we start with your team?",
+              "proposal": {
+                "title": "Invite your team",
+                "detail": "People you invite land in General with you."
+              }
+            }
+          ]
+        }
+      },
+      "input_mapping": {
+        "way": "'A'",
+        "person": "$.node.person.output",
+        "organization": "$.node.organization.output",
+        "pack": "$.event.payload.pack",
+        "model": "$.event.payload.model",
+        "projects": "[]",
+        "hits": "$.node.knowledge.output.hits",
+        "onboarding": "[]"
+      }
+    },
+    {
+      "id": "hello",
+      "kind": "notify",
+      "label": "Say hello in the person's chat",
+      "description": "C-I-2 · C-I-3: an assistant message by Nexi (`as: agent`) in the initiator's own global chat, found or created on `first-minute:<organization>:<person>`, titled *Welcome to <organization>*; idempotent per (organization, person, node).: the hello ends with the first open step — `invite`, door `nexus://core/people?invite` (a literal of the closed list, checked at publish), words from the Guide's answer; no proposal → the text alone.",
+      "timeout_s": 30,
+      "retry": {
+        "max_attempts": 3,
+        "backoff": "exponential",
+        "initial_delay_s": 5,
+        "max_delay_s": 60
+      },
+      "idempotency": {
+        "key_template": "first-hello:{{run_id}}",
+        "dedupe_window_s": 86400
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "first_hello"
+      },
+      "notify": {
+        "channel": "thread",
+        "channel_uri": "nexus://chat/thread/{{initiator.global_thread}}",
+        "as": "agent",
+        "agent_uri": "nexus://agent/agt_guide",
+        "thread_title": "Welcome to {{event.payload.organization_name}}",
+        "template": "{{node.guide.output.text}}",
+        "proposal": {
+          "step": "invite",
+          "title": "{{node.guide.output.proposal.title}}",
+          "detail": "{{node.guide.output.proposal.detail}}",
+          "door": "nexus://core/people?invite"
+        }
+      }
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Done",
+      "input_mapping": {
+        "result": "$.node.guide.output"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-knowledge",
+      "source": "trigger",
+      "target": "knowledge"
+    },
+    {
+      "id": "e-knowledge-person",
+      "source": "knowledge",
+      "target": "person"
+    },
+    {
+      "id": "e-person-organization",
+      "source": "person",
+      "target": "organization"
+    },
+    {
+      "id": "e-organization-guide",
+      "source": "organization",
+      "target": "guide"
+    },
+    {
+      "id": "e-guide-hello",
+      "source": "guide",
+      "target": "hello"
+    },
+    {
+      "id": "e-hello-end",
+      "source": "hello",
+      "target": "end"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": false,
+    "max_run_duration_s": 900,
+    "allowed_tool_uris": [
+      "nexus://tool/knowledge.search"
+    ],
+    "run_as": "event_actor",
+    "sensitive_outputs": [],
+    "budget": {
+      "max_tokens": 8000,
+      "max_tool_calls": 4
+    },
+    "max_loop_depth": 1
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 200,
+        "y": 0
+      },
+      "knowledge": {
+        "x": 200,
+        "y": 116
+      },
+      "person": {
+        "x": 200,
+        "y": 232
+      },
+      "organization": {
+        "x": 200,
+        "y": 348
+      },
+      "guide": {
+        "x": 200,
+        "y": 464
+      },
+      "hello": {
+        "x": 200,
+        "y": 580
+      },
+      "end": {
+        "x": 200,
+        "y": 696
+      }
+    }
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-10-19T00:00:00Z"
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-10-19T00:00:00Z",
+  "published_at": "2026-10-19T00:00:00Z"
+}

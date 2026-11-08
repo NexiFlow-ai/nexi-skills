@@ -4,14 +4,14 @@ The open pack commons of Nexi: the Nexi Base pack as a reference (its reviewed s
 
 ## This repository is a publication
 
-Every file here was exported from the Nexi source repository at tag **`public/skills/v0.1.0`** (commit `5d56559a47e57efc65ce5e3b2fdf03720c02f71b`) by a
+Every file here was exported from the Nexi source repository at tag **`public/skills/v0.2.0`** (commit `324856630eb2abf88ce34c613f98037262ea8b7f`) by a
 publication pipeline that runs a guard over the whole export before anything is pushed. The export is reproducible:
 `PROVENANCE.json` lists every file with its sha256 and the digest of the whole; the same tag yields the same digest.
 
 - Changes land in the source first; this copy is regenerated on the next export. A pull request here is answered
   and closed with the tag that carried the change — see `CONTRIBUTING.md` in the organization's `.github` repository.
 - The canonical site is https://docs.nexiflow.ai/docs/build/packs/; the GitHub Pages branch of this repository mirrors the same export.
-- Version: **0.1.0** · unit: `skills` · licence: **Apache-2.0** (LICENSE) · third-party notices: NOTICE ·
+- Version: **0.2.0** · unit: `skills` · licence: **Apache-2.0** (LICENSE) · third-party notices: NOTICE ·
   names: TRADEMARKS.md.
 
 ## Reporting a problem

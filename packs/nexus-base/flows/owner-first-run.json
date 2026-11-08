@@ -1,0 +1,345 @@
+{
+  "spec_version": "1.2",
+  "workflow_id": "flw_tpl_owner_first_run",
+  "uri": "nexus://workflow/template/flw_tpl_owner_first_run",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "project_id": null,
+  "name": "Owner first run",
+  "description": "«Nexi onboards in Core» (C-J-5, Q-J-8). When the first human turn of the organization completes — somebody asked Nexi from a composer and she answered — the first minute ends in the thread itself: Nexi writes the closing line into the Owner's own welcome chat, no card. Runs as the Owner who installed the pack (`run_as: flow_owner`). Once per organization: the message key `first-minute:<organization>:<owner>:first-run` — every later turn starts a run that finds its line and writes nothing. A *Test in chat* turn (`payload.test_mode`) is not a first run.",
+  "version": 1,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.0.0"
+  },
+  "requires": {
+    "models": [
+      {
+        "role": "chat",
+        "capabilities": [
+          "structured_output"
+        ]
+      }
+    ],
+    "tools": []
+  },
+  "capability": {
+    "intents": [
+      "conversation"
+    ],
+    "domains": [
+      "general"
+    ],
+    "inputs": [
+      "text"
+    ],
+    "outputs": [
+      "text"
+    ],
+    "side_effects": false,
+    "background_supported": true,
+    "cost_class": "low",
+    "latency_class": "background",
+    "classification_max": "confidential",
+    "routable": false
+  },
+  "presentation": {
+    "title": {
+      "en": "Owner first run",
+      "uk": "Перший запуск власника"
+    },
+    "stage_labels": [
+      {
+        "node_id": "guide",
+        "label": {
+          "en": "Writing the closing line",
+          "uk": "Пишу завершальний рядок"
+        }
+      }
+    ],
+    "person_steps": [],
+    "receipt_fields": [
+      {
+        "key": "result",
+        "label": {
+          "en": "Closing line",
+          "uk": "Завершальний рядок"
+        }
+      }
+    ],
+    "result_kind": "answer"
+  },
+  "trigger": {
+    "kind": "event",
+    "event_subject": "nexus.chat.agent_run.completed.v1",
+    "event_filter": {
+      "language": "nexus-expr-v1",
+      "source": "$.event.payload.test_mode != true"
+    }
+  },
+  "inputs": [],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "object"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "Start"
+    },
+    {
+      "id": "person",
+      "kind": "transform",
+      "label": "Who the line is for",
+      "description": "The Owner — the run's own initiator (`run_as: flow_owner`). A chat turn's event names no person and no locale (`messages/service.py`: identifiers and counts); the Guide greets without a name, in English.",
+      "transform": {
+        "mapping": {
+          "first_name": "null",
+          "locale": "null"
+        }
+      }
+    },
+    {
+      "id": "organization",
+      "kind": "transform",
+      "label": "The organization",
+      "description": "A chat turn's event does not carry the organization's name; the Guide drops it from the line rather than guess.",
+      "transform": {
+        "mapping": {
+          "name": "null",
+          "role": "'owner'",
+          "owner_display_name": "null"
+        }
+      }
+    },
+    {
+      "id": "event",
+      "kind": "transform",
+      "label": "What happened",
+      "transform": {
+        "mapping": {
+          "kind": "'first_run'",
+          "subject_display": "null",
+          "role": "null",
+          "provider": "null",
+          "pack_name": "null"
+        }
+      }
+    },
+    {
+      "id": "guide",
+      "kind": "agent",
+      "label": "Write the closing line",
+      "description": "Nexi congratulates the first run in one or two sentences from the structured input only (the first-minute skill, way `first_run`); no proposal.",
+      "timeout_s": 120,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "owner_first_run"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_guide",
+        "context_scope": "project",
+        "skill_uris": [
+          "nexus://skill/skl_first_minute"
+        ],
+        "inference": {
+          "role": "chat"
+        },
+        "output_schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "text"
+          ],
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            "proposal": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "additionalProperties": false,
+              "required": [
+                "title"
+              ],
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "detail": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 280
+                }
+              }
+            }
+          },
+          "examples": [
+            {
+              "text": "Your first flow ran. From here, everything is yours to ask.",
+              "proposal": {
+                "title": "Ask Nexi anything",
+                "detail": "Projects, files, flows — start a chat."
+              }
+            }
+          ]
+        }
+      },
+      "input_mapping": {
+        "way": "'first_run'",
+        "person": "$.node.person.output",
+        "organization": "$.node.organization.output",
+        "pack": "null",
+        "model": "null",
+        "projects": "[]",
+        "hits": "[]",
+        "onboarding": "[]",
+        "event": "$.node.event.output",
+        "steps": "null"
+      }
+    },
+    {
+      "id": "first-run",
+      "kind": "notify",
+      "label": "The closing line in the Owner's chat",
+      "description": "C-J-5: Nexi's assistant message in the Owner's own welcome chat, once per organization (`first-minute:<organization>:<owner>:first-run`); no card — the first minute is over.",
+      "timeout_s": 30,
+      "retry": {
+        "max_attempts": 3,
+        "backoff": "exponential",
+        "initial_delay_s": 5,
+        "max_delay_s": 60
+      },
+      "idempotency": {
+        "key_template": "owner-first-run:{{run_id}}",
+        "dedupe_window_s": 86400
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "owner_first_run"
+      },
+      "notify": {
+        "channel": "thread",
+        "channel_uri": "nexus://chat/thread/{{initiator.global_thread}}",
+        "as": "agent",
+        "agent_uri": "nexus://agent/agt_guide",
+        "template": "{{node.guide.output.text}}"
+      }
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Done",
+      "input_mapping": {
+        "result": "$.node.guide.output"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-person",
+      "source": "trigger",
+      "target": "person"
+    },
+    {
+      "id": "e-person-organization",
+      "source": "person",
+      "target": "organization"
+    },
+    {
+      "id": "e-organization-event",
+      "source": "organization",
+      "target": "event"
+    },
+    {
+      "id": "e-event-guide",
+      "source": "event",
+      "target": "guide"
+    },
+    {
+      "id": "e-guide-first-run",
+      "source": "guide",
+      "target": "first-run"
+    },
+    {
+      "id": "e-first-run-end",
+      "source": "first-run",
+      "target": "end"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": false,
+    "max_run_duration_s": 900,
+    "allowed_tool_uris": [],
+    "run_as": "flow_owner",
+    "sensitive_outputs": [],
+    "budget": {
+      "max_tokens": 8000,
+      "max_tool_calls": 4
+    },
+    "max_loop_depth": 1
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 200,
+        "y": 0
+      },
+      "person": {
+        "x": 200,
+        "y": 116
+      },
+      "organization": {
+        "x": 200,
+        "y": 232
+      },
+      "event": {
+        "x": 200,
+        "y": 348
+      },
+      "guide": {
+        "x": 200,
+        "y": 464
+      },
+      "first-run": {
+        "x": 200,
+        "y": 580
+      },
+      "end": {
+        "x": 200,
+        "y": 696
+      }
+    }
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-10-20T00:00:00Z"
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-10-20T00:00:00Z",
+  "published_at": "2026-10-20T00:00:00Z"
+}

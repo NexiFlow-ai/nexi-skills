@@ -1,0 +1,512 @@
+{
+  "format": "nexus-lobby-lines-v1",
+  "id": "lobby",
+  "reviewed_by": "product owner — UAT-1 (2026-10-21) + Δ1: no buttons · the read-back · voice mode · the wait-list link + Δ2: the join-by-handle truths · no link in a receipt + S4 «Nexi at the door»: the door's opening, the eight asks, the fact refusals, the read-back, the receipt, the script line",
+  "note": "The closed lines of the lobby: every fact — a name, a handle, a region, a count, a status — is written by the engine from these lines with tool-validated slots; the model's `say` is prose beside them and never a fact. en = uk. `{slots}` are filled by NexChat's `lobby/lines.py`; a missing slot drops its sentence. + (h) «the walk is driven» (owner 2026-10-23 21:42): the bridge after a detour, the progress after two empty turns, the close on the last fact, the lobby's resumed asks. + (a) «the finish is a voice that fills the screen» (owner 2026-10-24 20:11): `receipt.door` is the finish — the thanks and what comes next, spoken and written",
+  "lines": {
+    "opening.a": {
+      "en": "Hi {first_name} — I'm Nexi. {inviter} invited you to {organization}. Say *join* when you're ready, or ask me anything first.",
+      "uk": "Привіт, {first_name} — я Нексі. {inviter} запрошує вас до {organization}. Скажіть *приєднатися*, коли будете готові, або спершу запитайте мене про що завгодно."
+    },
+    "opening.a.two": {
+      "en": "Hi {first_name} — I'm Nexi. You have {count} invitations: {organizations}. Which one shall we open?",
+      "uk": "Привіт, {first_name} — я Нексі. У вас {count} запрошення: {organizations}. Яке відкриємо?"
+    },
+    "opening.b": {
+      "en": "Hi {first_name} — I'm Nexi. {organization} is prepared for you{preparer_line}. Say *open* and I'll set it up.",
+      "uk": "Привіт, {first_name} — я Нексі. {organization} уже підготовано для вас{preparer_line}. Скажіть *відкрити* — і я все налаштую."
+    },
+    "opening.c": {
+      "en": "Hi {first_name} — I'm Nexi. There's no organization for you here yet. What should we call yours? Or tell me the name of one to join — and ask me anything about Nexi along the way.",
+      "uk": "Привіт, {first_name} — я Нексі. Для вас тут ще немає організації. Як назвемо вашу? Або скажіть назву тієї, до якої хочете приєднатися — і питайте мене про Нексі дорогою."
+    },
+    "opening.c.by_request": {
+      "en": "Hi {first_name} — I'm Nexi. Organizations open here by request. Tell me your company's name and I'll put it on the waiting list — you'll hear from me by mail. Ask me anything about Nexi meanwhile.",
+      "uk": "Привіт, {first_name} — я Нексі. Організації тут відкриваються за запитом. Скажіть назву вашої компанії — я поставлю її в чергу, і ви отримаєте від мене лист. А тим часом питайте мене про Нексі."
+    },
+    "opening.request": {
+      "en": "Hi {first_name} — your request for {organization} is {status}. I'll write the moment it moves; ask me anything meanwhile.",
+      "uk": "Привіт, {first_name} — ваш запит для {organization} зараз {status}. Я напишу, щойно щось зміниться; а поки питайте мене про що завгодно."
+    },
+    "opening.returned": {
+      "en": "Welcome back, {first_name}. Where were we?",
+      "uk": "З поверненням, {first_name}. На чому ми зупинилися?"
+    },
+    "fact.slug": {
+      "en": "Its handle — the short name people join it by — will be {slug}.",
+      "uk": "Її хендл — коротке ім'я, за яким до неї приєднуються, — буде {slug}."
+    },
+    "fact.region": {
+      "en": "Where should it live — {regions}?",
+      "uk": "Де вона має жити — {regions}?"
+    },
+    "fact.name_taken": {
+      "en": "That name is taken — {suggestion} is free.",
+      "uk": "Ця назва зайнята — {suggestion} вільна."
+    },
+    "fact.name_taken.no_suggestion": {
+      "en": "That name is taken — try another.",
+      "uk": "Ця назва зайнята — спробуйте іншу."
+    },
+    "fact.region_not_offered": {
+      "en": "That region isn't offered here; the choices are {regions}.",
+      "uk": "Такого регіону тут немає; на вибір — {regions}."
+    },
+    "fact.invitation.which": {
+      "en": "Which one — {organizations}?",
+      "uk": "Яке саме — {organizations}?"
+    },
+    "readback.create": {
+      "en": "Here's what I'll do: open {organization} (handle {slug}) in {region}, with you as its owner, then set up your first project and continue there. Say *all good* and I go ahead — or tell me what to change.",
+      "uk": "Ось що я зроблю: відкрию {organization} (хендл {slug}) у регіоні {region}, ви — власник; потім створю ваш перший проєкт, і продовжимо там. Скажіть *все добре* — і я починаю, або скажіть, що змінити."
+    },
+    "readback.join": {
+      "en": "Here's what I'll do: accept {inviter}'s invitation and bring you into {organization} as {role}. Say *all good* and I go ahead.",
+      "uk": "Ось що я зроблю: прийму запрошення від {inviter} і приведу вас до {organization} як {role}. Скажіть *все добре* — і я починаю."
+    },
+    "readback.open": {
+      "en": "Here's what I'll do: open {organization}, prepared for you{preparer_line}, with you as its owner, then continue there. Say *all good* and I go ahead.",
+      "uk": "Ось що я зроблю: відкрию {organization}, підготовану для вас{preparer_line}, ви — власник; потім продовжимо там. Скажіть *все добре* — і я починаю."
+    },
+    "readback.request": {
+      "en": "Here's what I'll do: put {organization} on the waiting list under your address — you'll hear from me by mail. Say *all good* and I go ahead.",
+      "uk": "Ось що я зроблю: поставлю {organization} у чергу за вашою адресою — ви отримаєте від мене лист. Скажіть *все добре* — і я починаю."
+    },
+    "readback.join_request": {
+      "en": "Here's what I'll do: ask {organization} to let you in. Say *all good* and I go ahead.",
+      "uk": "Ось що я зроблю: попрошу {organization} прийняти вас. Скажіть *все добре* — і я починаю."
+    },
+    "receipt.create": {
+      "en": "Thank you, {first_name}. I'm setting {organization} up now — give me a few seconds, and I'll open your chat.",
+      "uk": "Дякую, {first_name}. Зараз налаштовую {organization} — кілька секунд, і я відкрию ваш чат."
+    },
+    "receipt.join": {
+      "en": "You're in, {first_name}. {organization} is opening — a few seconds, and I'll take you to your chat.",
+      "uk": "Ви всередині, {first_name}. {organization} відкривається — кілька секунд, і я відкрию ваш чат."
+    },
+    "receipt.request": {
+      "en": "I'll take care of your data and put {organization} on the waiting list — you'll hear from me by mail, and here the next time you come.",
+      "uk": "Я подбаю про ваші дані й поставлю {organization} у чергу — ви отримаєте від мене лист, і я скажу тут, коли ви повернетесь."
+    },
+    "receipt.join_request": {
+      "en": "Asked. {organization} will see your request — you'll hear from me by mail.",
+      "uk": "Запит надіслано. {organization} його побачить — ви отримаєте від мене лист."
+    },
+    "join.not_found": {
+      "en": "I can't find an organization at {organization} — check the handle with the person who invited you, or tell me another.",
+      "uk": "Я не знаходжу організації з хендлом {organization} — перевірте його в того, хто вас запросив, або назвіть іншу."
+    },
+    "join.domain_refused": {
+      "en": "{organization} doesn't accept your e-mail address on its own — ask someone there to invite you, or tell me another.",
+      "uk": "{organization} не приймає вашу адресу самостійно — попросіть когось звідти запросити вас або назвіть іншу."
+    },
+    "receipt.failed": {
+      "en": "That didn't go through — nothing was changed. Say it again, or tell me another name.",
+      "uk": "Не вдалося — нічого не змінено. Скажіть ще раз або назвіть іншу назву."
+    },
+    "cancelled": {
+      "en": "Alright — nothing was done. Tell me what to change, or ask me anything.",
+      "uk": "Гаразд — нічого не зроблено. Скажіть, що змінити, або запитайте мене про що завгодно."
+    },
+    "confirm.nothing": {
+      "en": "There's nothing on the table yet — tell me the name first.",
+      "uk": "На столі ще нічого немає — спершу скажіть назву."
+    },
+    "stale.invitation": {
+      "en": "That invitation is no longer open.",
+      "uk": "Це запрошення вже не відкрите."
+    },
+    "link.unknown": {
+      "en": "That link doesn't open anything I can see — but I'm here. What should we call your organization?",
+      "uk": "Це посилання нічого не відкриває — але я тут. Як назвемо вашу організацію?"
+    },
+    "link.used": {
+      "en": "That link was already used.",
+      "uk": "Це посилання вже використано."
+    },
+    "capped": {
+      "en": "We've talked a lot today — let's get you in first. Say *all good* on what's on the table, or come back tomorrow.",
+      "uk": "Ми сьогодні багато говорили — спершу заведімо вас усередину. Скажіть *все добре* на те, що на столі, або повертайтеся завтра."
+    },
+    "fallback.intro": {
+      "en": "I'm here, even without my cloud voice today. What should we call your organization?",
+      "uk": "Я тут, навіть без хмарного голосу сьогодні. Як назвемо вашу організацію?"
+    },
+    "fallback.name": {
+      "en": "{organization} it is.",
+      "uk": "{organization} — домовились."
+    },
+    "fallback.heard": {
+      "en": "I heard you. Tell me the organization's name, the region, or say *all good*.",
+      "uk": "Я вас почула. Скажіть назву організації, регіон або *все добре*."
+    },
+    "knowledge.from_guide": {
+      "en": "— from the Nexi guide",
+      "uk": "— з посібника Нексі"
+    },
+    "knowledge.not_found": {
+      "en": "I don't have that in the guide yet.",
+      "uk": "Цього в посібнику поки немає."
+    },
+    "preparer_line": {
+      "en": " by {preparer}",
+      "uk": " — {preparer}"
+    },
+    "region.eu": {
+      "en": "Europe",
+      "uk": "Європа"
+    },
+    "region.us": {
+      "en": "United States",
+      "uk": "США"
+    },
+    "region.ua": {
+      "en": "Ukraine",
+      "uk": "Україна"
+    },
+    "region.uk": {
+      "en": "United Kingdom",
+      "uk": "Велика Британія"
+    },
+    "region.other": {
+      "en": "elsewhere",
+      "uk": "інша країна"
+    },
+    "role.owner": {
+      "en": "owner",
+      "uk": "власник"
+    },
+    "role.organization_owner": {
+      "en": "owner",
+      "uk": "власник"
+    },
+    "role.admin": {
+      "en": "admin",
+      "uk": "адміністратор"
+    },
+    "role.organization_admin": {
+      "en": "admin",
+      "uk": "адміністратор"
+    },
+    "role.security_admin": {
+      "en": "security admin",
+      "uk": "адміністратор безпеки"
+    },
+    "role.capability_admin": {
+      "en": "capability admin",
+      "uk": "адміністратор можливостей"
+    },
+    "role.project_owner": {
+      "en": "project owner",
+      "uk": "власник проєкту"
+    },
+    "role.builder": {
+      "en": "builder",
+      "uk": "розробник"
+    },
+    "role.operator": {
+      "en": "operator",
+      "uk": "оператор"
+    },
+    "role.member": {
+      "en": "member",
+      "uk": "учасник"
+    },
+    "role.viewer": {
+      "en": "viewer",
+      "uk": "глядач"
+    },
+    "role.auditor": {
+      "en": "auditor",
+      "uk": "аудитор"
+    },
+    "status.pending": {
+      "en": "on the waiting list",
+      "uk": "у черзі"
+    },
+    "status.confirmed": {
+      "en": "on the waiting list",
+      "uk": "у черзі"
+    },
+    "status.approved": {
+      "en": "approved",
+      "uk": "схвалено"
+    },
+    "status.declined": {
+      "en": "closed",
+      "uk": "закрито"
+    },
+    "status.converted": {
+      "en": "approved",
+      "uk": "схвалено"
+    },
+    "status.unconfirmed": {
+      "en": "waiting for your confirmation",
+      "uk": "очікує вашого підтвердження"
+    },
+    "opening.door": {
+      "en": "Hi — I'm Nexi. I can set up access for your company — tell me about it, or ask me anything about Nexi first.",
+      "uk": "Привіт — я Нексі. Я можу відкрити доступ для вашої компанії — розкажіть про неї або спершу запитайте мене про Нексі."
+    },
+    "door.ask.name": {
+      "en": "What's your name?",
+      "uk": "Як вас звати?"
+    },
+    "door.ask.email": {
+      "en": "Which e-mail should the confirmation go to?",
+      "uk": "На яку пошту надіслати підтвердження?"
+    },
+    "door.ask.organization": {
+      "en": "What's your company called?",
+      "uk": "Як називається ваша компанія?"
+    },
+    "door.ask.role": {
+      "en": "What's your role there?",
+      "uk": "Яка ваша роль у ній?"
+    },
+    "door.ask.size": {
+      "en": "How many people are you — roughly?",
+      "uk": "Скільки вас — приблизно?"
+    },
+    "door.ask.country": {
+      "en": "Which country are you in?",
+      "uk": "У якій ви країні?"
+    },
+    "door.ask.goal": {
+      "en": "What would you like Nexi to take off your hands first?",
+      "uk": "Що ви хотіли б доручити Нексі насамперед?"
+    },
+    "door.ask.phone": {
+      "en": "A phone number, if you'd like a call — or say *skip*.",
+      "uk": "Номер телефону, якщо хочете дзвінок — або скажіть *пропустити*."
+    },
+    "door.heard": {
+      "en": "Noted.",
+      "uk": "Записала."
+    },
+    "door.not_read": {
+      "en": "I couldn't take that as an answer.",
+      "uk": "Я не змогла прийняти це як відповідь."
+    },
+    "fact.email_invalid": {
+      "en": "That doesn't read as an e-mail address to me — could you write it again?",
+      "uk": "Це не схоже на адресу пошти — напишіть її ще раз, будь ласка."
+    },
+    "fact.phone_invalid": {
+      "en": "That doesn't read as a phone number — write it again, or say *skip*.",
+      "uk": "Це не схоже на номер телефону — напишіть ще раз або скажіть *пропустити*."
+    },
+    "fact.size_unknown": {
+      "en": "I couldn't tell the size — roughly how many people are you?",
+      "uk": "Не зрозуміла розмір — скільки вас приблизно?"
+    },
+    "fact.country_unknown": {
+      "en": "I don't know that country — name it, or give its two-letter code.",
+      "uk": "Не знаю такої країни — назвіть її або дайте дволітерний код."
+    },
+    "fact.name_too_long": {
+      "en": "That's a long name — the short form will do.",
+      "uk": "Задовге ім'я — досить короткої форми."
+    },
+    "fact.organization_too_short": {
+      "en": "The company name needs at least two letters — what is it called?",
+      "uk": "Назва компанії має бути хоча б з двох літер — як вона називається?"
+    },
+    "fact.organization_too_long": {
+      "en": "That's a long company name — the short form will do.",
+      "uk": "Задовга назва компанії — досить короткої форми."
+    },
+    "fact.role_too_long": {
+      "en": "A word or two for the role will do.",
+      "uk": "Для ролі досить одного-двох слів."
+    },
+    "fact.goal_too_long": {
+      "en": "That's more than I can hold — the gist in a few sentences will do.",
+      "uk": "Це більше, ніж я можу вмістити — досить суті в кількох реченнях."
+    },
+    "commit.request": {
+      "en": "Here's what I'll send to the NexiFlow team: {name}, {role} at {organization} — {size} people, {country}. The confirmation goes to {email}. Phone: {phone}. What you'd like first: {goal}. Say *all good* and I send it — or tell me what to change.",
+      "uk": "Ось що я надішлю команді NexiFlow: {name}, {role} у {organization} — {size} осіб, {country}. Підтвердження піде на {email}. Телефон: {phone}. Що ви хочете насамперед: {goal}. Скажіть *все добре* — і я надсилаю, або скажіть, що змінити."
+    },
+    "receipt.door": {
+      "en": "Thank you, {name} — your request for {organization} is with the NexiFlow team. A confirmation is on its way to {email}; when the team has read your request, your invitation follows by mail.",
+      "uk": "Дякую, {name} — ваш запит для {organization} уже в команді NexiFlow. Підтвердження летить на {email}; щойно команда прочитає запит, запрошення надійде листом."
+    },
+    "cancelled.door": {
+      "en": "Alright — nothing was sent. Tell me what to change, or ask me anything.",
+      "uk": "Гаразд — нічого не надіслано. Скажіть, що змінити, або запитайте мене про що завгодно."
+    },
+    "fallback.door": {
+      "en": "I'll keep this short — a few questions and I'll send your request.",
+      "uk": "Буду коротка — кілька запитань, і я надішлю ваш запит."
+    },
+    "capped.door": {
+      "en": "We've talked a lot — let me take the last details in short questions and send your request.",
+      "uk": "Ми багато говорили — дозвольте дібрати останні деталі короткими запитаннями й надіслати ваш запит."
+    },
+    "knowledge.from_docs": {
+      "en": "— from the platform documentation",
+      "uk": "— з документації платформи"
+    },
+    "receipt.door.failed": {
+      "en": "That didn't go through — nothing was sent. Say *all good* again in a moment.",
+      "uk": "Не вдалося — нічого не надіслано. Скажіть *все добре* ще раз за хвилину."
+    },
+    "back.door": {
+      "en": "Now — back to your request.",
+      "uk": "А тепер — повернімося до вашого запиту."
+    },
+    "back.lobby": {
+      "en": "Now — back to your organization.",
+      "uk": "А тепер — повернімося до вашої організації."
+    },
+    "door.progress": {
+      "en": "We have {known} of {total} — {missing} to go.",
+      "uk": "Є {known} з {total} — лишилось: {missing}."
+    },
+    "door.fact.name": {
+      "en": "your name",
+      "uk": "ваше ім'я"
+    },
+    "door.fact.email": {
+      "en": "your e-mail",
+      "uk": "ваша пошта"
+    },
+    "door.fact.organization": {
+      "en": "your company's name",
+      "uk": "назва компанії"
+    },
+    "door.fact.role": {
+      "en": "your role",
+      "uk": "ваша роль"
+    },
+    "door.fact.size": {
+      "en": "the team size",
+      "uk": "розмір команди"
+    },
+    "door.fact.country": {
+      "en": "the country",
+      "uk": "країна"
+    },
+    "door.fact.goal": {
+      "en": "what to take off your hands first",
+      "uk": "що автоматизувати першим"
+    },
+    "door.fact.phone": {
+      "en": "a phone (or *skip*)",
+      "uk": "телефон (або *пропустити*)"
+    },
+    "close.door": {
+      "en": "That's everything I need.",
+      "uk": "Це все, що мені потрібно."
+    },
+    "close.lobby": {
+      "en": "That's everything I need.",
+      "uk": "Це все, що мені потрібно."
+    },
+    "lobby.ask.name": {
+      "en": "What should we call your organization?",
+      "uk": "Як назвемо вашу організацію?"
+    },
+    "lobby.ask.confirm": {
+      "en": "What I'll do is on the table — say *all good*, or tell me what to change.",
+      "uk": "Що я зроблю — вже на столі: скажіть *все добре* або що змінити."
+    },
+    "lobby.ask.join": {
+      "en": "Say *join* when you're ready.",
+      "uk": "Скажіть *приєднатися*, коли будете готові."
+    },
+    "lobby.ask.open": {
+      "en": "Say *open* and I'll set it up.",
+      "uk": "Скажіть *відкрити* — і я все налаштую."
+    },
+    "door.ask.confirm": {
+      "en": "What I'll send is on the table — say *all good* and I send it, or tell me what to change.",
+      "uk": "Що надішлю — вже на столі: скажіть *все добре* — і я надсилаю, або скажіть, що змінити."
+    }
+  },
+  "words": {
+    "confirm": {
+      "en": [
+        "all good",
+        "approved",
+        "approve",
+        "yes",
+        "yes please",
+        "go",
+        "go ahead",
+        "ok",
+        "okay",
+        "confirm",
+        "confirmed",
+        "do it",
+        "sure",
+        "agreed",
+        "that's right",
+        "correct",
+        "join",
+        "open",
+        "proceed",
+        "let's go",
+        "sounds good",
+        "looks good",
+        "fine",
+        "yep",
+        "yeah"
+      ],
+      "uk": [
+        "все добре",
+        "всё хорошо",
+        "все гаразд",
+        "так",
+        "добре",
+        "гаразд",
+        "підтверджую",
+        "підтвердити",
+        "згоден",
+        "згодна",
+        "погоджуюсь",
+        "погоджуюся",
+        "ок",
+        "окей",
+        "вперед",
+        "поїхали",
+        "приєднатися",
+        "приєднуюсь",
+        "відкрити",
+        "давай",
+        "давайте",
+        "правильно",
+        "вірно",
+        "схвалюю",
+        "схвалено"
+      ]
+    },
+    "cancel": {
+      "en": [
+        "no",
+        "not now",
+        "cancel",
+        "stop",
+        "wait",
+        "hold on",
+        "never mind",
+        "nevermind",
+        "don't",
+        "do not"
+      ],
+      "uk": [
+        "ні",
+        "не зараз",
+        "скасувати",
+        "скасуй",
+        "стоп",
+        "зачекай",
+        "зачекайте",
+        "почекай",
+        "не треба",
+        "облиш"
+      ]
+    }
+  }
+}

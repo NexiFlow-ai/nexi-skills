@@ -1,11 +1,11 @@
 {
   "unit": "skills",
   "repository": "NexiFlow-ai/nexi-skills",
-  "source_tag": "public/skills/v0.1.0",
-  "source_commit": "5d56559a47e57efc65ce5e3b2fdf03720c02f71b",
-  "version": "0.1.0",
-  "exported_at": "2026-10-15T11:57:10.567Z",
-  "guard_version": "2026.10.15-1",
+  "source_tag": "public/skills/v0.2.0",
+  "source_commit": "324856630eb2abf88ce34c613f98037262ea8b7f",
+  "version": "0.2.0",
+  "exported_at": "2026-11-08T12:46:06.476Z",
+  "guard_version": "2026.10.30-1",
   "allowlist_entries": 2,
   "license": "Apache-2.0",
   "files": [
@@ -23,7 +23,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "f4948204cd8bfb1348ce059c8415b5daae6de49845bcd40155c7dae60b049582"
+      "sha256": "6576d756414f18289fab81fb724c39180cb8952bddb7dbe148cc5fc735aebf23"
     },
     {
       "path": "REGISTRY.md",
@@ -83,7 +83,7 @@
     },
     {
       "path": "packs/nexus-base/CATALOGUE.md",
-      "sha256": "97b191629c99254d6c6f677523df4fedc555bcc1f808b15d91512f886e9371b9"
+      "sha256": "447bb938ffcd671ca8a668a1d4b8268566ed470e598b8a3ec9e1449ed1d901a0"
     },
     {
       "path": "packs/nexus-base/README.md",
@@ -122,6 +122,30 @@
       "sha256": "75f693392d593b9cb68384866698422f6728c37ff1fb4ee4295f7380754b0be2"
     },
     {
+      "path": "packs/nexus-base/agents/guide.json",
+      "sha256": "122306a29d60d7a6a81f9f10ff70bf383af094c5f9a30383f0e01a837a62f8ad"
+    },
+    {
+      "path": "packs/nexus-base/agents/guide.md",
+      "sha256": "814123270787d358c6dcd525a0e061e2831c4ce78b003752c25741a3c171f563"
+    },
+    {
+      "path": "packs/nexus-base/agents/nexi-lobby.json",
+      "sha256": "09554f694046836f882b9e38c7e6570977b858a8c7ced7171de2c67b2a355919"
+    },
+    {
+      "path": "packs/nexus-base/agents/nexi-lobby.md",
+      "sha256": "f6bc7a145dad7ef6d5d0f962aa474d37a4fddfc04a8ec4df1643bb7011e26a76"
+    },
+    {
+      "path": "packs/nexus-base/agents/question-author.json",
+      "sha256": "7e291e91b5354c0c146007e73f9ccdb8908db383291fdc3a0b9f053ea0293793"
+    },
+    {
+      "path": "packs/nexus-base/agents/question-author.md",
+      "sha256": "29209bde8726693a744acd6456650aac7ee973c013bda78ff1a17aa74bcd7748"
+    },
+    {
       "path": "packs/nexus-base/agents/reviewer.json",
       "sha256": "8a1017e47d862025d137d1674ccc862b81a2e6cc600e154ee64e6d84fcb55427"
     },
@@ -147,7 +171,7 @@
     },
     {
       "path": "packs/nexus-base/blueprints/nexus-base.json",
-      "sha256": "c62a7f8faf9b9770269cea7a71f1035de3e8975444d66bdc059e76978c33da4e"
+      "sha256": "4feec629d51d0506146763e643e67bd70175d6e5f27160b1f8d95f99624875b3"
     },
     {
       "path": "packs/nexus-base/dashboards/data_overview.json",
@@ -156,6 +180,10 @@
     {
       "path": "packs/nexus-base/dashboards/executive_overview.json",
       "sha256": "9417a6989113d98c10019194b6855cf65e01fea18dc09ef87ede6a1b134c3e79"
+    },
+    {
+      "path": "packs/nexus-base/dashboards/nexgraph_quality.json",
+      "sha256": "ed7aaa79c53ded1d527f3d602e2df8cf40d0edf6f678822106ca392b123412ef"
     },
     {
       "path": "packs/nexus-base/dashboards/nexus_graph.json",
@@ -194,6 +222,10 @@
       "sha256": "5a3460e8d169eda1c2afce00003a4d73196cfa3468d482b7b6cdf10648670c0b"
     },
     {
+      "path": "packs/nexus-base/flows/automation.json",
+      "sha256": "6cb07eac384d3ffecc4dd5fa477d20713d497c085b892979e3d1cb9d7a249153"
+    },
+    {
       "path": "packs/nexus-base/flows/bi-metric-alert.json",
       "sha256": "c28b4be019deb8c86649caaaccc86b712839c6f3c6c544110702d14af60a6e44"
     },
@@ -214,12 +246,32 @@
       "sha256": "c12a7f7784f9ff5b3c73541f71fb22dd0f5151ee056d2c35246ff6839d4b58e1"
     },
     {
+      "path": "packs/nexus-base/flows/first-hello.json",
+      "sha256": "08718b4ef0ef9b6a15a309aef83717f4ecafe1ed13b4cd844aa84aa5de4ce31d"
+    },
+    {
       "path": "packs/nexus-base/flows/mail-triage.json",
       "sha256": "bc381cf199bc8b1d35b6efb0357d6d5954848c2e0f365f9634d4ae97185d99d3"
     },
     {
       "path": "packs/nexus-base/flows/member-onboarding.json",
-      "sha256": "6c184f3609e86b0c0a6b3ea055e80bbfdf5b6dfe3eab59b6454b1eb4d18db7da"
+      "sha256": "b049b43c2e98235ad2b2d1f86676b9b6d0aa7a40388d46007c5efa9cc1f5b79e"
+    },
+    {
+      "path": "packs/nexus-base/flows/owner-first-run.json",
+      "sha256": "e7c3408e9e0baf6f731dffe5846239b9500d0e47e31cebbcac87036f9255efe2"
+    },
+    {
+      "path": "packs/nexus-base/flows/owner-next-step.json",
+      "sha256": "ca85a66166bfc7b84b983fc350e6a81f6d663d1520cb25dffb2c41fc327a1d39"
+    },
+    {
+      "path": "packs/nexus-base/flows/pipeline-tuner.json",
+      "sha256": "146d2fd1f96dccfc1c76094cd2a0e4586713808a0a31e92feaedd171ee4cfe93"
+    },
+    {
+      "path": "packs/nexus-base/flows/question-author.json",
+      "sha256": "8ae5377c29bd55c546a5185be16e4fcfd6cb882978d606653a7897f217a80e0e"
     },
     {
       "path": "packs/nexus-base/flows/web-source.json",
@@ -231,7 +283,7 @@
     },
     {
       "path": "packs/nexus-base/manifest.json",
-      "sha256": "f3f859e3d86f47b5132977d3a4b04577d050abe15c85b6da4a2411f5d320ad79"
+      "sha256": "6cc9b6b6c3d4960194bb23df2a2249bc7efd11e0a7fb2fca50d3f103162acb5f"
     },
     {
       "path": "packs/nexus-base/patterns/ensemble-judge.json",
@@ -323,7 +375,7 @@
     },
     {
       "path": "packs/nexus-base/policies/tool-groups.json",
-      "sha256": "bac5e604b4c86e1a167396cef0da97f2ad55dffe91a71475489feedff2bef6ec"
+      "sha256": "ad915b5e5304a0cc6b5e1b62f6241b0d43fcb3f0e8e51d6dfe7b4c1702ac914f"
     },
     {
       "path": "packs/nexus-base/sandbox/confidential-analytics.json",
@@ -430,6 +482,22 @@
       "sha256": "5508635b3177f5ec147794b26c81f70133ed79217fec94b215234be34460d02f"
     },
     {
+      "path": "packs/nexus-base/skills/first-minute/SKILL.md",
+      "sha256": "4f9f96695bb2741dc6478be70c6ba5e5fc5d1efee373a830839d2499d68f9766"
+    },
+    {
+      "path": "packs/nexus-base/skills/first-minute/skill.json",
+      "sha256": "37f26a141cdb765aeee1d4f83c6d511b8e227d5a94e15b2ef1b6eb684232abc7"
+    },
+    {
+      "path": "packs/nexus-base/skills/lobby-guide/SKILL.md",
+      "sha256": "5867bcbd50381925109f44daa8358a8cd5ca1cdcc02d45a3bf1894be4a3403d3"
+    },
+    {
+      "path": "packs/nexus-base/skills/lobby-guide/skill.json",
+      "sha256": "2f09c8fb2cf0a35c3bfb84a0382f30b508f4186b4f3aff06db9e3fa46989f7de"
+    },
+    {
       "path": "packs/nexus-base/skills/mail-triage/SKILL.md",
       "sha256": "96897e0ae588410ad184221542cf5a0f38772953d8187147119c9e1bfd0c1d79"
     },
@@ -452,6 +520,14 @@
     {
       "path": "packs/nexus-base/skills/pin-context/skill.json",
       "sha256": "4dbceb5b04cc30582ff45b4b0d9ae76b76bec69e7af0c45442a9eadb5ff85c1b"
+    },
+    {
+      "path": "packs/nexus-base/skills/question-authoring/SKILL.md",
+      "sha256": "8bb0b7eb5ad43ad50bddd1dc70da7c614899412d38209480c805822780cd6629"
+    },
+    {
+      "path": "packs/nexus-base/skills/question-authoring/skill.json",
+      "sha256": "1a4e65ab34b6027f5390862086b9e753ea10facb656aaa9c0739853bc43483ed"
     },
     {
       "path": "packs/nexus-base/skills/recommend-pattern/SKILL.md",
@@ -484,6 +560,14 @@
     {
       "path": "packs/nexus-base/skills/web-source-curation/skill.json",
       "sha256": "d599574a64cd4c7eb872f5a32bb7d5067b3dab9a5f12e4450fc04ddb08d2236f"
+    },
+    {
+      "path": "packs/nexus-base/ui/lobby-guide.md",
+      "sha256": "2b10baa4b9f09272f7545e0cae63910a3f229c707f3e6a8c53f45ca6f8cc74fa"
+    },
+    {
+      "path": "packs/nexus-base/ui/lobby-lines.json",
+      "sha256": "6225672c3bbf8e3335b11fa6bdcf71d7e189272ac29c46d8716bd0eabc1c4d43"
     },
     {
       "path": "publishers.yaml",
@@ -523,11 +607,15 @@
     },
     {
       "path": "toolkit/src/nexi_pack/schemas/bi-dashboard-template.schema.json",
-      "sha256": "edc9f932c88ec0503c92d5f2318c8c3cd432180972673a9a1b6b72854bce8c5a"
+      "sha256": "076a115f557288a2e4c9d74aff6e365575a7075fe448704b4ef5fb023ac581d9"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/schemas/billing-settings.schema.json",
+      "sha256": "bce52e9b3d184c8c15f1fe6c79cb08601835d85fa69a9b2553f98eabcb42f502"
     },
     {
       "path": "toolkit/src/nexi_pack/schemas/blueprint.schema.json",
-      "sha256": "735dc8220d16687db097dc6b6e306e39ab893b2d38d234060780a062a3384fb7"
+      "sha256": "584498262e48f8652ada5c251e2a82b449a75a1a2451324c3fd035e7cd18a99a"
     },
     {
       "path": "toolkit/src/nexi_pack/schemas/goal-spec.schema.json",
@@ -551,11 +639,15 @@
     },
     {
       "path": "toolkit/src/nexi_pack/schemas/resource-uri.schema.json",
-      "sha256": "c8841c896d376eb81a674f836f06bd3f95e12a8598f7c6b2443e9e3317d44a64"
+      "sha256": "78a89e4a6162c317dffe0b52d42cb514c2e34ac8fbe3bed542c63eea5a7a637d"
     },
     {
       "path": "toolkit/src/nexi_pack/schemas/sandbox-profile.schema.json",
       "sha256": "3922ac5a43f09246f2ff0abc4566238d514e2995031a79779b7a51da174126a5"
+    },
+    {
+      "path": "toolkit/src/nexi_pack/schemas/schedule-spec.schema.json",
+      "sha256": "0325c570548f1ec93145e11e0f18fedc69b63eb2fe9e43684a5ec40ea437b3b6"
     },
     {
       "path": "toolkit/src/nexi_pack/schemas/skill-manifest.schema.json",
@@ -571,11 +663,11 @@
     },
     {
       "path": "toolkit/src/nexi_pack/schemas/vocabulary.schema.json",
-      "sha256": "e96311a7b3d976f504e9e8569079773dbd8de5fa006bf6a73946f98b4b132dbb"
+      "sha256": "9db63e05cd8e33214db1c858481b3b0255e08d5a2492175fc8717d95852d5f3e"
     },
     {
       "path": "toolkit/src/nexi_pack/schemas/workflow-spec.schema.json",
-      "sha256": "b7507abb5fe0b873dc01715477948bcdb9959adf810be0919b32a4b5f16eeb57"
+      "sha256": "beb4b280b57db5cf015acb6898a628acd9743f5c9f70fc898b2349aaca3d9f2f"
     },
     {
       "path": "toolkit/src/nexi_pack/signing.py",
@@ -646,5 +738,5 @@
       "sha256": "fcad2922bec699879a1df305aae51facf4878625f4399953777f39c4c2ce3f1d"
     }
   ],
-  "export_digest": "c1c1419fe67f05994f24ffa0fc45074b22f77d5a8410f10e018097d4bfe9d32a"
+  "export_digest": "a72ed2121efc82b3ef4af4c4431905b5fffbbd480d5a509f83781563c3a36803"
 }

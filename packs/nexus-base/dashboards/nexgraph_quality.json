@@ -1,0 +1,301 @@
+{
+  "uri": "nexus://bi/template/nexgraph_quality",
+  "id": "nexgraph_quality",
+  "title": [
+    {
+      "text": "NexGraph quality",
+      "lang": "en"
+    },
+    {
+      "text": "Якість NexGraph",
+      "lang": "uk"
+    }
+  ],
+  "decision_kinds": [
+    "knowledge_quality",
+    "retrieval_tuning"
+  ],
+  "platform": false,
+  "pack_ref": "nexus://core/pack/nexus-base",
+  "version": "1.1.0",
+  "slots": [
+    {
+      "id": "sec_latest",
+      "kind": "section",
+      "role": "latest_run",
+      "required": true,
+      "recommended_size": {
+        "w": 12,
+        "h": 1
+      }
+    },
+    {
+      "id": "fact_coverage",
+      "kind": "metric",
+      "role": "outcome",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "graph_bench_fact_coverage",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "citation_hit",
+      "kind": "metric",
+      "role": "outcome",
+      "required": true,
+      "recommended_size": {
+        "w": 3,
+        "h": 2
+      },
+      "metric_key": "graph_bench_citation_hit",
+      "metric_hint": "outcome"
+    },
+    {
+      "id": "false_evidence",
+      "kind": "metric",
+      "role": "risk",
+      "required": true,
+      "recommended_size": {
+        "w": 2,
+        "h": 2
+      },
+      "metric_key": "graph_bench_false_evidence_rate",
+      "metric_hint": "risk"
+    },
+    {
+      "id": "reranker",
+      "kind": "metric",
+      "role": "risk",
+      "required": true,
+      "recommended_size": {
+        "w": 2,
+        "h": 2
+      },
+      "metric_key": "graph_bench_reranker_unavailable_rate",
+      "metric_hint": "risk"
+    },
+    {
+      "id": "latency",
+      "kind": "metric",
+      "role": "driver",
+      "required": true,
+      "recommended_size": {
+        "w": 2,
+        "h": 2
+      },
+      "metric_key": "graph_bench_latency_avg_ms",
+      "metric_hint": "driver"
+    },
+    {
+      "id": "sec_runs",
+      "kind": "section",
+      "role": "runs",
+      "required": true,
+      "recommended_size": {
+        "w": 12,
+        "h": 1
+      }
+    },
+    {
+      "id": "coverage_by_run",
+      "kind": "chart",
+      "role": "trend_over_runs",
+      "required": true,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "graph_bench_fact_coverage",
+      "metric_hint": "outcome",
+      "series_by": "arm"
+    },
+    {
+      "id": "citation_by_run",
+      "kind": "chart",
+      "role": "trend_over_runs",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric_key": "graph_bench_citation_hit",
+      "metric_hint": "outcome",
+      "series_by": "arm"
+    },
+    {
+      "id": "runs",
+      "kind": "table",
+      "role": "runs_by_label_source",
+      "required": true,
+      "recommended_size": {
+        "w": 12,
+        "h": 5
+      },
+      "metric_key": "graph_bench_questions",
+      "metric_hint": "volume",
+      "group_by": [
+        "run_ref",
+        "run_id",
+        "arm",
+        "corpus_ref"
+      ],
+      "metric_keys": [
+        "graph_bench_fact_coverage",
+        "graph_bench_citation_hit",
+        "graph_bench_false_evidence_rate",
+        "graph_bench_reranker_unavailable_rate",
+        "graph_bench_latency_avg_ms"
+      ]
+    },
+    {
+      "id": "sec_sections",
+      "kind": "section",
+      "role": "sections",
+      "required": true,
+      "recommended_size": {
+        "w": 12,
+        "h": 1
+      }
+    },
+    {
+      "id": "coverage_by_section",
+      "kind": "table",
+      "role": "breakdown_by_section",
+      "required": true,
+      "recommended_size": {
+        "w": 6,
+        "h": 6
+      },
+      "metric_key": "graph_bench_fact_coverage",
+      "metric_hint": "outcome",
+      "group_by": [
+        "section"
+      ],
+      "metric_keys": [
+        "graph_bench_questions"
+      ]
+    },
+    {
+      "id": "false_evidence_by_section",
+      "kind": "table",
+      "role": "breakdown_by_section",
+      "required": false,
+      "recommended_size": {
+        "w": 6,
+        "h": 6
+      },
+      "metric_key": "graph_bench_false_evidence_rate",
+      "metric_hint": "risk",
+      "group_by": [
+        "section"
+      ],
+      "metric_keys": [
+        "graph_bench_questions"
+      ]
+    }
+  ],
+  "default_compare": "previous_run",
+  "runs": {
+    "dimension": "run_id",
+    "comparable_by": [
+      "corpus_hash",
+      "arm",
+      "processing_profile_version",
+      "retrieval_profile_version"
+    ],
+    "time": "started_at"
+  },
+  "filters": [
+    {
+      "id": "valid_runs",
+      "kind": "toggle",
+      "field": "valid_run",
+      "label": [
+        {
+          "text": "Valid runs only",
+          "lang": "en"
+        },
+        {
+          "text": "Лише валідні запуски",
+          "lang": "uk"
+        }
+      ],
+      "default": "1"
+    },
+    {
+      "id": "corpus_kind",
+      "kind": "dimension",
+      "field": "corpus_kind",
+      "label": [
+        {
+          "text": "Corpus",
+          "lang": "en"
+        },
+        {
+          "text": "Корпус",
+          "lang": "uk"
+        }
+      ],
+      "default": null
+    },
+    {
+      "id": "corpus",
+      "kind": "dimension",
+      "field": "corpus_ref",
+      "label": [
+        {
+          "text": "Corpus source",
+          "lang": "en"
+        },
+        {
+          "text": "Джерело корпусу",
+          "lang": "uk"
+        }
+      ],
+      "default": null
+    },
+    {
+      "id": "arm",
+      "kind": "dimension",
+      "field": "arm",
+      "label": [
+        {
+          "text": "Arm",
+          "lang": "en"
+        },
+        {
+          "text": "Гілка",
+          "lang": "uk"
+        }
+      ],
+      "default": null
+    },
+    {
+      "id": "language",
+      "kind": "dimension",
+      "field": "language",
+      "label": [
+        {
+          "text": "Language",
+          "lang": "en"
+        },
+        {
+          "text": "Мова",
+          "lang": "uk"
+        }
+      ],
+      "default": null
+    }
+  ],
+  "empty_state": {
+    "copy_key": "bi.dashboard.empty.bench",
+    "link": {
+      "app": "graph",
+      "path": "/graph/runs/bench",
+      "label_key": "bi.dashboard.empty.bench.open"
+    }
+  }
+}

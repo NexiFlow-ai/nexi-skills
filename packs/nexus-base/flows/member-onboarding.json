@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.1",
+  "spec_version": "1.2",
   "workflow_id": "flw_tpl_member_onboarding",
   "uri": "nexus://workflow/template/flw_tpl_member_onboarding",
   "tenancy": {
@@ -8,24 +8,89 @@
   },
   "project_id": null,
   "name": "Member onboarding",
-  "description": "When a person joins (invitation accepted), the Writer agent posts a welcome in the General project's thread with what the organization's projects are and the three things to try first. Installed enabled for the Owner.",
+  "description": "«Nexi writes first» — v2. When a person is added to an existing organization, Nexi (the Guide agent) writes the first message into that person's own global chat — welcome, the projects they can see, two or three honest sentences from the platform documentation, whom to ask, one open question — and, when the organization has onboarding material, a second message in the person's own Onboarding chat that names the sources (titles only; the person asks and Nexi answers from them). Runs as the new member (`run_as: event_actor`): the projects and sources listed are the ones their own rights allow — never the Owner's view. Once per organization × person. Existing members receive no retroactive hello. Installed into the Onboarding project (Blueprint `defaults.projects.onboarding`).",
   "version": 2,
   "status": "published",
   "classification": "confidential",
   "template": {
     "is_template": true,
     "source_pack_uri": "nexus://core/pack/nexus-base",
-    "source_template_version": "1.1.0"
+    "source_template_version": "2.0.0"
   },
   "requires": {
     "models": [
       {
-        "role": "chat"
+        "role": "chat",
+        "capabilities": [
+          "structured_output"
+        ]
       }
     ],
     "tools": [
-      "nexus://tool/project.search"
+      "nexus://tool/project.search",
+      "nexus://tool/knowledge.search",
+      "nexus://tool/knowledge.sources"
     ]
+  },
+  "capability": {
+    "intents": [
+      "conversation"
+    ],
+    "domains": [
+      "general"
+    ],
+    "inputs": [
+      "text"
+    ],
+    "outputs": [
+      "text"
+    ],
+    "side_effects": false,
+    "background_supported": true,
+    "cost_class": "low",
+    "latency_class": "background",
+    "classification_max": "confidential",
+    "routable": false
+  },
+  "presentation": {
+    "title": {
+      "en": "Member onboarding",
+      "uk": "Онбординг учасника"
+    },
+    "stage_labels": [
+      {
+        "node_id": "projects",
+        "label": {
+          "en": "Looking at the projects",
+          "uk": "Дивлюся проєкти"
+        }
+      },
+      {
+        "node_id": "onboarding",
+        "label": {
+          "en": "Looking for onboarding material",
+          "uk": "Шукаю онбординг-матеріали"
+        }
+      },
+      {
+        "node_id": "guide",
+        "label": {
+          "en": "Writing the welcome",
+          "uk": "Пишу привітання"
+        }
+      }
+    ],
+    "person_steps": [],
+    "receipt_fields": [
+      {
+        "key": "result",
+        "label": {
+          "en": "Welcome",
+          "uk": "Привітання"
+        }
+      }
+    ],
+    "result_kind": "answer"
   },
   "trigger": {
     "kind": "event",
@@ -47,16 +112,18 @@
     {
       "id": "projects",
       "kind": "tool",
-      "label": "Read the Project overview",
-      "timeout_s": 120,
+      "label": "Read the project overview",
+      "description": "What the new member may see — `project.search` answers under the member's own PEP, so a project they hold no relation to is not in the list (§3: the person's rights bound the facts).",
+      "timeout_s": 60,
       "retry": {
         "max_attempts": 2,
         "backoff": "fixed",
-        "initial_delay_s": 5
+        "initial_delay_s": 3
       },
+      "on_failure": "continue",
       "policy": {
         "pep_action": "invoke",
-        "purpose": "projects"
+        "purpose": "onboarding"
       },
       "tool": {
         "tool_uri": "nexus://tool/project.search",
@@ -68,37 +135,244 @@
       }
     },
     {
-      "id": "welcome",
+      "id": "knowledge",
+      "kind": "tool",
+      "label": "Read how Nexi works",
+      "description": "The platform documentation tier alone. A read that fails continues with no output — the Guide says so in one sentence (SC-0486).",
+      "timeout_s": 60,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      },
+      "on_failure": "continue",
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "onboarding"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/knowledge.search",
+        "operation": "search",
+        "mutating": false
+      },
+      "input_mapping": {
+        "query": "'how Nexi works project chat'",
+        "tier": "'base'"
+      }
+    },
+    {
+      "id": "onboarding",
+      "kind": "tool",
+      "label": "List the onboarding sources",
+      "description": "C-I-6: the titles (never the content) of the organization's knowledge sources tagged `onboarding` and `policy`, as NexGraph lists them for the member. Deterministic — B+ is a count of titles, not a model's reading. A listing that fails continues with no sources: no second message, never an invented one.",
+      "timeout_s": 60,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      },
+      "on_failure": "continue",
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "onboarding"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/knowledge.sources",
+        "operation": "list",
+        "mutating": false
+      },
+      "input_mapping": {
+        "tags": "['onboarding', 'policy']"
+      }
+    },
+    {
+      "id": "person",
+      "kind": "transform",
+      "label": "Who the welcome is for",
+      "description": "The person as the event describes them — a name as they wrote it and their locale; never looked up elsewhere.",
+      "transform": {
+        "mapping": {
+          "first_name": "$.event.payload.first_name",
+          "locale": "$.event.payload.locale"
+        }
+      }
+    },
+    {
+      "id": "organization",
+      "kind": "transform",
+      "label": "The organization",
+      "description": "Way B: the organization's name, the member's first role, and the Owner they can ask (C-E-2's `owner_display_name`).",
+      "transform": {
+        "mapping": {
+          "name": "$.event.payload.organization_name",
+          "role": "$.event.payload.roles[0]",
+          "owner_display_name": "$.event.payload.owner_display_name"
+        }
+      }
+    },
+    {
+      "id": "guide",
       "kind": "agent",
       "label": "Write the welcome",
-      "timeout_s": 300,
+      "description": "Nexi drafts the welcome from the structured input only (the first-minute skill, way B): the person, the organization and whom to ask, the projects the member sees, the documentation hits.",
+      "timeout_s": 120,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      },
       "policy": {
         "pep_action": "invoke",
         "purpose": "onboarding"
       },
       "agent": {
-        "agent_uri": "nexus://agent/agt_writer",
+        "agent_uri": "nexus://agent/agt_guide",
         "context_scope": "project",
         "skill_uris": [
-          "nexus://skill/skl_draft_and_rewrite"
+          "nexus://skill/skl_first_minute"
         ],
+        "inference": {
+          "role": "chat"
+        },
         "output_schema": {
           "type": "object",
+          "additionalProperties": false,
           "required": [
             "text"
           ],
           "properties": {
             "text": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
             }
           }
         }
       },
       "input_mapping": {
-        "brief": "'Welcome a new member; list the projects they can see and three things to try first.'",
-        "source_text": "$.node.projects.output.results",
-        "tone": "'friendly'",
-        "format": "'plain'"
+        "way": "'B'",
+        "person": "$.node.person.output",
+        "organization": "$.node.organization.output",
+        "pack": "null",
+        "projects": "$.node.projects.output.results",
+        "hits": "$.node.knowledge.output.hits",
+        "onboarding": "[]"
+      }
+    },
+    {
+      "id": "hello",
+      "kind": "notify",
+      "label": "Say hello in the person's chat",
+      "description": "C-I-2 · C-I-3: an assistant message authored by Nexi (`as: agent`) in the member's own global chat, found or created on `first-minute:<organization>:<person>` and titled *Welcome to <organization>*; idempotent per (organization, person, node) — a redelivered or re-`via`'d event delivers nothing twice (Q-I-7).",
+      "timeout_s": 30,
+      "retry": {
+        "max_attempts": 3,
+        "backoff": "exponential",
+        "initial_delay_s": 5,
+        "max_delay_s": 60
+      },
+      "idempotency": {
+        "key_template": "member-hello:{{run_id}}",
+        "dedupe_window_s": 86400
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "onboarding"
+      },
+      "notify": {
+        "channel": "thread",
+        "channel_uri": "nexus://chat/thread/{{initiator.global_thread}}",
+        "as": "agent",
+        "agent_uri": "nexus://agent/agt_guide",
+        "thread_title": "Welcome to {{event.payload.organization_name}}",
+        "template": "{{node.guide.output.text}}"
+      }
+    },
+    {
+      "id": "has_onboarding",
+      "kind": "condition",
+      "label": "Onboarding material exists?",
+      "description": "B+ only when at least one source is tagged for onboarding — decided by the engine on the listing, never by the model. `nexus-expr-v1` has no length function: the first element existing is the non-empty test.",
+      "condition": {
+        "language": "nexus-expr-v1",
+        "source": "$.node.onboarding.output.sources[0] != null"
+      }
+    },
+    {
+      "id": "onboarding_guide",
+      "kind": "agent",
+      "label": "Write the onboarding note",
+      "description": "Way B+: four sentences from the source titles only — welcome aboard, what is in place, a first step, how to ask.",
+      "timeout_s": 120,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "onboarding"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_guide",
+        "context_scope": "project",
+        "skill_uris": [
+          "nexus://skill/skl_first_minute"
+        ],
+        "inference": {
+          "role": "chat"
+        },
+        "output_schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "text"
+          ],
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            }
+          }
+        }
+      },
+      "input_mapping": {
+        "way": "'B+'",
+        "person": "$.node.person.output",
+        "organization": "$.node.organization.output",
+        "pack": "null",
+        "projects": "[]",
+        "hits": "[]",
+        "onboarding": "$.node.onboarding.output.sources"
+      }
+    },
+    {
+      "id": "onboarding_hello",
+      "kind": "notify",
+      "label": "Say hello in the Onboarding chat",
+      "description": "C-I-3 · Q-I-8: `{{run.thread_id}}` under `run_as: event_actor` is the member's *own* thread of this flow in the Onboarding project (`flow-thread:<workflow>:<member>`) — one Onboarding chat per member, titled by the flow's name.",
+      "timeout_s": 30,
+      "retry": {
+        "max_attempts": 3,
+        "backoff": "exponential",
+        "initial_delay_s": 5,
+        "max_delay_s": 60
+      },
+      "idempotency": {
+        "key_template": "onboarding-hello:{{run_id}}",
+        "dedupe_window_s": 86400
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "onboarding"
+      },
+      "notify": {
+        "channel": "thread",
+        "channel_uri": "nexus://chat/thread/{{run.thread_id}}",
+        "as": "agent",
+        "agent_uri": "nexus://agent/agt_guide",
+        "template": "{{node.onboarding_guide.output.text}}"
       }
     },
     {
@@ -106,9 +380,8 @@
       "kind": "end",
       "label": "Done",
       "input_mapping": {
-        "result": "$.node.welcome.output"
-      },
-      "description": "The welcome text is the run's result (visible in the run detail and the Overview); an event-triggered run has no thread to post into."
+        "result": "$.node.guide.output"
+      }
     }
   ],
   "edges": [
@@ -118,26 +391,80 @@
       "target": "projects"
     },
     {
-      "id": "e-projects-welcome",
+      "id": "e-projects-knowledge",
       "source": "projects",
-      "target": "welcome"
+      "target": "knowledge"
     },
     {
-      "id": "e-welcome-end",
-      "source": "welcome",
+      "id": "e-knowledge-onboarding",
+      "source": "knowledge",
+      "target": "onboarding"
+    },
+    {
+      "id": "e-onboarding-person",
+      "source": "onboarding",
+      "target": "person"
+    },
+    {
+      "id": "e-person-organization",
+      "source": "person",
+      "target": "organization"
+    },
+    {
+      "id": "e-organization-guide",
+      "source": "organization",
+      "target": "guide"
+    },
+    {
+      "id": "e-guide-hello",
+      "source": "guide",
+      "target": "hello"
+    },
+    {
+      "id": "e-hello-has_onboarding",
+      "source": "hello",
+      "target": "has_onboarding"
+    },
+    {
+      "id": "e-has_onboarding-onboarding_guide-true",
+      "source": "has_onboarding",
+      "target": "onboarding_guide",
+      "when": "true",
+      "label": "Sources exist"
+    },
+    {
+      "id": "e-has_onboarding-end-false",
+      "source": "has_onboarding",
+      "target": "end",
+      "when": "false",
+      "label": "Nothing to onboard with"
+    },
+    {
+      "id": "e-onboarding_guide-onboarding_hello",
+      "source": "onboarding_guide",
+      "target": "onboarding_hello"
+    },
+    {
+      "id": "e-onboarding_hello-end",
+      "source": "onboarding_hello",
       "target": "end"
     }
   ],
   "policy": {
     "approval_for_external_writes": false,
-    "max_run_duration_s": 3600,
+    "max_run_duration_s": 900,
     "allowed_tool_uris": [
-      "nexus://tool/project.search"
+      "nexus://tool/project.search",
+      "nexus://tool/knowledge.search",
+      "nexus://tool/knowledge.sources"
     ],
-    "run_as": "initiator",
+    "run_as": "event_actor",
     "sensitive_outputs": [],
-    "max_loop_depth": 1,
-    "sandbox_profile_uri": "nexus://sandbox/profile/public-dev"
+    "budget": {
+      "max_tokens": 16000,
+      "max_tool_calls": 8
+    },
+    "max_loop_depth": 1
   },
   "layout": {
     "positions": {
@@ -149,24 +476,56 @@
         "x": 200,
         "y": 116
       },
-      "welcome": {
+      "knowledge": {
         "x": 200,
         "y": 232
       },
-      "end": {
+      "onboarding": {
+        "x": 200,
+        "y": 348
+      },
+      "person": {
         "x": 200,
         "y": 464
+      },
+      "organization": {
+        "x": 200,
+        "y": 580
+      },
+      "guide": {
+        "x": 200,
+        "y": 696
+      },
+      "hello": {
+        "x": 200,
+        "y": 812
+      },
+      "has_onboarding": {
+        "x": 200,
+        "y": 928
+      },
+      "onboarding_guide": {
+        "x": 420,
+        "y": 1044
+      },
+      "onboarding_hello": {
+        "x": 420,
+        "y": 1160
+      },
+      "end": {
+        "x": 200,
+        "y": 1276
       }
     }
   },
   "governance": {
     "state": "approved",
-    "reviewed_at": "2026-09-17T00:00:00Z"
+    "reviewed_at": "2026-10-19T00:00:00Z"
   },
   "security_review": {
     "state": "not_required"
   },
   "created_by": "pack:nexus-base",
   "created_at": "2026-09-17T00:00:00Z",
-  "published_at": "2026-09-19T00:00:00Z"
+  "published_at": "2026-10-19T00:00:00Z"
 }

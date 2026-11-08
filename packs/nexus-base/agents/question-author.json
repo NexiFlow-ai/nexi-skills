@@ -1,0 +1,49 @@
+{
+  "agent_id": "agt_question_author",
+  "uri": "nexus://agent/agt_question_author",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "name": "Question author",
+  "purpose": "Writes benchmark question rows from a portal section's pages for a second person's review — proposes rows, never writes the question set",
+  "status": "published",
+  "version": 1,
+  "instructions": "",
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-11-01T00:00:00Z",
+  "published_at": "2026-11-01T00:00:00Z",
+  "skill_refs": [
+    "nexus://skill/skl_question_authoring"
+  ],
+  "inference": {
+    "role": "planner"
+  },
+  "permissions": {
+    "max_classification": "confidential"
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-11-01T00:00:00Z"
+  },
+  "capability": {
+    "intents": [
+      "draft_document"
+    ],
+    "domains": [
+      "general"
+    ],
+    "inputs": [
+      "text"
+    ],
+    "outputs": [
+      "record"
+    ],
+    "side_effects": false,
+    "background_supported": true,
+    "cost_class": "medium",
+    "latency_class": "background",
+    "classification_max": "confidential",
+    "routable": false
+  }
+}

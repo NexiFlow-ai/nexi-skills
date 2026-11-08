@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.nexiflow.ai/v1/schedule-spec.schema.json",
+  "title": "ScheduleSpec",
+  "description": "1.213.0: the closed schedule of an automation asked for in a sentence — what the deterministic parser (`chat_api/automation/schedule.py`) read from the ask, what the person sees and may change on the card (*When Every day at 07:00 · Europe/Kyiv*), and what the template's trigger is built from (`cron` by one function, never from the model's words — rule 85). `cadence` is the closed set; `time` is the local wall-clock time in the person's zone; `weekday` names the day of a `weekly` schedule, `day_of_month` the day of a `monthly` one; `cron` holds a five-field expression only when `cadence = cron` (the Studio's own schedules read back as themselves). The model's extraction, when any, is the same object flagged as a proposal (`intent-analysis.schedule_proposal`).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "cadence",
+    "time",
+    "timezone"
+  ],
+  "properties": {
+    "cadence": {
+      "$ref": "vocabulary.schema.json#/$defs/ScheduleCadence"
+    },
+    "time": {
+      "type": "string",
+      "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+      "description": "Local wall-clock `HH:MM` in `timezone`."
+    },
+    "timezone": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "IANA zone — the person's (the organization's default when hers is unknown)."
+    },
+    "weekday": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 6,
+      "description": "`weekly` only — 0 = Monday … 6 = Sunday (ISO order, the card's words come from the key `automation.weekday.<n>`)."
+    },
+    "day_of_month": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 28,
+      "description": "`monthly` only — 1…28 so every month has the day."
+    },
+    "cron": {
+      "type": "string",
+      "minLength": 9,
+      "maxLength": 120,
+      "description": "`cron` cadence only — a five-field expression the parser could not say in words (a Studio schedule read back); for every other cadence the cron is computed, never stored here."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "cadence": {
+            "const": "weekly"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "weekday"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "cadence": {
+            "const": "monthly"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "day_of_month"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "cadence": {
+            "const": "cron"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "cron"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,790 @@
+{
+  "spec_version": "1.2",
+  "workflow_id": "flw_tpl_owner_next_step",
+  "uri": "nexus://workflow/template/flw_tpl_owner_next_step",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "project_id": null,
+  "name": "Owner next step",
+  "description": "«Nexi onboards in Core». After each getting-started step the Owner takes in Core — a member joined · a model key was set · a pack was installed — Nexi writes the next line into the Owner's own welcome chat: one sentence naming what happened, one proposing the next open step, with the card that opens the Core screen (the step and the door are this Flow's literals, the words the Guide's). Runs as the Owner who installed the pack (`run_as: flow_owner`), so `{{initiator.global_thread}}` is the Owner's chat. Once per (organization, step): each branch has its own notify node and the message key `first-minute:<organization>:<owner>:<node>` — a second member joining finds the line already there. No governance act from the thread: the door opens a screen and runs nothing.",
+  "version": 1,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.0.0"
+  },
+  "requires": {
+    "models": [
+      {
+        "role": "chat",
+        "capabilities": [
+          "structured_output"
+        ]
+      }
+    ],
+    "tools": []
+  },
+  "capability": {
+    "intents": [
+      "conversation"
+    ],
+    "domains": [
+      "general"
+    ],
+    "inputs": [
+      "text"
+    ],
+    "outputs": [
+      "text"
+    ],
+    "side_effects": false,
+    "background_supported": true,
+    "cost_class": "low",
+    "latency_class": "background",
+    "classification_max": "confidential",
+    "routable": false
+  },
+  "presentation": {
+    "title": {
+      "en": "Owner next step",
+      "uk": "Наступний крок власника"
+    },
+    "stage_labels": [
+      {
+        "node_id": "guide_invite",
+        "label": {
+          "en": "Writing the next line",
+          "uk": "Пишу наступний рядок"
+        }
+      },
+      {
+        "node_id": "guide_key",
+        "label": {
+          "en": "Writing the next line",
+          "uk": "Пишу наступний рядок"
+        }
+      },
+      {
+        "node_id": "guide_pack",
+        "label": {
+          "en": "Writing the next line",
+          "uk": "Пишу наступний рядок"
+        }
+      }
+    ],
+    "person_steps": [],
+    "receipt_fields": [
+      {
+        "key": "result",
+        "label": {
+          "en": "Next line",
+          "uk": "Наступний рядок"
+        }
+      }
+    ],
+    "result_kind": "answer"
+  },
+  "trigger": {
+    "kind": "event",
+    "event_subject": "nexus.core.governance.event.v1",
+    "event_filter": {
+      "language": "nexus-expr-v1",
+      "source": "$.event.payload.kind in ['member.joined', 'connection.credential_set', 'pack.installed']"
+    }
+  },
+  "inputs": [],
+  "outputs": [
+    {
+      "name": "result",
+      "type": "object"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "Start"
+    },
+    {
+      "id": "facts",
+      "kind": "transform",
+      "label": "What happened",
+      "description": "The one fact of the step as the event carries it (`shared/governance.py`: identifiers and flags, a display name only where NexCore put one — never an e-mail). A field the payload does not carry is null and the Guide drops its words.",
+      "transform": {
+        "mapping": {
+          "kind": "$.event.payload.kind",
+          "subject_display": "$.event.payload.subject_display",
+          "role": "$.event.payload.role",
+          "provider": "$.event.payload.provider",
+          "pack_name": "$.event.payload.pack_name"
+        }
+      }
+    },
+    {
+      "id": "person",
+      "kind": "transform",
+      "label": "Who the line is for",
+      "description": "The Owner — the run's own initiator (`run_as: flow_owner`). A governance event names no person and no locale (`shared/governance.py`: identifiers and flags only); the Guide greets without a name, in English.",
+      "transform": {
+        "mapping": {
+          "first_name": "null",
+          "locale": "null"
+        }
+      }
+    },
+    {
+      "id": "organization",
+      "kind": "transform",
+      "label": "The organization",
+      "transform": {
+        "mapping": {
+          "name": "null",
+          "role": "'owner'",
+          "owner_display_name": "null"
+        }
+      },
+      "description": "A governance event does not carry the organization's name; the Guide drops it from the line rather than guess."
+    },
+    {
+      "id": "is-invite",
+      "kind": "condition",
+      "label": "A member joined?",
+      "description": "`payload.kind == 'member.joined'` — the engine decides which next line this is, never the model.",
+      "condition": {
+        "language": "nexus-expr-v1",
+        "source": "$.event.payload.kind == 'member.joined'"
+      }
+    },
+    {
+      "id": "steps_invite",
+      "kind": "transform",
+      "label": "The six steps after this one",
+      "description": "What this step leaves open, as literals: after *a member joined* the first open step is `model_key` — the card's step and door below are this Flow's, the Guide writes the words.",
+      "transform": {
+        "mapping": {
+          "invite": "'done'",
+          "model_key": "'open'",
+          "connection": "'open'",
+          "pack": "'done'",
+          "first_run": "'open'",
+          "chat": "'open'"
+        }
+      }
+    },
+    {
+      "id": "guide_invite",
+      "kind": "agent",
+      "label": "Write the next line",
+      "description": "Nexi writes two sentences from the structured input only (the first-minute skill, way `next_step`): what happened, the next step proposed — and the card's words.",
+      "timeout_s": 120,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "owner_next_step"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_guide",
+        "context_scope": "project",
+        "skill_uris": [
+          "nexus://skill/skl_first_minute"
+        ],
+        "inference": {
+          "role": "chat"
+        },
+        "output_schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "text"
+          ],
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            "proposal": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "additionalProperties": false,
+              "required": [
+                "title"
+              ],
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "detail": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 280
+                }
+              }
+            }
+          },
+          "examples": [
+            {
+              "text": "Marko joined — welcome aboard. Next, a key for the model that answers for you.",
+              "proposal": {
+                "title": "Add a model key",
+                "detail": "Your agents answer the moment a key is in."
+              }
+            }
+          ]
+        }
+      },
+      "input_mapping": {
+        "way": "'next_step'",
+        "person": "$.node.person.output",
+        "organization": "$.node.organization.output",
+        "pack": "null",
+        "model": "null",
+        "projects": "[]",
+        "hits": "[]",
+        "onboarding": "[]",
+        "event": "$.node.facts.output",
+        "steps": "$.node.steps_invite.output"
+      }
+    },
+    {
+      "id": "next-invite",
+      "kind": "notify",
+      "label": "The next line in the Owner's chat",
+      "description": "C-J-5: Nexi's assistant message in the Owner's own welcome chat (`run_as: flow_owner` → the initiator is the Owner who installed the pack), with the card for `model_key` → `nexus://core/connections?models`. Once per (organization, step): the message key is `first-minute:<organization>:<owner>:next-invite`, so a second *a member joined* finds its line already there.",
+      "timeout_s": 30,
+      "retry": {
+        "max_attempts": 3,
+        "backoff": "exponential",
+        "initial_delay_s": 5,
+        "max_delay_s": 60
+      },
+      "idempotency": {
+        "key_template": "owner-next-step:{{run_id}}:next-invite",
+        "dedupe_window_s": 86400
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "owner_next_step"
+      },
+      "notify": {
+        "channel": "thread",
+        "channel_uri": "nexus://chat/thread/{{initiator.global_thread}}",
+        "as": "agent",
+        "agent_uri": "nexus://agent/agt_guide",
+        "template": "{{node.guide_invite.output.text}}",
+        "proposal": {
+          "step": "model_key",
+          "title": "{{node.guide_invite.output.proposal.title}}",
+          "detail": "{{node.guide_invite.output.proposal.detail}}",
+          "door": "nexus://core/connections?models"
+        }
+      }
+    },
+    {
+      "id": "is-key",
+      "kind": "condition",
+      "label": "A model key was set?",
+      "description": "`payload.kind == 'connection.credential_set'` — the engine decides which next line this is, never the model.",
+      "condition": {
+        "language": "nexus-expr-v1",
+        "source": "$.event.payload.kind == 'connection.credential_set'"
+      }
+    },
+    {
+      "id": "steps_key",
+      "kind": "transform",
+      "label": "The six steps after this one",
+      "description": "What this step leaves open, as literals: after *a model key was set* the first open step is `connection` — the card's step and door below are this Flow's, the Guide writes the words.",
+      "transform": {
+        "mapping": {
+          "invite": "'done'",
+          "model_key": "'done'",
+          "connection": "'open'",
+          "pack": "'done'",
+          "first_run": "'open'",
+          "chat": "'open'"
+        }
+      }
+    },
+    {
+      "id": "guide_key",
+      "kind": "agent",
+      "label": "Write the next line",
+      "description": "Nexi writes two sentences from the structured input only (the first-minute skill, way `next_step`): what happened, the next step proposed — and the card's words.",
+      "timeout_s": 120,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "owner_next_step"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_guide",
+        "context_scope": "project",
+        "skill_uris": [
+          "nexus://skill/skl_first_minute"
+        ],
+        "inference": {
+          "role": "chat"
+        },
+        "output_schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "text"
+          ],
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            "proposal": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "additionalProperties": false,
+              "required": [
+                "title"
+              ],
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "detail": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 280
+                }
+              }
+            }
+          },
+          "examples": [
+            {
+              "text": "The model answers now. Next, the data your projects will work with.",
+              "proposal": {
+                "title": "Connect a system",
+                "detail": "A connection brings your own data into the chats."
+              }
+            }
+          ]
+        }
+      },
+      "input_mapping": {
+        "way": "'next_step'",
+        "person": "$.node.person.output",
+        "organization": "$.node.organization.output",
+        "pack": "null",
+        "model": "null",
+        "projects": "[]",
+        "hits": "[]",
+        "onboarding": "[]",
+        "event": "$.node.facts.output",
+        "steps": "$.node.steps_key.output"
+      }
+    },
+    {
+      "id": "next-key",
+      "kind": "notify",
+      "label": "The next line in the Owner's chat",
+      "description": "C-J-5: Nexi's assistant message in the Owner's own welcome chat (`run_as: flow_owner` → the initiator is the Owner who installed the pack), with the card for `connection` → `nexus://core/connections`. Once per (organization, step): the message key is `first-minute:<organization>:<owner>:next-key`, so a second *a model key was set* finds its line already there.",
+      "timeout_s": 30,
+      "retry": {
+        "max_attempts": 3,
+        "backoff": "exponential",
+        "initial_delay_s": 5,
+        "max_delay_s": 60
+      },
+      "idempotency": {
+        "key_template": "owner-next-step:{{run_id}}:next-key",
+        "dedupe_window_s": 86400
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "owner_next_step"
+      },
+      "notify": {
+        "channel": "thread",
+        "channel_uri": "nexus://chat/thread/{{initiator.global_thread}}",
+        "as": "agent",
+        "agent_uri": "nexus://agent/agt_guide",
+        "template": "{{node.guide_key.output.text}}",
+        "proposal": {
+          "step": "connection",
+          "title": "{{node.guide_key.output.proposal.title}}",
+          "detail": "{{node.guide_key.output.proposal.detail}}",
+          "door": "nexus://core/connections"
+        }
+      }
+    },
+    {
+      "id": "is-pack",
+      "kind": "condition",
+      "label": "A pack was installed?",
+      "description": "`payload.kind == 'pack.installed'` — the engine decides which next line this is, never the model.",
+      "condition": {
+        "language": "nexus-expr-v1",
+        "source": "$.event.payload.kind == 'pack.installed'"
+      }
+    },
+    {
+      "id": "steps_pack",
+      "kind": "transform",
+      "label": "The six steps after this one",
+      "description": "What this step leaves open, as literals: after *a pack was installed* the first open step is `first_run` — the card's step and door below are this Flow's, the Guide writes the words.",
+      "transform": {
+        "mapping": {
+          "invite": "'done'",
+          "model_key": "'done'",
+          "connection": "'done'",
+          "pack": "'done'",
+          "first_run": "'open'",
+          "chat": "'open'"
+        }
+      }
+    },
+    {
+      "id": "guide_pack",
+      "kind": "agent",
+      "label": "Write the next line",
+      "description": "Nexi writes two sentences from the structured input only (the first-minute skill, way `next_step`): what happened, the next step proposed — and the card's words.",
+      "timeout_s": 120,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "owner_next_step"
+      },
+      "agent": {
+        "agent_uri": "nexus://agent/agt_guide",
+        "context_scope": "project",
+        "skill_uris": [
+          "nexus://skill/skl_first_minute"
+        ],
+        "inference": {
+          "role": "chat"
+        },
+        "output_schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "text"
+          ],
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            "proposal": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "additionalProperties": false,
+              "required": [
+                "title"
+              ],
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "detail": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 280
+                }
+              }
+            }
+          },
+          "examples": [
+            {
+              "text": "A pack landed — your agents have more to work with. Shall we run something?",
+              "proposal": {
+                "title": "Run your first flow",
+                "detail": "Pick a flow and watch it work."
+              }
+            }
+          ]
+        }
+      },
+      "input_mapping": {
+        "way": "'next_step'",
+        "person": "$.node.person.output",
+        "organization": "$.node.organization.output",
+        "pack": "null",
+        "model": "null",
+        "projects": "[]",
+        "hits": "[]",
+        "onboarding": "[]",
+        "event": "$.node.facts.output",
+        "steps": "$.node.steps_pack.output"
+      }
+    },
+    {
+      "id": "next-pack",
+      "kind": "notify",
+      "label": "The next line in the Owner's chat",
+      "description": "C-J-5: Nexi's assistant message in the Owner's own welcome chat (`run_as: flow_owner` → the initiator is the Owner who installed the pack), with the card for `first_run` → `nexus://core/automations`. Once per (organization, step): the message key is `first-minute:<organization>:<owner>:next-pack`, so a second *a pack was installed* finds its line already there.",
+      "timeout_s": 30,
+      "retry": {
+        "max_attempts": 3,
+        "backoff": "exponential",
+        "initial_delay_s": 5,
+        "max_delay_s": 60
+      },
+      "idempotency": {
+        "key_template": "owner-next-step:{{run_id}}:next-pack",
+        "dedupe_window_s": 86400
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "owner_next_step"
+      },
+      "notify": {
+        "channel": "thread",
+        "channel_uri": "nexus://chat/thread/{{initiator.global_thread}}",
+        "as": "agent",
+        "agent_uri": "nexus://agent/agt_guide",
+        "template": "{{node.guide_pack.output.text}}",
+        "proposal": {
+          "step": "first_run",
+          "title": "{{node.guide_pack.output.proposal.title}}",
+          "detail": "{{node.guide_pack.output.proposal.detail}}",
+          "door": "nexus://core/automations"
+        }
+      }
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Done"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-facts",
+      "source": "trigger",
+      "target": "facts"
+    },
+    {
+      "id": "e-facts-person",
+      "source": "facts",
+      "target": "person"
+    },
+    {
+      "id": "e-person-organization",
+      "source": "person",
+      "target": "organization"
+    },
+    {
+      "id": "e-organization-is-invite",
+      "source": "organization",
+      "target": "is-invite"
+    },
+    {
+      "id": "e-is-invite-steps_invite",
+      "source": "is-invite",
+      "target": "steps_invite",
+      "when": "true"
+    },
+    {
+      "id": "e-steps_invite-guide_invite",
+      "source": "steps_invite",
+      "target": "guide_invite"
+    },
+    {
+      "id": "e-guide_invite-next-invite",
+      "source": "guide_invite",
+      "target": "next-invite"
+    },
+    {
+      "id": "e-next-invite-end",
+      "source": "next-invite",
+      "target": "end"
+    },
+    {
+      "id": "e-is-invite-is-key",
+      "source": "is-invite",
+      "target": "is-key",
+      "when": "false"
+    },
+    {
+      "id": "e-is-key-steps_key",
+      "source": "is-key",
+      "target": "steps_key",
+      "when": "true"
+    },
+    {
+      "id": "e-steps_key-guide_key",
+      "source": "steps_key",
+      "target": "guide_key"
+    },
+    {
+      "id": "e-guide_key-next-key",
+      "source": "guide_key",
+      "target": "next-key"
+    },
+    {
+      "id": "e-next-key-end",
+      "source": "next-key",
+      "target": "end"
+    },
+    {
+      "id": "e-is-key-is-pack",
+      "source": "is-key",
+      "target": "is-pack",
+      "when": "false"
+    },
+    {
+      "id": "e-is-pack-steps_pack",
+      "source": "is-pack",
+      "target": "steps_pack",
+      "when": "true"
+    },
+    {
+      "id": "e-steps_pack-guide_pack",
+      "source": "steps_pack",
+      "target": "guide_pack"
+    },
+    {
+      "id": "e-guide_pack-next-pack",
+      "source": "guide_pack",
+      "target": "next-pack"
+    },
+    {
+      "id": "e-next-pack-end",
+      "source": "next-pack",
+      "target": "end"
+    },
+    {
+      "id": "e-is-pack-end",
+      "source": "is-pack",
+      "target": "end",
+      "when": "false"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": false,
+    "max_run_duration_s": 900,
+    "allowed_tool_uris": [],
+    "run_as": "flow_owner",
+    "sensitive_outputs": [],
+    "budget": {
+      "max_tokens": 8000,
+      "max_tool_calls": 4
+    },
+    "max_loop_depth": 1
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 520,
+        "y": 0
+      },
+      "facts": {
+        "x": 520,
+        "y": 116
+      },
+      "person": {
+        "x": 520,
+        "y": 232
+      },
+      "organization": {
+        "x": 520,
+        "y": 348
+      },
+      "is-invite": {
+        "x": 200,
+        "y": 464
+      },
+      "steps_invite": {
+        "x": 200,
+        "y": 580
+      },
+      "guide_invite": {
+        "x": 200,
+        "y": 696
+      },
+      "next-invite": {
+        "x": 200,
+        "y": 812
+      },
+      "is-key": {
+        "x": 520,
+        "y": 464
+      },
+      "steps_key": {
+        "x": 520,
+        "y": 580
+      },
+      "guide_key": {
+        "x": 520,
+        "y": 696
+      },
+      "next-key": {
+        "x": 520,
+        "y": 812
+      },
+      "is-pack": {
+        "x": 840,
+        "y": 464
+      },
+      "steps_pack": {
+        "x": 840,
+        "y": 580
+      },
+      "guide_pack": {
+        "x": 840,
+        "y": 696
+      },
+      "next-pack": {
+        "x": 840,
+        "y": 812
+      },
+      "end": {
+        "x": 520,
+        "y": 928
+      }
+    }
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-10-20T00:00:00Z"
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-10-20T00:00:00Z",
+  "published_at": "2026-10-20T00:00:00Z"
+}

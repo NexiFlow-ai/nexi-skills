@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.nexiflow.ai/v1/bi-dashboard-template.schema.json",
   "title": "BiDashboardTemplate",
-  "description": "1.46.0: a slot structure shipped as pack content (packs/nexus-base/dashboards/*.json) — P0: executive_overview · operational_control · performance_vs_target · risk_exceptions. A template instantiates into an ordinary draft; there is no template runtime.",
+  "description": "1.46.0: a slot structure shipped as pack content (packs/nexus-base/dashboards/*.json) — P0: executive_overview · operational_control · performance_vs_target · risk_exceptions. A template instantiates into an ordinary draft; there is no template runtime. 1.205.0: `filters[]` · `runs` · `empty_state` · `default_compare`; a `table` slot with `metric_key` + `group_by` is instantiated.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -110,6 +110,24 @@
             ],
             "pattern": "^[a-z][a-z0-9_]{0,63}$",
             "description": "1.54.0: for a `chart` slot — the dataset column whose values become the chart's series (one line per value, ≤ 6; e.g. `arm` for a benchmark by retrieval arm). Absent: one series over time. A hint for whoever fills the slot (the person in *From data*, or `scripts/product-metrics.py` as the person); the planner leaves chart slots open — a chart is a Canvas artifact, never made by bi-api."
+          },
+          "group_by": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{1,63}$"
+            },
+            "description": "1.205.0: a `table` slot — the dimensions the rows are grouped by; with `metric_key` the slot is instantiated as a table block."
+          },
+          "metric_keys": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{1,63}$"
+            },
+            "description": "1.205.0: a `table` slot — further metric keys shown as columns; a key the Project lacks is left out, never faked."
           }
         }
       }
@@ -133,6 +151,151 @@
     "platform": {
       "type": "boolean",
       "description": "1.53.0: true for the NEXUS platform templates (quality · usage · infrastructure · graph · vibeban) — the Plan dialog groups them apart from the decision templates."
+    },
+    "filters": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "field"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,63}$"
+          },
+          "kind": {
+            "$ref": "vocabulary.schema.json#/$defs/DashboardFilterKind"
+          },
+          "field": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,63}$"
+          },
+          "label": {
+            "type": "array",
+            "items": {
+              "$ref": "graph-common.schema.json#/$defs/LangText"
+            }
+          },
+          "default": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          }
+        }
+      },
+      "description": "1.205.0: the bar the template opens with, in order — a field the model lacks is left out; the planner's period and slices follow."
+    },
+    "runs": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "dimension",
+            "comparable_by"
+          ],
+          "properties": {
+            "dimension": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{1,63}$",
+              "description": "the dimension that identifies a run (`run_id`)"
+            },
+            "comparable_by": {
+              "type": "array",
+              "maxItems": 8,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{1,63}$"
+              },
+              "description": "two runs compare only when these dimensions are equal (corpus hash · arm · policy versions)"
+            },
+            "time": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[a-z][a-z0-9_]{1,63}$",
+              "description": "the time dimension runs are ordered by (absent = the entity's)"
+            }
+          }
+        }
+      ],
+      "description": "1.205.0: the run structure of the dashboard's entity — KPI blocks read the latest run, `previous_run` compares it to the previous comparable one."
+    },
+    "empty_state": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "copy_key"
+          ],
+          "properties": {
+            "copy_key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_.]{1,80}$",
+              "description": "the app's copy key of the one line (uk = en)"
+            },
+            "link": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "app",
+                    "path"
+                  ],
+                  "properties": {
+                    "app": {
+                      "$ref": "vocabulary.schema.json#/$defs/NexusAppId"
+                    },
+                    "path": {
+                      "type": "string",
+                      "pattern": "^/[A-Za-z0-9/_.-]*$",
+                      "maxLength": 200
+                    },
+                    "label_key": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^[a-z][a-z0-9_.]{1,80}$"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "description": "1.205.0: what a dashboard whose blocks have no rows says — one line and one door; never a sample number."
+    },
+    "default_compare": {
+      "oneOf": [
+        {
+          "$ref": "vocabulary.schema.json#/$defs/BiComparisonKind"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "1.205.0: the comparison a fresh view opens with (the bar's *Compare*)."
     }
   }
 }

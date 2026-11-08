@@ -83,6 +83,24 @@
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.MembershipRelationship"
     },
+    "TenancyKind": {
+      "type": "string",
+      "enum": [
+        "organization",
+        "lobby",
+        "visitor"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.TenancyKind"
+    },
+    "GuideWay": {
+      "type": "string",
+      "enum": [
+        "lobby",
+        "visitor",
+        "organization"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.GuideWay"
+    },
     "TenancyLevel": {
       "type": "string",
       "enum": [
@@ -362,9 +380,21 @@
         "application/json",
         "message/rfc822",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "application/vnd.apache.parquet"
+        "application/vnd.apache.parquet",
+        "image/jpeg",
+        "image/png",
+        "application/pdf"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.AttachmentMediaType"
+    },
+    "AttachmentOrigin": {
+      "type": "string",
+      "enum": [
+        "web",
+        "telegram",
+        "spin"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.AttachmentOrigin"
     },
     "SearchResultType": {
       "type": "string",
@@ -412,7 +442,8 @@
         "string",
         "number",
         "date",
-        "boolean"
+        "boolean",
+        "ref"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.TableColumnType"
     },
@@ -470,7 +501,8 @@
         "nexus.approval.waiting",
         "nexus.stream.resync",
         "nexus.knowledge.searching",
-        "nexus.analysis.reuse"
+        "nexus.analysis.reuse",
+        "nexus.message.appended"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.CustomTurnEventName"
     },
@@ -770,7 +802,10 @@
         "tool_step_requires_run_as_agent",
         "secret_literal",
         "external_ref",
-        "publish_requires_human_gate"
+        "publish_requires_human_gate",
+        "run_as_event_actor_needs_event_trigger",
+        "notify_agent_not_in_flow",
+        "notify_proposal_door_not_allowed"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.FlowValidationCode"
     },
@@ -930,7 +965,8 @@
         "execution_output",
         "attachment",
         "export",
-        "dataset"
+        "dataset",
+        "capability_source"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.BlobRetentionClass"
     },
@@ -948,7 +984,10 @@
         "tool",
         "skill",
         "flow",
-        "package"
+        "package",
+        "connect_integration",
+        "capability",
+        "enable_automation"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.CapabilityKind"
     },
@@ -1268,9 +1307,19 @@
         "egress_denied",
         "rate_limited",
         "identity_changed",
-        "unavailable_in_profile"
+        "unavailable_in_profile",
+        "needs_key"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.ConnectionHealthReason"
+    },
+    "CredentialOwner": {
+      "type": "string",
+      "enum": [
+        "managed",
+        "own",
+        "none"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CredentialOwner"
     },
     "ConnectionHealthChecker": {
       "type": "string",
@@ -1384,9 +1433,30 @@
         "tool_call",
         "approval_node",
         "capability_binding",
-        "package_request"
+        "package_request",
+        "question_batch",
+        "tuning_proposal"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.ApprovalSubjectKind"
+    },
+    "QuestionDropReason": {
+      "type": "string",
+      "enum": [
+        "not_answerable_from_page",
+        "ambiguous",
+        "duplicate",
+        "wrong_section",
+        "bad_gold"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.QuestionDropReason"
+    },
+    "QuestionRowDecision": {
+      "type": "string",
+      "enum": [
+        "keep",
+        "drop"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.QuestionRowDecision"
     },
     "InferenceOperation": {
       "type": "string",
@@ -1497,6 +1567,14 @@
         "nats"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.NotifyChannel"
+    },
+    "NotifyAs": {
+      "type": "string",
+      "enum": [
+        "system",
+        "agent"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.NotifyAs"
     },
     "WebhookSignatureScheme": {
       "type": "string",
@@ -1621,6 +1699,552 @@
         "archived"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.OrganizationStatus"
+    },
+    "OperatorRole": {
+      "type": "string",
+      "enum": [
+        "provider_owner",
+        "platform_operator",
+        "billing_operator",
+        "sre_operator",
+        "support_supervisor",
+        "support_agent"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.OperatorRole"
+    },
+    "PlatformPepAction": {
+      "type": "string",
+      "enum": [
+        "platform.fleet.read",
+        "platform.org.read",
+        "platform.usage.read",
+        "platform.billing.read",
+        "platform.billing.adjust",
+        "platform.pricebook.publish",
+        "platform.grant.manage",
+        "platform.cost.read",
+        "platform.action.execute",
+        "platform.organization_request.read",
+        "platform.organization_request.decide",
+        "platform.support.read",
+        "platform.support.grant.request",
+        "platform.support.grant.second_approve",
+        "platform.support.grant.read"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.PlatformPepAction"
+    },
+    "UsageServiceCode": {
+      "type": "string",
+      "enum": [
+        "model.managed",
+        "model.byom",
+        "execution.flow",
+        "execution.agent",
+        "execution.agent_ms",
+        "sandbox.wall_ms",
+        "sandbox.cpu_ms",
+        "ingestion.bytes",
+        "graph.pages_uploaded",
+        "graph.pages_processed",
+        "web.search_request",
+        "bi.query",
+        "bi.insight_compute",
+        "storage.bytes_day",
+        "capacity.reserved_day"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.UsageServiceCode"
+    },
+    "UsageSurface": {
+      "type": "string",
+      "enum": [
+        "chat",
+        "vibeban_automation",
+        "bi",
+        "graph",
+        "care",
+        "forge",
+        "sales",
+        "factory",
+        "map",
+        "system",
+        "platform",
+        "lobby",
+        "visitor"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.UsageSurface"
+    },
+    "CommercialStatus": {
+      "type": "string",
+      "enum": [
+        "trial",
+        "active_paid",
+        "past_due",
+        "suspended",
+        "churned"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CommercialStatus"
+    },
+    "DeploymentProfile": {
+      "type": "string",
+      "enum": [
+        "shared_cloud",
+        "dedicated_cloud",
+        "byoc",
+        "on_prem"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.DeploymentProfile"
+    },
+    "PlatformCredentialOwner": {
+      "type": "string",
+      "enum": [
+        "organization",
+        "deployment"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.PlatformCredentialOwner"
+    },
+    "PlatformSourceState": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "unavailable",
+        "not_yet"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.PlatformSourceState"
+    },
+    "PlatformAlertTone": {
+      "type": "string",
+      "enum": [
+        "neutral",
+        "warn",
+        "danger"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.PlatformAlertTone"
+    },
+    "WalletBucket": {
+      "type": "string",
+      "enum": [
+        "promo",
+        "prepaid",
+        "contract_commit",
+        "adjustment"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.WalletBucket"
+    },
+    "LedgerEntryKind": {
+      "type": "string",
+      "enum": [
+        "grant",
+        "reserve",
+        "release",
+        "settle",
+        "expire",
+        "adjust",
+        "reverse"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.LedgerEntryKind"
+    },
+    "InferenceBillOwner": {
+      "type": "string",
+      "enum": [
+        "customer_provider",
+        "nexus_managed"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.InferenceBillOwner"
+    },
+    "BillingDecisionKind": {
+      "type": "string",
+      "enum": [
+        "authorization_verdict",
+        "reservation_sizing",
+        "cost_allocation",
+        "fleet_alert",
+        "adjustment_proposal"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.BillingDecisionKind"
+    },
+    "AuthorizationVerdict": {
+      "type": "string",
+      "enum": [
+        "authorized",
+        "reduced",
+        "denied",
+        "unknown"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.AuthorizationVerdict"
+    },
+    "AuthorizationDenialReason": {
+      "type": "string",
+      "enum": [
+        "insufficient_credits",
+        "suspended",
+        "no_price",
+        "unmetered_estimate"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.AuthorizationDenialReason"
+    },
+    "BillingRefusalReason": {
+      "type": "string",
+      "enum": [
+        "insufficient_credits",
+        "suspended",
+        "no_price",
+        "unmetered_estimate",
+        "unavailable"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.BillingRefusalReason"
+    },
+    "PriceBookStatus": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "published",
+        "superseded"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.PriceBookStatus"
+    },
+    "PriceUnit": {
+      "type": "string",
+      "enum": [
+        "token_1k",
+        "run",
+        "minute",
+        "ms",
+        "gb",
+        "page",
+        "query",
+        "insight",
+        "byte_day",
+        "day"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.PriceUnit"
+    },
+    "AdjustmentStatus": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "pending",
+        "approved",
+        "applied",
+        "rejected"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.AdjustmentStatus"
+    },
+    "ExecutionParentKind": {
+      "type": "string",
+      "enum": [
+        "flow_run",
+        "agent_run",
+        "standalone"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.ExecutionParentKind"
+    },
+    "CostAllocationMethod": {
+      "type": "string",
+      "enum": [
+        "drivers",
+        "export"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CostAllocationMethod"
+    },
+    "CostSource": {
+      "type": "string",
+      "enum": [
+        "shared",
+        "dedicated",
+        "customer"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CostSource"
+    },
+    "CostLineSource": {
+      "type": "string",
+      "enum": [
+        "gcp_export",
+        "openrouter_export"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CostLineSource"
+    },
+    "CloudAccountBindingScope": {
+      "type": "string",
+      "enum": [
+        "contour",
+        "tenant"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CloudAccountBindingScope"
+    },
+    "CostMarginBasis": {
+      "type": "string",
+      "enum": [
+        "estimated",
+        "reconciled",
+        "currency_mismatch"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CostMarginBasis"
+    },
+    "CostFixedWeight": {
+      "type": "string",
+      "enum": [
+        "seats",
+        "members"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CostFixedWeight"
+    },
+    "CloudProvider": {
+      "type": "string",
+      "enum": [
+        "gcp"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CloudProvider"
+    },
+    "BillingOutcomeSignal": {
+      "type": "string",
+      "enum": [
+        "run_terminal",
+        "settlement_vs_estimate",
+        "reconciled",
+        "human_approve",
+        "human_reject",
+        "issue_resolved"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.BillingOutcomeSignal"
+    },
+    "BillingErrorCode": {
+      "type": "string",
+      "enum": [
+        "USAGE_CODE_UNKNOWN",
+        "USAGE_FORBIDDEN_KEY",
+        "WALLET_NOT_FOUND",
+        "GRANT_DUPLICATE",
+        "PRICE_BOOK_PENDING",
+        "PRICE_BOOK_IMMUTABLE",
+        "PRICE_BOOK_EFFECTIVE_TOO_SOON",
+        "ADJUSTMENT_APPROVAL_REQUIRED",
+        "APPROVER_IS_PROPOSER",
+        "SETTLEMENT_EXISTS",
+        "REPLAY_MISMATCH",
+        "SIGNATURE_INVALID",
+        "BILLING_UNAVAILABLE",
+        "BINDING_EXISTS",
+        "DRAFTING_UNAVAILABLE",
+        "ADJUSTMENT_NOT_DRAFT",
+        "ADJUSTMENT_NOT_PENDING",
+        "SETTINGS_APPROVAL_REQUIRED",
+        "SETTINGS_FIELD_RESERVED",
+        "SETTINGS_EFFECTIVE_TOO_SOON",
+        "COST_CURRENCY_MISMATCH",
+        "EXPORT_PENDING"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.BillingErrorCode"
+    },
+    "BillingSystemEventKind": {
+      "type": "string",
+      "enum": [
+        "usage.measured",
+        "wallet.granted",
+        "execution.authorized",
+        "execution.settled",
+        "lot.expired",
+        "low_balance",
+        "adjustment.applied",
+        "price_book.published",
+        "invariant.failed",
+        "cost.reconciled",
+        "run.refused",
+        "cost.variance",
+        "settings.changed",
+        "adjustment.drafted",
+        "adjustment.rejected",
+        "decisions.exported",
+        "rows.purged"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.BillingSystemEventKind"
+    },
+    "CurrencyCode": {
+      "type": "string",
+      "enum": [
+        "USD",
+        "EUR",
+        "UAH",
+        "GBP"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CurrencyCode"
+    },
+    "BillingSettingsApproval": {
+      "type": "string",
+      "enum": [
+        "dual",
+        "single_owner"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.BillingSettingsApproval"
+    },
+    "BillingDatasetName": {
+      "type": "string",
+      "enum": [
+        "fleet_organizations",
+        "nxc_ledger_daily",
+        "cloud_cost_allocation",
+        "unit_economics",
+        "lead_funnel"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.BillingDatasetName"
+    },
+    "BillingDatasetColumnType": {
+      "type": "string",
+      "enum": [
+        "ref",
+        "enum",
+        "integer",
+        "decimal",
+        "boolean",
+        "date",
+        "datetime",
+        "period"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.BillingDatasetColumnType"
+    },
+    "BillingDatasetTrigger": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "manual"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.BillingDatasetTrigger"
+    },
+    "BillingExportAsset": {
+      "type": "string",
+      "enum": [
+        "decision_dataset",
+        "billing_dataset"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.BillingExportAsset"
+    },
+    "BillingRetentionTickKind": {
+      "type": "string",
+      "enum": [
+        "export",
+        "purge"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.BillingRetentionTickKind"
+    },
+    "AdjustmentReasonCode": {
+      "type": "string",
+      "enum": [
+        "service_credit",
+        "goodwill",
+        "billing_error",
+        "duplicate_charge",
+        "unmetered_dimension",
+        "contract_term",
+        "other"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.AdjustmentReasonCode"
+    },
+    "BillingModelDriver": {
+      "type": "string",
+      "enum": [
+        "none",
+        "gateway"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.BillingModelDriver"
+    },
+    "PlatformAuditFamily": {
+      "type": "string",
+      "enum": [
+        "governance",
+        "platform",
+        "billing"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.PlatformAuditFamily"
+    },
+    "PlatformSystemEventKind": {
+      "type": "string",
+      "enum": [
+        "operator.granted",
+        "operator.revoked",
+        "organization.suspended",
+        "organization.reinstated",
+        "organization_request.submitted",
+        "organization_request.confirmed",
+        "organization_request.approved",
+        "organization_request.declined",
+        "organization_request.expired",
+        "organization_request.prepared",
+        "organization_request.revoked",
+        "cost.reconciled",
+        "cost.variance"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.PlatformSystemEventKind"
+    },
+    "OrganizationRequestStatus": {
+      "type": "string",
+      "enum": [
+        "pending_confirmation",
+        "pending",
+        "approved",
+        "declined",
+        "expired"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.OrganizationRequestStatus"
+    },
+    "OrganizationRequestDecidedBy": {
+      "type": "string",
+      "enum": [
+        "operator",
+        "invitation"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.OrganizationRequestDecidedBy"
+    },
+    "OrganizationRequestOrigin": {
+      "type": "string",
+      "enum": [
+        "inbound",
+        "prepared",
+        "door"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.OrganizationRequestOrigin"
+    },
+    "RequestFact": {
+      "type": "string",
+      "enum": [
+        "name",
+        "email",
+        "organization",
+        "role",
+        "size",
+        "country",
+        "goal",
+        "phone"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.RequestFact"
+    },
+    "LeadTopic": {
+      "type": "string",
+      "enum": [
+        "quotes",
+        "support",
+        "reporting",
+        "automation",
+        "knowledge",
+        "other"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.LeadTopic"
+    },
+    "OrganizationSize": {
+      "type": "string",
+      "enum": [
+        "1-10",
+        "11-50",
+        "51-200",
+        "201-1000",
+        "1000+"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.OrganizationSize"
+    },
+    "CoreDecisionKind": {
+      "type": "string",
+      "enum": [
+        "organization_request_decision"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CoreDecisionKind"
     },
     "OrganizationRegion": {
       "type": "string",
@@ -1907,7 +2531,12 @@
         "identity.provider.enabled",
         "identity.provider.disabled",
         "identity.provider.required",
-        "guardrail_profile.changed"
+        "guardrail_profile.changed",
+        "organization.suspended",
+        "organization.reinstated",
+        "operator.granted",
+        "operator.revoked",
+        "organization_request.approved"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.GovernanceEventKind"
     },
@@ -2221,7 +2850,9 @@
         "ask_kind",
         "not_installed",
         "offer_excluded",
-        "unrelated_subject"
+        "unrelated_subject",
+        "lobby",
+        "visitor"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.RouteExcludedReason"
     },
@@ -2384,7 +3015,8 @@
         "capability",
         "ask_kind",
         "goal",
-        "goal_relation"
+        "goal_relation",
+        "channels"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.LexiconCueSet"
     },
@@ -2392,9 +3024,114 @@
       "type": "string",
       "enum": [
         "agent",
-        "runtime"
+        "runtime",
+        "human"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.CapabilityRequestOrigin"
+    },
+    "CapabilityDraftSourceKind": {
+      "type": "string",
+      "enum": [
+        "url",
+        "document"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CapabilityDraftSourceKind"
+    },
+    "CapabilityAuthType": {
+      "type": "string",
+      "enum": [
+        "none",
+        "api_key",
+        "oauth2",
+        "unknown"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CapabilityAuthType"
+    },
+    "CapabilitySuggestionAct": {
+      "type": "string",
+      "enum": [
+        "add",
+        "connect",
+        "needs_admin",
+        "none"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CapabilitySuggestionAct"
+    },
+    "ScheduleCadence": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekdays",
+        "weekly",
+        "monthly",
+        "cron"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.ScheduleCadence"
+    },
+    "AutomationFace": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "awaiting",
+        "enabled",
+        "paused",
+        "needs_changes",
+        "archived"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.AutomationFace"
+    },
+    "AutomationTells": {
+      "type": "string",
+      "enum": [
+        "me",
+        "project"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.AutomationTells"
+    },
+    "AutomationSetupState": {
+      "type": "string",
+      "enum": [
+        "proposed",
+        "unexpressible",
+        "nothing_to_use",
+        "template_missing"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.AutomationSetupState"
+    },
+    "CapabilityTargetMode": {
+      "type": "string",
+      "enum": [
+        "existing",
+        "new"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CapabilityTargetMode"
+    },
+    "CapabilityConnectionShape": {
+      "type": "string",
+      "enum": [
+        "use_existing",
+        "add_key",
+        "ask_admin"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CapabilityConnectionShape"
+    },
+    "CapabilityConnectionState": {
+      "type": "string",
+      "enum": [
+        "none",
+        "unhealthy",
+        "healthy"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CapabilityConnectionState"
+    },
+    "CapabilityRequestDecision": {
+      "type": "string",
+      "enum": [
+        "approved",
+        "needs_changes",
+        "expired"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CapabilityRequestDecision"
     },
     "KnowledgeTier": {
       "type": "string",
@@ -2671,7 +3408,8 @@
         "dense_rerank",
         "graph_rerank",
         "hybrid_rerank",
-        "hybrid_graph_rerank"
+        "hybrid_graph_rerank",
+        "reference"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.ResolveArm"
     },
@@ -2711,9 +3449,38 @@
       "enum": [
         "ingest",
         "purge",
-        "shadow"
+        "shadow",
+        "bench"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.PipelineOrderMode"
+    },
+    "TuningExclusionReason": {
+      "type": "string",
+      "enum": [
+        "regression_over_tolerance",
+        "false_evidence_over_baseline",
+        "no_gain",
+        "run_failed",
+        "budget"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.TuningExclusionReason"
+    },
+    "TuningSectionState": {
+      "type": "string",
+      "enum": [
+        "regression",
+        "met",
+        "unmet"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.TuningSectionState"
+    },
+    "TuningProfileKind": {
+      "type": "string",
+      "enum": [
+        "retrieval",
+        "processing"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.TuningProfileKind"
     },
     "BenchStatus": {
       "type": "string",
@@ -2929,7 +3696,9 @@
         "binding_schedule",
         "web_source_proposal",
         "binding_delete",
-        "corpus_reset"
+        "corpus_reset",
+        "question_review",
+        "pipeline_tuning"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.GraphDecisionKind"
     },
@@ -3157,12 +3926,22 @@
         "processing_profile.read",
         "processing_profile.edit",
         "processing_profile.activate",
+        "retrieval_profile.read",
+        "retrieval_profile.edit",
+        "retrieval_profile.activate",
+        "processing_profile.shadow",
+        "bench_run.read",
+        "bench.run",
         "overview.read",
         "policy.read",
         "connection.list",
         "web.fetch",
         "binding.schedule",
-        "binding.sync"
+        "binding.sync",
+        "question_batch.author",
+        "question_batch.review",
+        "question_set.read",
+        "bench.order"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.GraphPepAction"
     },
@@ -3380,7 +4159,9 @@
         "run_waiting_capability",
         "run_paused",
         "artifact_published",
-        "approval_assigned"
+        "approval_assigned",
+        "capability_request_opened",
+        "capability_request_decided"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.NotificationKind"
     },
@@ -3558,7 +4339,8 @@
         "previous_period",
         "previous_year",
         "target",
-        "segment"
+        "segment",
+        "previous_run"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.BiComparisonKind"
     },
@@ -3856,7 +4638,8 @@
       "type": "string",
       "enum": [
         "date",
-        "dimension"
+        "dimension",
+        "toggle"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.DashboardFilterKind"
     },
@@ -3984,6 +4767,23 @@
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.ProcessingProfileStatus"
     },
+    "SufficiencyMode": {
+      "type": "string",
+      "enum": [
+        "top_score",
+        "per_clause"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SufficiencyMode"
+    },
+    "SourceVersionVisibility": {
+      "type": "string",
+      "enum": [
+        "live",
+        "shadow",
+        "superseded"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SourceVersionVisibility"
+    },
     "VersionDiffChange": {
       "type": "string",
       "enum": [
@@ -4106,9 +4906,19 @@
         "goal_amendment",
         "goal_anomaly",
         "goal_completion",
+        "channel_link",
+        "channel_render",
+        "approval_surface",
         "goal_challenge",
         "goal_next_door",
-        "goal_draft"
+        "goal_draft",
+        "proposal_confirmation",
+        "channel_delivery",
+        "channel_model_preference",
+        "operation_default",
+        "capability_request_decision",
+        "capability_suggest",
+        "automation_setup"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.ChatDecisionKind"
     },
@@ -4205,7 +5015,23 @@
         "draft_skipped",
         "draft_retired",
         "draft_used",
-        "draft_blocked"
+        "draft_blocked",
+        "answer_rated",
+        "channel_delivered",
+        "operation_selected",
+        "operation_deselected",
+        "request_approved",
+        "request_needs_changes",
+        "tool_added",
+        "tool_connected",
+        "suggestion_dismissed",
+        "administrator_asked",
+        "automation_not_now",
+        "automation_unexpressible",
+        "automation_drafted",
+        "automation_enabled",
+        "automation_requested",
+        "automation_stop_asking"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.ChatOutcomeSignal"
     },
@@ -4246,9 +5072,18 @@
     "DatasetSourceKind": {
       "type": "string",
       "enum": [
-        "table"
+        "table",
+        "bench_run"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.DatasetSourceKind"
+    },
+    "DatasetKind": {
+      "type": "string",
+      "enum": [
+        "table",
+        "bench_run"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.DatasetKind"
     },
     "TasksPepAction": {
       "type": "string",
@@ -4335,7 +5170,9 @@
         "story",
         "task",
         "bug",
-        "operational_issue"
+        "operational_issue",
+        "service_case",
+        "product_incident"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.WorkItemType"
     },
@@ -5973,7 +6810,8 @@
         "sms_otp",
         "host_site_assertion",
         "crm_match",
-        "sso"
+        "sso",
+        "nexus_session"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.CareVerificationMethod"
     },
@@ -6070,6 +6908,148 @@
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.ConversationChannelIdentityScheme"
     },
+    "ChannelProvider": {
+      "type": "string",
+      "enum": [
+        "telegram",
+        "whatsapp",
+        "spin"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.ChannelProvider"
+    },
+    "SpinRoomKind": {
+      "type": "string",
+      "enum": [
+        "room",
+        "dm"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SpinRoomKind"
+    },
+    "SpinNexiOp": {
+      "type": "string",
+      "enum": [
+        "post",
+        "edit"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SpinNexiOp"
+    },
+    "SpinNexiStage": {
+      "type": "string",
+      "enum": [
+        "working",
+        "answer",
+        "waiting",
+        "ceiling",
+        "unavailable",
+        "connect"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SpinNexiStage"
+    },
+    "ChannelClassificationMax": {
+      "type": "string",
+      "enum": [
+        "public",
+        "confidential",
+        "dsk"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.ChannelClassificationMax"
+    },
+    "ChannelIdentityStatus": {
+      "type": "string",
+      "enum": [
+        "active",
+        "revoked"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.ChannelIdentityStatus"
+    },
+    "ChannelLinkMethod": {
+      "type": "string",
+      "enum": [
+        "web_first",
+        "telegram_first",
+        "admin_bound",
+        "spin_first"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.ChannelLinkMethod"
+    },
+    "ChannelLinkPurpose": {
+      "type": "string",
+      "enum": [
+        "link",
+        "sign_in",
+        "step_up"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.ChannelLinkPurpose"
+    },
+    "ChannelLinkRequestStatus": {
+      "type": "string",
+      "enum": [
+        "open",
+        "used",
+        "expired",
+        "cancelled"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.ChannelLinkRequestStatus"
+    },
+    "ChannelIngress": {
+      "type": "string",
+      "enum": [
+        "off",
+        "poll",
+        "webhook"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.ChannelIngress"
+    },
+    "ChannelSessionReachability": {
+      "type": "string",
+      "enum": [
+        "reachable",
+        "unreachable"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.ChannelSessionReachability"
+    },
+    "ChannelRevokePlace": {
+      "type": "string",
+      "enum": [
+        "bot",
+        "account",
+        "admin"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.ChannelRevokePlace"
+    },
+    "ChannelAssertionRefusal": {
+      "type": "string",
+      "enum": [
+        "IDENTITY_REVOKED",
+        "USER_INACTIVE",
+        "MEMBERSHIP_MISSING",
+        "CHANNEL_DISABLED",
+        "POLICY_UNAVAILABLE"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.ChannelAssertionRefusal"
+    },
+    "ChannelDecisionKind": {
+      "type": "string",
+      "enum": [
+        "channel_link",
+        "channel_render",
+        "approval_surface",
+        "channel_delivery",
+        "channel_model_preference"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.ChannelDecisionKind"
+    },
+    "ChannelDeterministicDecisionKind": {
+      "type": "string",
+      "enum": [
+        "channel_link",
+        "channel_render",
+        "approval_surface",
+        "channel_delivery",
+        "channel_model_preference"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.ChannelDeterministicDecisionKind"
+    },
     "CareQualityQueue": {
       "type": "string",
       "enum": [
@@ -6139,6 +7119,7 @@
         "care.note.write",
         "care.case.create",
         "care.case.link",
+        "care.case.update",
         "care.customer.read",
         "care.customer.context",
         "care.identity.verify",
@@ -6298,7 +7279,8 @@
         "SCOPE_INVALID",
         "REVIEW_REQUIRED",
         "EVALUATION_BELOW_THRESHOLD",
-        "KNOWLEDGE_UNAVAILABLE"
+        "KNOWLEDGE_UNAVAILABLE",
+        "SUPPORT_CONTEXT_INVALID"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.CareErrorCode"
     },
@@ -6530,6 +7512,15 @@
         "cancel"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.ProposalDecision"
+    },
+    "ThreadKind": {
+      "type": "string",
+      "enum": [
+        "chat",
+        "lobby",
+        "visitor"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.ThreadKind"
     },
     "SceneObjectKind": {
       "type": "string",
@@ -7306,7 +8297,8 @@
     "ProjectOriginKind": {
       "type": "string",
       "enum": [
-        "app"
+        "app",
+        "personal"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.ProjectOriginKind"
     },
@@ -7331,7 +8323,8 @@
       "type": "string",
       "enum": [
         "resource_project",
-        "app_project"
+        "app_project",
+        "personal_project"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.AskDestinationReason"
     },
@@ -7861,7 +8854,8 @@
         "connect",
         "code_gave_up",
         "limit_edge",
-        "limit_no_progress"
+        "limit_no_progress",
+        "limit_credits"
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.GoalAskKind"
     },
@@ -8811,6 +9805,923 @@
       ],
       "description": "Canonical enum — source: vocabulary/v1.json#enums.GoalDraftDecision"
     },
+    "FactoryEntity": {
+      "type": "string",
+      "enum": [
+        "site",
+        "area",
+        "work_center",
+        "shift_calendar",
+        "product",
+        "revision",
+        "demand",
+        "order",
+        "operation",
+        "material",
+        "lot",
+        "availability",
+        "instruction"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryEntity"
+    },
+    "FactorySourceProfile": {
+      "type": "string",
+      "enum": [
+        "connect",
+        "build",
+        "hybrid"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactorySourceProfile"
+    },
+    "FactorySourceMode": {
+      "type": "string",
+      "enum": [
+        "native",
+        "external"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactorySourceMode"
+    },
+    "FactoryWriteMode": {
+      "type": "string",
+      "enum": [
+        "read_only",
+        "approval_required",
+        "policy_controlled"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryWriteMode"
+    },
+    "FactoryCachePolicy": {
+      "type": "string",
+      "enum": [
+        "none",
+        "restricted",
+        "projection"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryCachePolicy"
+    },
+    "FactorySourceState": {
+      "type": "string",
+      "enum": [
+        "live",
+        "cached",
+        "stale",
+        "unavailable",
+        "unknown"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactorySourceState"
+    },
+    "FactoryWriteOutcome": {
+      "type": "string",
+      "enum": [
+        "saved",
+        "pending_approval",
+        "rejected",
+        "conflict",
+        "unknown",
+        "unavailable",
+        "denied",
+        "no_operation"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryWriteOutcome"
+    },
+    "FactoryAuthorityPolicy": {
+      "type": "string",
+      "enum": [
+        "read_only",
+        "approved_commands",
+        "native"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryAuthorityPolicy"
+    },
+    "FactoryOrderState": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "planned",
+        "readiness_review",
+        "released",
+        "in_progress",
+        "paused",
+        "quality_hold",
+        "rework",
+        "completed",
+        "closed",
+        "cancelled"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryOrderState"
+    },
+    "FactoryOrderStateFamily": {
+      "type": "string",
+      "enum": [
+        "planning",
+        "running",
+        "held",
+        "done",
+        "cancelled"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryOrderStateFamily"
+    },
+    "FactoryRevisionStatus": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "approved",
+        "released",
+        "obsolete"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryRevisionStatus"
+    },
+    "FactoryLotStatus": {
+      "type": "string",
+      "enum": [
+        "released",
+        "quarantine",
+        "expired",
+        "consumed"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryLotStatus"
+    },
+    "FactoryGateKind": {
+      "type": "string",
+      "enum": [
+        "revision_approved",
+        "routing_applies",
+        "materials_available",
+        "instruction_approved",
+        "quality_plan_assigned",
+        "equipment_status",
+        "approvals_present"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryGateKind"
+    },
+    "FactoryGateResult": {
+      "type": "string",
+      "enum": [
+        "verified",
+        "failed",
+        "unknown"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryGateResult"
+    },
+    "FactoryVerdict": {
+      "type": "string",
+      "enum": [
+        "ready",
+        "ready_with_risk",
+        "blocked",
+        "unknown"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryVerdict"
+    },
+    "FactoryReasonCode": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "revision_not_approved",
+        "revision_unknown",
+        "routing_missing",
+        "routing_unknown",
+        "material_short",
+        "lot_quarantined",
+        "availability_stale",
+        "availability_unknown",
+        "instruction_draft",
+        "instruction_missing",
+        "instruction_unknown",
+        "quality_plan_missing",
+        "quality_plan_unknown",
+        "equipment_down",
+        "equipment_unknown",
+        "approval_missing",
+        "approval_unknown",
+        "source_unavailable"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryReasonCode"
+    },
+    "FactoryExceptionKind": {
+      "type": "string",
+      "enum": [
+        "material_shortage",
+        "missing_document",
+        "missing_approval",
+        "capacity",
+        "quality_hold",
+        "source_sync",
+        "readiness_blocked",
+        "other"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryExceptionKind"
+    },
+    "FactoryExceptionSeverity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryExceptionSeverity"
+    },
+    "FactoryExceptionState": {
+      "type": "string",
+      "enum": [
+        "new",
+        "triage",
+        "in_progress",
+        "waiting",
+        "resolved"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryExceptionState"
+    },
+    "FactoryPepAction": {
+      "type": "string",
+      "enum": [
+        "factory.read",
+        "factory.exception.file",
+        "factory.source.admin",
+        "factory.mapping.approve",
+        "factory.policy.manage",
+        "factory.import",
+        "factory.export",
+        "factory.financial"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryPepAction"
+    },
+    "FactoryHumanOnlyAction": {
+      "type": "string",
+      "enum": [
+        "factory.source.admin",
+        "factory.mapping.approve",
+        "factory.policy.manage"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryHumanOnlyAction"
+    },
+    "FactoryRelation": {
+      "type": "string",
+      "enum": [
+        "factory.admin",
+        "factory.lead",
+        "factory.planner",
+        "factory.reader"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryRelation"
+    },
+    "FactoryDecisionKind": {
+      "type": "string",
+      "enum": [
+        "readiness_verdict",
+        "exception_classification",
+        "exception_assignment_proposal",
+        "mapping_proposal",
+        "source_resolution",
+        "write_outcome",
+        "import_mapping",
+        "sync_strategy"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryDecisionKind"
+    },
+    "FactoryDeterministicDecisionKind": {
+      "type": "string",
+      "enum": [
+        "readiness_verdict",
+        "exception_classification",
+        "source_resolution",
+        "write_outcome",
+        "sync_strategy"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryDeterministicDecisionKind"
+    },
+    "FactoryOutcomeSignal": {
+      "type": "string",
+      "enum": [
+        "human_accept",
+        "human_reject",
+        "exception_resolved",
+        "reconciled",
+        "flow_terminal",
+        "source_confirmed",
+        "sync_completed"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryOutcomeSignal"
+    },
+    "FactoryLabelSource": {
+      "type": "string",
+      "enum": [
+        "human_explicit",
+        "human_implicit",
+        "engine_deterministic",
+        "oracle"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryLabelSource"
+    },
+    "FactoryErrorCode": {
+      "type": "string",
+      "enum": [
+        "MODULE_NOT_ENABLED",
+        "FORBIDDEN",
+        "AUTHOR_NOT_HUMAN",
+        "NOT_FOUND",
+        "PROJECT_REQUIRED",
+        "VALIDATION_FAILED",
+        "FIELD_NOT_EDITABLE",
+        "REVISION_CONFLICT",
+        "MIGRATION_REQUIRED",
+        "POLICY_LOCKED",
+        "MAPPING_NOT_APPROVED",
+        "MAPPING_MISSING_REQUIRED",
+        "IMPORT_NOT_ALLOWED_EXTERNAL",
+        "ROLLBACK_PARTIAL",
+        "FILE_REJECTED",
+        "SOURCE_UNAVAILABLE",
+        "NO_OPERATION",
+        "RECONCILE_PENDING",
+        "NOT_EVALUATED",
+        "BOARD_NOT_LINKED",
+        "TRANSITION_NOT_AVAILABLE",
+        "MAPPING_INCOMPLETE",
+        "SOURCE_REVOKED"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryErrorCode"
+    },
+    "FactorySystemEventKind": {
+      "type": "string",
+      "enum": [
+        "order_observed",
+        "readiness_evaluated",
+        "exception_filed",
+        "exception_resolved",
+        "source_synced",
+        "source_stale",
+        "mapping_approved",
+        "policy_changed",
+        "import_committed",
+        "source_unavailable",
+        "source_recovered",
+        "sync_revoked"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactorySystemEventKind"
+    },
+    "FactoryDatasetName": {
+      "type": "string",
+      "enum": [
+        "factory_orders",
+        "factory_readiness",
+        "factory_exceptions",
+        "factory_availability",
+        "factory_source_health"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryDatasetName"
+    },
+    "FactoryScreen": {
+      "type": "string",
+      "enum": [
+        "overview",
+        "orders",
+        "order",
+        "products",
+        "materials",
+        "sites",
+        "exceptions",
+        "settings",
+        "setup"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryScreen"
+    },
+    "FactoryProfile": {
+      "type": "string",
+      "enum": [
+        "discrete_assembly",
+        "batch",
+        "project"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryProfile"
+    },
+    "FactoryWriteSideEffect": {
+      "type": "string",
+      "enum": [
+        "none",
+        "created",
+        "updated"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryWriteSideEffect"
+    },
+    "FactoryWorkCenterStatus": {
+      "type": "string",
+      "enum": [
+        "available",
+        "down",
+        "maintenance",
+        "unknown"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryWorkCenterStatus"
+    },
+    "FactoryExecutionState": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "running",
+        "done",
+        "skipped",
+        "unknown"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryExecutionState"
+    },
+    "FactoryInstructionState": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "approved",
+        "superseded"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryInstructionState"
+    },
+    "FactoryContextKind": {
+      "type": "string",
+      "enum": [
+        "order",
+        "material",
+        "site",
+        "product",
+        "none"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryContextKind"
+    },
+    "FactoryPolicyKind": {
+      "type": "string",
+      "enum": [
+        "source",
+        "readiness",
+        "field"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryPolicyKind"
+    },
+    "FactoryMappingStatus": {
+      "type": "string",
+      "enum": [
+        "proposed",
+        "approved",
+        "superseded"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryMappingStatus"
+    },
+    "FactoryMappingRowStatus": {
+      "type": "string",
+      "enum": [
+        "mapped",
+        "missing",
+        "not_available",
+        "extra"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryMappingRowStatus"
+    },
+    "FactoryMappingCodec": {
+      "type": "string",
+      "enum": [
+        "str",
+        "int",
+        "float",
+        "bool",
+        "datetime",
+        "enum",
+        "json",
+        "ref"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactoryMappingCodec"
+    },
+    "FactorySyncState": {
+      "type": "string",
+      "enum": [
+        "never",
+        "idle",
+        "running",
+        "failed",
+        "rebuilding",
+        "revoked"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactorySyncState"
+    },
+    "FactorySyncKind": {
+      "type": "string",
+      "enum": [
+        "delta",
+        "full",
+        "reconcile"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactorySyncKind"
+    },
+    "FactorySourceHealthState": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "degraded",
+        "down",
+        "unknown"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.FactorySourceHealthState"
+    },
+    "OnboardingStep": {
+      "type": "string",
+      "enum": [
+        "invite",
+        "model_key",
+        "connection",
+        "pack",
+        "first_run",
+        "chat"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.OnboardingStep"
+    },
+    "AnswerRating": {
+      "type": "string",
+      "enum": [
+        "up",
+        "down"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.AnswerRating"
+    },
+    "ProposalState": {
+      "type": "string",
+      "enum": [
+        "proposed",
+        "dismissed"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.ProposalState"
+    },
+    "SupportAutonomyLevel": {
+      "type": "string",
+      "enum": [
+        "A0_answer",
+        "A1_diagnose",
+        "A2_safe_repair",
+        "A3_approval",
+        "A4_engineering"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SupportAutonomyLevel"
+    },
+    "SupportRedLine": {
+      "type": "string",
+      "enum": [
+        "suspected_data_leak",
+        "account_takeover",
+        "legal_dispute",
+        "refund_abuse",
+        "data_deletion",
+        "security_policy_change"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SupportRedLine"
+    },
+    "HealthSignalKind": {
+      "type": "string",
+      "enum": [
+        "connection.unhealthy",
+        "flow_run.failed",
+        "agent_run.failed",
+        "graph.run.failed",
+        "graph.binding.needs_credentials",
+        "model.denied",
+        "billing.invariant.failed",
+        "care.sla.breached"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.HealthSignalKind"
+    },
+    "SupportDecisionKind": {
+      "type": "string",
+      "enum": [
+        "autonomy_level",
+        "fingerprint_match",
+        "incident_aggregation",
+        "safe_action_eligibility",
+        "grant_scope_proposal"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SupportDecisionKind"
+    },
+    "SupportGrantState": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "pending_second",
+        "active",
+        "expired",
+        "revoked",
+        "refused"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SupportGrantState"
+    },
+    "SupportCaseState": {
+      "type": "string",
+      "enum": [
+        "new",
+        "triage",
+        "in_progress",
+        "waiting_on_customer",
+        "resolved",
+        "closed"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SupportCaseState"
+    },
+    "PlatformIncidentState": {
+      "type": "string",
+      "enum": [
+        "open",
+        "resolved"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.PlatformIncidentState"
+    },
+    "SupportConsentMode": {
+      "type": "string",
+      "enum": [
+        "customer_confirms",
+        "platform_policy"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SupportConsentMode"
+    },
+    "SupportMembershipClass": {
+      "type": "string",
+      "enum": [
+        "owner",
+        "admin",
+        "member",
+        "unverified_member"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SupportMembershipClass"
+    },
+    "SupportGrantResourceKind": {
+      "type": "string",
+      "enum": [
+        "flow_run",
+        "thread",
+        "graph_run",
+        "source_version",
+        "artifact"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SupportGrantResourceKind"
+    },
+    "SupportOutcomeSignal": {
+      "type": "string",
+      "enum": [
+        "human_takeover",
+        "case_resolved",
+        "case_reopened",
+        "grant_approved",
+        "grant_denied",
+        "grant_revoked",
+        "action_succeeded",
+        "action_failed",
+        "incident_resolved"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SupportOutcomeSignal"
+    },
+    "CarePublicUpdateKind": {
+      "type": "string",
+      "enum": [
+        "update",
+        "summary",
+        "resolution"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.CarePublicUpdateKind"
+    },
+    "ProjectEnsureMemberRelation": {
+      "type": "string",
+      "enum": [
+        "owner",
+        "editor"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.ProjectEnsureMemberRelation"
+    },
+    "SupportAutonomyExclusion": {
+      "type": "string",
+      "enum": [
+        "no_grant",
+        "not_in_catalogue",
+        "red_line",
+        "budget",
+        "policy",
+        "limit"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SupportAutonomyExclusion"
+    },
+    "SupportActionOutcome": {
+      "type": "string",
+      "enum": [
+        "succeeded",
+        "failed",
+        "refused"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SupportActionOutcome"
+    },
+    "SupportActionRefusal": {
+      "type": "string",
+      "enum": [
+        "not_in_catalogue",
+        "limit_per_case",
+        "limit_per_day",
+        "budget",
+        "policy",
+        "consent_missing",
+        "consent_expired",
+        "not_a_member",
+        "resource_not_eligible",
+        "door_refused"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SupportActionRefusal"
+    },
+    "SupportDatasetName": {
+      "type": "string",
+      "enum": [
+        "support_cases",
+        "support_sla_events",
+        "support_containment",
+        "support_fleet"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SupportDatasetName"
+    },
+    "SupportExportApp": {
+      "type": "string",
+      "enum": [
+        "care-api",
+        "core-api"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SupportExportApp"
+    },
+    "SupportDatasetPublicationState": {
+      "type": "string",
+      "enum": [
+        "waits_for_epic_016_s6",
+        "published"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SupportDatasetPublicationState"
+    },
+    "SupportSlaMark": {
+      "type": "string",
+      "enum": [
+        "at_risk",
+        "breached",
+        "met",
+        "missed"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.SupportSlaMark"
+    },
+    "BenchId": {
+      "type": "string",
+      "enum": [
+        "mine1",
+        "text2kgbench_tekgen",
+        "multiconer_v2",
+        "wdc_products",
+        "graphrag_bench_novel",
+        "ner_uk_2"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.BenchId"
+    },
+    "BiPresentationKind": {
+      "type": "string",
+      "enum": [
+        "timeline",
+        "table"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.BiPresentationKind"
+    },
+    "ProviderSlug": {
+      "type": "string",
+      "enum": [
+        "1c",
+        "adyen",
+        "airtable",
+        "amazon-aws",
+        "amazon-s3",
+        "ansible",
+        "anthropic",
+        "apache-airflow",
+        "apache-kafka",
+        "asana",
+        "atlassian",
+        "auth0",
+        "basecamp",
+        "bitbucket",
+        "box",
+        "brave",
+        "calendly",
+        "canva",
+        "clickhouse",
+        "clickup",
+        "cloudflare",
+        "confluence",
+        "databricks",
+        "datadog",
+        "digitalocean",
+        "diia",
+        "discord",
+        "docker",
+        "dropbox",
+        "elastic",
+        "facebook",
+        "figma",
+        "firebase",
+        "github",
+        "gitlab",
+        "gmail",
+        "google-analytics",
+        "google-calendar",
+        "google-cloud",
+        "google-drive",
+        "google-gemini",
+        "google-maps",
+        "google-sheets",
+        "google-workspace",
+        "grafana",
+        "hotjar",
+        "hubspot",
+        "hugging-face",
+        "instagram",
+        "intercom",
+        "jenkins",
+        "jira",
+        "keycloak",
+        "klarna",
+        "kubernetes",
+        "langsearch",
+        "line",
+        "linear",
+        "linkedin",
+        "looker",
+        "mailchimp",
+        "mailgun",
+        "make",
+        "messenger",
+        "metabase",
+        "microsoft-365",
+        "microsoft-azure",
+        "microsoft-outlook",
+        "microsoft-teams",
+        "minio",
+        "miro",
+        "mistral-ai",
+        "mixpanel",
+        "mojeek",
+        "monday-com",
+        "mongodb",
+        "monobank",
+        "mysql",
+        "n8n",
+        "netlify",
+        "nextcloud",
+        "notion",
+        "nova-poshta",
+        "odoo",
+        "okta",
+        "ollama",
+        "openai",
+        "openrouter",
+        "openstreetmap",
+        "oracle",
+        "pagerduty",
+        "paypal",
+        "postgresql",
+        "power-bi",
+        "privatbank",
+        "quickbooks",
+        "rabbitmq",
+        "redis",
+        "revolut",
+        "sage",
+        "salesforce",
+        "sap",
+        "sentry",
+        "servicenow",
+        "shopify",
+        "signal",
+        "slack",
+        "snowflake",
+        "square",
+        "stripe",
+        "supabase",
+        "tableau",
+        "tavily",
+        "telegram",
+        "terraform",
+        "tiktok",
+        "trello",
+        "twilio",
+        "typeform",
+        "vercel",
+        "viber",
+        "webflow",
+        "wechat",
+        "whatsapp",
+        "wikidata",
+        "wikipedia",
+        "wise",
+        "wordpress",
+        "x",
+        "xero",
+        "youtube",
+        "zapier",
+        "zendesk",
+        "zoho",
+        "zoom"
+      ],
+      "description": "Canonical enum — source: vocabulary/v1.json#enums.ProviderSlug"
+    },
     "SuiteAppId": {
       "type": "string",
       "enum": [
@@ -8837,7 +10748,8 @@
         "map",
         "care",
         "forge",
-        "sales"
+        "sales",
+        "factory"
       ],
       "description": "Canonical enum — source: derived from vocabulary/v1.json registries (NexusAppId)"
     },
@@ -8853,7 +10765,8 @@
         "map",
         "care",
         "forge",
-        "sales"
+        "sales",
+        "factory"
       ],
       "description": "Canonical enum — source: derived from vocabulary/v1.json registries (DomainAppId)"
     },
@@ -8870,6 +10783,7 @@
         "care",
         "forge",
         "sales",
+        "factory",
         "agent",
         "skill",
         "workflow",
@@ -8884,9 +10798,11 @@
       "type": "string",
       "enum": [
         "nexus.bi",
+        "nexus.billing",
         "nexus.care",
         "nexus.chat",
         "nexus.core",
+        "nexus.factory",
         "nexus.forge",
         "nexus.graph",
         "nexus.home",
@@ -8925,6 +10841,24 @@
         "bi.subscription",
         "bi.template",
         "bi.widget",
+        "billing.adjustment",
+        "billing.cloud_account_binding",
+        "billing.cost_allocation",
+        "billing.credit_grant",
+        "billing.credit_lot",
+        "billing.dataset_manifest",
+        "billing.decision",
+        "billing.export_manifest",
+        "billing.ledger_entry",
+        "billing.period",
+        "billing.price_book",
+        "billing.price_override",
+        "billing.rated_usage",
+        "billing.reservation",
+        "billing.settings_version",
+        "billing.settlement",
+        "billing.usage_event",
+        "billing.wallet",
         "care.assistant_profile",
         "care.case_extension",
         "care.channel_session",
@@ -8987,6 +10921,10 @@
         "core.blueprint",
         "core.capability_access",
         "core.capability_publication",
+        "core.channel_bot",
+        "core.channel_identity",
+        "core.channel_link_request",
+        "core.channel_session",
         "core.connection_access_policy",
         "core.credential",
         "core.enterprise",
@@ -9002,6 +10940,7 @@
         "core.module",
         "core.organization",
         "core.organization_membership",
+        "core.organization_request",
         "core.pack",
         "core.policy_bundle",
         "core.role_assignment",
@@ -9013,6 +10952,33 @@
         "core.unit",
         "core.user",
         "core.workspace",
+        "factory.area",
+        "factory.availability",
+        "factory.dataset_manifest",
+        "factory.decision",
+        "factory.demand",
+        "factory.entity_mapping",
+        "factory.exception",
+        "factory.export",
+        "factory.external_record_ref",
+        "factory.field_policy",
+        "factory.field_schema",
+        "factory.import_batch",
+        "factory.instruction",
+        "factory.lot",
+        "factory.material",
+        "factory.operation",
+        "factory.operation_execution",
+        "factory.order",
+        "factory.product",
+        "factory.readiness_evaluation",
+        "factory.readiness_policy",
+        "factory.revision",
+        "factory.shift_calendar",
+        "factory.site",
+        "factory.source_policy",
+        "factory.work_center",
+        "factory.write_intent",
         "forge.decision",
         "forge.object",
         "forge.proposal",
@@ -9020,6 +10986,7 @@
         "forge.scene_version",
         "forge.snapshot",
         "forge.template",
+        "graph.bench_run",
         "graph.binding",
         "graph.capture",
         "graph.claim",
@@ -9039,6 +11006,7 @@
         "graph.oracle_run",
         "graph.pipeline",
         "graph.processing_profile",
+        "graph.retrieval_profile",
         "graph.run",
         "graph.saved_view",
         "graph.scope",

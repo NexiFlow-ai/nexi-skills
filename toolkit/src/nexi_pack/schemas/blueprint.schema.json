@@ -615,6 +615,226 @@
         }
       }
     },
+    "care": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "1.192.0: NexCare content a pack layer DECLARES and care-api MATERIALISES through its own stores when the module gate first reads the organization (never a Settings field, never a care-api table of the pack's). A layer may add an installation; no layer removes one (uninstalling the pack does — core-api drops the layer and care-api archives what the layer declared). `allowed_origins` are never here: they are the deployment's SUPPORT_FRAME_ORIGINS, a fact of the stack.",
+      "properties": {
+        "installations": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "installation_id",
+              "name",
+              "modes",
+              "languages",
+              "default_language"
+            ],
+            "properties": {
+              "installation_id": {
+                "type": "string",
+                "pattern": "^inst_[a-z0-9_]{3,48}$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "modes": {
+                "$ref": "vocabulary.schema.json#/$defs/WidgetMode"
+              },
+              "languages": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 16,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z]{2}$"
+                }
+              },
+              "default_language": {
+                "type": "string",
+                "pattern": "^[a-z]{2}$"
+              },
+              "guardrail_profile": {
+                "type": "string",
+                "pattern": "^[a-z_]{3,40}$",
+                "default": "external_public"
+              },
+              "verification_methods": {
+                "type": "array",
+                "maxItems": 6,
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "vocabulary.schema.json#/$defs/CareVerificationMethod"
+                },
+                "description": "beyond email_otp: `nexus_session` only here — the provider desk's installation; a customer's widget never lists it"
+              },
+              "origins_from": {
+                "type": "string",
+                "pattern": "^[A-Z][A-Z0-9_]{2,40}$",
+                "description": "the deployment variable care-api reads the allowed origins from (SUPPORT_FRAME_ORIGINS); the pack never carries an origin"
+              }
+            }
+          }
+        }
+      }
+    },
+    "channels": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "1.167.0: what a person may do with this organization from a messenger. The ORGANIZATION layer sets it (default: disabled); a PROJECT layer or a pack layer may only tighten (lower `classification_max`, remove an `allow`, add to `deny_actions`); the effective ceiling is `classification_max ∩ the integration's conversation_channel.classification_max` (Telegram: `confidential` — `secret` is unreachable by construction). Read by core-api's channel assertion door and chat-api's gateway with the kernel's TTL (≤ 60 s); absent or unreadable ⇒ the channel is closed (`POLICY_UNAVAILABLE`).",
+      "properties": {
+        "telegram": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "classification_max": {
+              "$ref": "vocabulary.schema.json#/$defs/ChannelClassificationMax",
+              "default": "confidential",
+              "description": "The canonical ladder has no `internal`; `dsk` only when the integration allows it too."
+            },
+            "allow": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "ask": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "attachments": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "voice": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "flows": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "approvals_inline_max_level": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 3,
+                  "default": 3
+                },
+                "notifications": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
+            },
+            "deny_actions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "uniqueItems": true,
+              "default": [
+                "tool.publish",
+                "capability.bind",
+                "connection.create",
+                "organization.manage",
+                "people.manage",
+                "artifact.export",
+                "secret.*"
+              ],
+              "description": "PEP actions never exercised from a channel (`CHANNEL_ACTION`)."
+            },
+            "project_context_ttl_h": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 168,
+              "default": 24
+            },
+            "gist_chars": {
+              "type": "integer",
+              "minimum": 200,
+              "maximum": 4000,
+              "default": 1200
+            },
+            "rate": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "messages_per_minute_per_person": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 120,
+                  "default": 20
+                }
+              }
+            }
+          }
+        },
+        "spin": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "1.193.0: Nexi in a Spin room. The ORGANIZATION layer sets it (default: disabled); a PROJECT or pack layer may only tighten. The effective ceiling of a room turn is `classification_max` — a room is shared by many, so the asker's turn runs under her rights **and** this ceiling (the audience rule; Part 3 adds the bound Project's classification). Read by chat-api's Spin ingress with the kernel's TTL; absent or unreadable ⇒ the room is closed (`POLICY_UNAVAILABLE`).",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "classification_max": {
+              "$ref": "vocabulary.schema.json#/$defs/ChannelClassificationMax",
+              "default": "confidential",
+              "description": "'s *internal* is `confidential` in the closed ladder (the 1.153.0 reading); `dsk` never in Part 1."
+            },
+            "gist_chars": {
+              "type": "integer",
+              "minimum": 200,
+              "maximum": 4000,
+              "default": 1500,
+              "description": "an answer longer than this is posted as the gist + *Open in Nexi*."
+            },
+            "deny_actions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "uniqueItems": true,
+              "default": [
+                "tool.publish",
+                "capability.bind",
+                "connection.create",
+                "organization.manage",
+                "people.manage",
+                "artifact.export",
+                "secret.*"
+              ],
+              "description": "PEP actions never exercised from a room (`CHANNEL_ACTION`)."
+            },
+            "rate": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mentions_per_minute_per_person": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 120,
+                  "default": 10
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "tuning": {
       "type": "object",
       "additionalProperties": false,
@@ -2993,6 +3213,300 @@
                   "default": "local_only"
                 }
               }
+            }
+          }
+        },
+        "support": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "1.192.0: the provider support desk's governed knobs — per deployment, changed by a provider_owner with an approval. S1 reads the mint and rate knobs (core-api · the provider's care-api); the fingerprint, incident, gap and grant knobs are declared here for S2–S4 and read by nobody before. A Blueprint without a key behaves as the default.",
+          "properties": {
+            "mint_per_session_per_min": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 60,
+              "description": "support contexts one session may mint per minute (default 6) → 429.",
+              "default": 6
+            },
+            "rate_org_per_hour": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "description": "support conversations one customer organization may open per hour on the provider installation (default 60).",
+              "default": 60
+            },
+            "rate_person_per_hour": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "description": "per `principal_ref` (default 12).",
+              "default": 12
+            },
+            "fingerprint_min_signals": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "(S2): equivalent signals in the window that open a case (default 3; 1 for connection.unhealthy and billing.invariant.failed by rule).",
+              "default": 3
+            },
+            "fingerprint_window_min": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1440,
+              "description": "(S2): the window (default 15).",
+              "default": 15
+            },
+            "incident_min_orgs": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 1000,
+              "description": "(S3): organizations with one fingerprint class that make a product_incident (default 3).",
+              "default": 3
+            },
+            "gap_min_count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "description": "(S5): knowledge-gap occurrences in 7 d that file one docs task (default 5).",
+              "default": 5
+            },
+            "grant_max_hours": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 168,
+              "description": "(S4): the ceiling of a SupportAccessGrant's life (default 24).",
+              "default": 24
+            },
+            "grant_second_approval_from": {
+              "$ref": "vocabulary.schema.json#/$defs/DataClassification",
+              "description": "(S4): a scope at or above this classification needs a support_supervisor's second approval (default confidential).",
+              "default": "confidential"
+            }
+          }
+        },
+        "factory": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "1.163.0: NexFactory's governed knobs. factory-api reads them from the service-effective Blueprint through its module gate — never a Settings field — clamps every number to the range here and repeats the values it used as `state_features` on every FactoryDecisionKind record (rule 85). A knob never widens what a reader sees; a Blueprint without a key behaves as the default.",
+          "properties": {
+            "ai": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "false ⇒ no door calls a model; the explanation and summary doors answer *AI is off*; every read, count, import/export, readiness and dataset door works unchanged"
+                },
+                "inference_policy": {
+                  "$ref": "vocabulary.schema.json#/$defs/SalesInferencePolicy",
+                  "default": "local_only",
+                  "description": "inference policy for the records of a `restricted` tenant — local_only by default; a defence manufacturer never leaves the contour"
+                }
+              }
+            },
+            "source": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "the projection's clocks — a row older than `ttl_s` is *stale* (served with its age, refreshed on the next read); older than `max_age_s` it is `unknown` (never served as current)",
+              "properties": {
+                "ttl_s": {
+                  "type": "integer",
+                  "minimum": 60,
+                  "maximum": 86400,
+                  "default": 600
+                },
+                "max_age_s": {
+                  "type": "integer",
+                  "minimum": 600,
+                  "maximum": 2592000,
+                  "default": 604800
+                }
+              }
+            },
+            "readiness": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "(S2): the engine's re-evaluation budget per order — the smallest interval between two evaluations of the same order outside an explicit *Evaluate now*",
+              "properties": {
+                "reeval_s": {
+                  "type": "integer",
+                  "minimum": 5,
+                  "maximum": 3600,
+                  "default": 60
+                }
+              }
+            },
+            "decisions": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "the sampling rate of `source_resolution` records (every other FactoryDecisionKind is always recorded)",
+              "properties": {
+                "source_resolution_sample": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 0.05
+                }
+              }
+            }
+          }
+        },
+        "channels": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "1.167.0: the gateway's and the webhook's knobs.",
+          "properties": {
+            "webhook_rps": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 50
+            },
+            "bot_rpm": {
+              "type": "integer",
+              "minimum": 10,
+              "maximum": 100000,
+              "default": 3000,
+              "description": "The bot-wide circuit — updates per minute the contour accepts across every chat."
+            },
+            "step_up_ttl_min": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30,
+              "default": 10,
+              "description": "1.187.0: how long a channel session keeps `aal = 2` after the in-Telegram step-up."
+            },
+            "stranger_offers_per_hour": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 60,
+              "default": 5
+            },
+            "max_parts": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10,
+              "default": 3
+            },
+            "gist_chars": {
+              "type": "integer",
+              "minimum": 200,
+              "maximum": 4000,
+              "default": 1200,
+              "description": "1.168.0: an answer longer than this is sent as its gist and the door."
+            },
+            "messages_per_minute_per_person": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 600,
+              "default": 20,
+              "description": "1.168.0: past it the gateway answers one line per minute and drops the rest."
+            }
+          }
+        },
+        "billing": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "1.169.0: NexBilling's governed knobs — per deployment, changed by a provider_owner with an approval. Every NXC amount is a Decimal string. `enforce: false` is observe mode: every authorization verdict is recorded, nothing is denied, until APPROVED (UAT-4) and flip it. Prices are never here — a price book is a signed, dual-approved document.",
+          "properties": {
+            "enforce": {
+              "type": "boolean",
+              "default": false,
+              "description": "false = observe mode (a denied verdict is recorded, the run goes, settlement.observed_denial = true); true = chat-api refuses the run with the honest reason"
+            },
+            "promo_on_create": {
+              "type": "string",
+              "pattern": "^-?[0-9]{1,18}(\\.[0-9]{1,6})?$",
+              "default": "200",
+              "description": "the promo lot (NXC) every new organization receives on nexus.core.organization.created.v1 — the provider organization receives none"
+            },
+            "promo_on_first_connection": {
+              "type": "string",
+              "pattern": "^-?[0-9]{1,18}(\\.[0-9]{1,6})?$",
+              "default": "100",
+              "description": "the promo lot (NXC) on the first healthy organization-owned connection — once per organization ever"
+            },
+            "promo_expiry_days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 45,
+              "description": "promo lots expire this many days after the grant (an `expire` entry for the remainder)"
+            },
+            "reservation_ttl_min": {
+              "type": "integer",
+              "minimum": 5,
+              "maximum": 1440,
+              "default": 240,
+              "description": "a reservation not settled or released within this window is released by the worker"
+            },
+            "default_ceiling_nxc": {
+              "type": "string",
+              "pattern": "^-?[0-9]{1,18}(\\.[0-9]{1,6})?$",
+              "default": "50",
+              "description": "the estimate's ceiling (NXC) when the Flow's Budget names none"
+            },
+            "adjustment_dual_approval_above": {
+              "type": "string",
+              "pattern": "^-?[0-9]{1,18}(\\.[0-9]{1,6})?$",
+              "default": "100",
+              "description": "an adjustment or grant above this amount (NXC) needs a second operator's approval"
+            },
+            "low_balance_thresholds_pct": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "maxItems": 5,
+              "default": [
+                20,
+                10,
+                0
+              ],
+              "description": "nexus.billing.low_balance.v1 once per (organization · threshold · billing period) as available credits cross each percentage"
+            },
+            "cost_drivers": {
+              "type": "object",
+              "default": {},
+              "description": "1.174.0: the disclosed unit-cost table per contour — {contour: {service_code: unit_cost}}, every value a Decimal string in the meter's units. Direct cost = Σ rated units × unit_cost; a code the table does not name carries no direct cost. 1.175.0: the values are in THE CONTOUR'S CURRENCY (its binding's billing account's), never USD by assumption; the deployment's effective values come from the billing_settings_versions record (BillingSettings) over this floor.",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "pattern": "^-?[0-9]{1,18}(\\.[0-9]{1,12})?$"
+                }
+              }
+            },
+            "fixed_weight": {
+              "$ref": "vocabulary.schema.json#/$defs/CostFixedWeight",
+              "default": "members",
+              "description": "1.174.0: the capacity weight that spreads the contour's shared-fixed bucket — `seats` (a paid plan's seats, else members) or `members` (max(1, active members of the day)); never activity"
+            },
+            "nxc_rate": {
+              "$ref": "billing-settings.schema.json#/$defs/NxcRate",
+              "default": {
+                "currency": "USD",
+                "rate": "1.23"
+              },
+              "description": "1.175.0: the NXC → money rate of the margin read model with its currency; the env floor's NXC_USD spells {USD, 1.23} for one slice (deprecated). The rate's history lives in billing_settings_versions — a period keeps the rate effective on the day."
+            },
+            "reconciliation_variance_pct": {
+              "type": "string",
+              "pattern": "^-?[0-9]{1,18}(\\.[0-9]{1,6})?$",
+              "default": "10",
+              "description": "1.174.0: |reconciled − estimated| / estimated above this percentage files exactly one operational_issue per (contour · day)"
+            },
+            "unallocated_org_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 50,
+              "default": [],
+              "description": "1.174.0: the organizations whose share is the contour's unallocated line (the provider's own organization — resolved from provider_org_id when empty — QA, CI, subsidised trials); never spread to customers"
             }
           }
         }

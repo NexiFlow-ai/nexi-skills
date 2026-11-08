@@ -26,7 +26,8 @@
       "label": "Sources · search",
       "tool_uris": [
         "nexus://tool/project.search",
-        "nexus://tool/knowledge.search"
+        "nexus://tool/knowledge.search",
+        "nexus://tool/knowledge.sources"
       ],
       "enabled": true,
       "available": true

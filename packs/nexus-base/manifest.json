@@ -3,7 +3,7 @@
   "kind": "NexusPack",
   "metadata": {
     "name": "nexus-base",
-    "version": "1.34.1",
+    "version": "1.46.1",
     "display_name": "Nexi Base",
     "publisher": "Nexi",
     "description": "Nexi Base — the layer every organization starts from: human-reviewed skills (summarize, extract, classify, answer from sources, compare, draft, translate, meeting notes to actions, mail triage, the analysis skills, web-source curation), the everyday agents (General, Analyst, Writer, Reviewer, Governance, the analysis planner, the web-source curator), the Flows they make whole (document review, data extraction, weekly digest, member onboarding, admin governance, mail triage, web source, the three BI automations), the orchestration patterns, the platform tool allow-list, model roles, sandbox profiles, approvals and retention policy, and the dashboard templates. Generic, vendor-free: no instances, no credentials, no tenant data.",
@@ -15,7 +15,7 @@
   "compatibility": {
     "nexus_min_version": "0.4.0",
     "spec_versions": {
-      "workflow-spec": "1.1",
+      "workflow-spec": "1.2",
       "agent-definition": "1.0",
       "skill-manifest": "1.0",
       "blueprint": "1.0"
@@ -32,8 +32,8 @@
       "path": "blueprints/nexus-base.json",
       "uri": "nexus://core/blueprint/nexus-base",
       "name": "Nexi Base",
-      "version": "1.12.0",
-      "digest": "sha256:c62a7f8faf9b9770269cea7a71f1035de3e8975444d66bdc059e76978c33da4e"
+      "version": "1.18.0",
+      "digest": "sha256:4feec629d51d0506146763e643e67bd70175d6e5f27160b1f8d95f99624875b3"
     },
     {
       "kind": "agent",
@@ -73,6 +73,33 @@
       "kind": "prompt",
       "path": "agents/writer.md",
       "digest": "sha256:b1e68d07dc56ab52a56c8fb6ae6ceee1fb1def2c52ebb786e054205ab53a1636"
+    },
+    {
+      "kind": "agent",
+      "path": "agents/guide.json",
+      "uri": "nexus://agent/agt_guide",
+      "name": "Nexi",
+      "version": "1",
+      "digest": "sha256:122306a29d60d7a6a81f9f10ff70bf383af094c5f9a30383f0e01a837a62f8ad"
+    },
+    {
+      "kind": "prompt",
+      "path": "agents/guide.md",
+      "digest": "sha256:814123270787d358c6dcd525a0e061e2831c4ce78b003752c25741a3c171f563"
+    },
+    {
+      "kind": "agent",
+      "path": "agents/nexi-lobby.json",
+      "uri": "nexus://agent/agt_nexi_lobby",
+      "name": "Nexi (guide)",
+      "version": "2",
+      "digest": "sha256:09554f694046836f882b9e38c7e6570977b858a8c7ced7171de2c67b2a355919"
+    },
+    {
+      "kind": "prompt",
+      "path": "agents/nexi-lobby.md",
+      "digest": "sha256:f6bc7a145dad7ef6d5d0f962aa474d37a4fddfc04a8ec4df1643bb7011e26a76",
+      "version": "2"
     },
     {
       "kind": "agent",
@@ -125,6 +152,33 @@
       "kind": "prompt",
       "path": "skills/answer-from-sources/SKILL.md",
       "digest": "sha256:3c9697177fa95dfb0ab038da69ed6e59ae1c8167084abfdaa60cdb4fe591669b"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/first-minute/skill.json",
+      "uri": "nexus://skill/skl_first_minute",
+      "name": "First minute",
+      "version": "1.1.0",
+      "digest": "sha256:37f26a141cdb765aeee1d4f83c6d511b8e227d5a94e15b2ef1b6eb684232abc7"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/first-minute/SKILL.md",
+      "digest": "sha256:4f9f96695bb2741dc6478be70c6ba5e5fc5d1efee373a830839d2499d68f9766"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/lobby-guide/skill.json",
+      "uri": "nexus://skill/skl_lobby_guide",
+      "name": "Nexi guide",
+      "version": "1.1.0",
+      "digest": "sha256:2f09c8fb2cf0a35c3bfb84a0382f30b508f4186b4f3aff06db9e3fa46989f7de"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/lobby-guide/SKILL.md",
+      "digest": "sha256:5867bcbd50381925109f44daa8358a8cd5ca1cdcc02d45a3bf1894be4a3403d3",
+      "version": "1.1.0"
     },
     {
       "kind": "skill",
@@ -285,8 +339,32 @@
       "path": "flows/member-onboarding.json",
       "uri": "nexus://workflow/template/flw_tpl_member_onboarding",
       "name": "Member onboarding",
+      "version": "2.0.0",
+      "digest": "sha256:b049b43c2e98235ad2b2d1f86676b9b6d0aa7a40388d46007c5efa9cc1f5b79e"
+    },
+    {
+      "kind": "flow_template",
+      "path": "flows/first-hello.json",
+      "uri": "nexus://workflow/template/flw_tpl_first_hello",
+      "name": "First hello",
       "version": "1.1.0",
-      "digest": "sha256:6c184f3609e86b0c0a6b3ea055e80bbfdf5b6dfe3eab59b6454b1eb4d18db7da"
+      "digest": "sha256:08718b4ef0ef9b6a15a309aef83717f4ecafe1ed13b4cd844aa84aa5de4ce31d"
+    },
+    {
+      "kind": "flow_template",
+      "path": "flows/owner-next-step.json",
+      "uri": "nexus://workflow/template/flw_tpl_owner_next_step",
+      "name": "Owner next step",
+      "version": "1.0.0",
+      "digest": "sha256:ca85a66166bfc7b84b983fc350e6a81f6d663d1520cb25dffb2c41fc327a1d39"
+    },
+    {
+      "kind": "flow_template",
+      "path": "flows/owner-first-run.json",
+      "uri": "nexus://workflow/template/flw_tpl_owner_first_run",
+      "name": "Owner first run",
+      "version": "1.0.0",
+      "digest": "sha256:e7c3408e9e0baf6f731dffe5846239b9500d0e47e31cebbcac87036f9255efe2"
     },
     {
       "kind": "flow_template",
@@ -472,7 +550,7 @@
       "kind": "policy",
       "path": "policies/tool-groups.json",
       "name": "tool-groups",
-      "digest": "sha256:bac5e604b4c86e1a167396cef0da97f2ad55dffe91a71475489feedff2bef6ec"
+      "digest": "sha256:ad915b5e5304a0cc6b5e1b62f6241b0d43fcb3f0e8e51d6dfe7b4c1702ac914f"
     },
     {
       "kind": "policy",
@@ -716,11 +794,75 @@
     },
     {
       "kind": "dashboard_template",
+      "path": "dashboards/nexgraph_quality.json",
+      "uri": "nexus://bi/template/nexgraph_quality",
+      "name": "NexGraph quality",
+      "version": "1.1.0",
+      "digest": "sha256:ed7aaa79c53ded1d527f3d602e2df8cf40d0edf6f678822106ca392b123412ef"
+    },
+    {
+      "kind": "dashboard_template",
       "path": "dashboards/nexus_vibeban.json",
       "uri": "nexus://bi/template/nexus_vibeban",
       "name": "Vibeban work",
       "version": "1.1.0",
       "digest": "sha256:7ab4693d33b898f80ab7c7a2f403f1bb3e1098dd11612282d10283a198c1a8db"
+    },
+    {
+      "kind": "agent",
+      "path": "agents/question-author.json",
+      "uri": "nexus://agent/agt_question_author",
+      "name": "Question author",
+      "version": "1",
+      "digest": "sha256:7e291e91b5354c0c146007e73f9ccdb8908db383291fdc3a0b9f053ea0293793"
+    },
+    {
+      "kind": "prompt",
+      "path": "agents/question-author.md",
+      "digest": "sha256:29209bde8726693a744acd6456650aac7ee973c013bda78ff1a17aa74bcd7748"
+    },
+    {
+      "kind": "skill",
+      "path": "skills/question-authoring/skill.json",
+      "uri": "nexus://skill/skl_question_authoring",
+      "name": "Question authoring",
+      "version": "1.0.0",
+      "digest": "sha256:1a4e65ab34b6027f5390862086b9e753ea10facb656aaa9c0739853bc43483ed"
+    },
+    {
+      "kind": "prompt",
+      "path": "skills/question-authoring/SKILL.md",
+      "digest": "sha256:8bb0b7eb5ad43ad50bddd1dc70da7c614899412d38209480c805822780cd6629"
+    },
+    {
+      "kind": "flow_template",
+      "path": "flows/question-author.json",
+      "uri": "nexus://workflow/template/flw_tpl_question_author",
+      "name": "Question author",
+      "version": "1.0.2",
+      "digest": "sha256:8ae5377c29bd55c546a5185be16e4fcfd6cb882978d606653a7897f217a80e0e"
+    },
+    {
+      "kind": "flow_template",
+      "path": "flows/pipeline-tuner.json",
+      "uri": "nexus://workflow/template/flw_tpl_pipeline_tuner",
+      "name": "Pipeline tuner",
+      "version": "1.0.2",
+      "digest": "sha256:146d2fd1f96dccfc1c76094cd2a0e4586713808a0a31e92feaedd171ee4cfe93"
+    },
+    {
+      "kind": "ui_config",
+      "path": "ui/lobby-lines.json",
+      "name": "Lobby lines",
+      "version": "1.5.0",
+      "digest": "sha256:6225672c3bbf8e3335b11fa6bdcf71d7e189272ac29c46d8716bd0eabc1c4d43"
+    },
+    {
+      "kind": "ui_config",
+      "path": "ui/lobby-guide.md",
+      "name": "Lobby guide (knowledge)",
+      "version": "1.0.0",
+      "digest": "sha256:2b10baa4b9f09272f7545e0cae63910a3f229c707f3e6a8c53f45ca6f8cc74fa"
     }
   ],
   "requires": {
@@ -769,6 +911,7 @@
     "platform_tools": [
       "nexus://tool/project.search",
       "nexus://tool/knowledge.search",
+      "nexus://tool/knowledge.sources",
       "nexus://tool/project.file_read",
       "nexus://tool/blob.read_text",
       "nexus://tool/blob.head",
@@ -809,6 +952,6 @@
   "signature": {
     "alg": "ed25519",
     "key_id": "nexus-base-2026",
-    "value": "1cjY7X7IqvBjyX9GUjtjXScaAka1zK4XnXrESzoHPCiko3XuNwgG5sNZpv3fN1v8C0wH_-J70tDRxDUyMm-rDA"
+    "value": "IYJ37emkM7u1-muhqrQH5YTLn7nx2h2yRQ0_5IQKHVVaoo65BraCmFEGaduxJByRZvrbVI6pBPFB0y12U-LBAA"
   }
 }

@@ -370,6 +370,56 @@
         }
       }
     },
+    "automation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subscriber",
+        "thread_ref",
+        "tells",
+        "question",
+        "schedule",
+        "decision_id"
+      ],
+      "description": "1.213.0: present on a Flow instantiated from the automation template by the chat card — who asked (`subscriber`, the scheduled run's subscriber beside the publisher-initiator), where (`thread_ref`, the report step's channel and the bell's door), who is told, the ask read back, the `ScheduleSpec` the trigger's cron was computed from, and the `automation_setup` decision row the card was. The summary read model (`automation-summary`) is a read of this block, the trigger arm and the runs — never a copy.",
+      "properties": {
+        "subscriber": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "The asker's actor id."
+        },
+        "subscriber_display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "The asker's display name as their session carried it at *Confirm* — stamped then, never looked up later. The summary's `subscriber` reads it for every reader."
+        },
+        "thread_ref": {
+          "$ref": "resource-uri.schema.json"
+        },
+        "message_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "tells": {
+          "$ref": "vocabulary.schema.json#/$defs/AutomationTells"
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "schedule": {
+          "$ref": "schedule-spec.schema.json"
+        },
+        "decision_id": {
+          "type": "string",
+          "pattern": "^adec_[0-9a-f]{12}$"
+        }
+      }
+    },
     "origin": {
       "type": "object",
       "additionalProperties": false,
@@ -1107,6 +1157,29 @@
             "escalate_to": {
               "$ref": "resource-uri.schema.json"
             },
+            "requires_step_up": {
+              "type": "boolean",
+              "description": "1.188.0: the gate demands a fresh credential — a level-4 approval. Through a messenger it is *Verify and approve* until the session carries aal = 2; tasks-api refuses a messenger decision below aal 2 (STEP_UP_REQUIRED). A browser session decides as before. Rides into ApprovalRequest.subject.requires_step_up."
+            },
+            "subject": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "from"
+              ],
+              "description": "1.207.0: the approval's structured subject, filled from a context path when the node opens — `kind` the ApprovalSubjectKind the record takes (`question_batch`; 1.209.0: `tuning_proposal`), `from` the path whose value becomes the subject's payload field (`subject.batch` — the validator tool's `batch` output; `subject.proposal` — the tuner's `graph.bench.tuning.decide` output). Absent = an `approval_node` subject as before.",
+              "properties": {
+                "kind": {
+                  "$ref": "vocabulary.schema.json#/$defs/ApprovalSubjectKind"
+                },
+                "from": {
+                  "type": "string",
+                  "pattern": "^\\$\\.node\\.[A-Za-z][A-Za-z0-9_-]*\\.output\\.[A-Za-z][A-Za-z0-9_]*$",
+                  "maxLength": 200
+                }
+              }
+            },
             "decision": {
               "type": "object",
               "additionalProperties": false,
@@ -1503,6 +1576,49 @@
               "pattern": "^nexus\\.ext\\.[a-z0-9_]+(\\.[a-z0-9_]+)*\\.v[0-9]+$",
               "maxLength": 200,
               "description": "Required when channel = nats; must be in the integration's egress_subjects (NOTIFY_SUBJECT_NOT_ALLOWED otherwise)."
+            },
+            "as": {
+              "$ref": "vocabulary.schema.json#/$defs/NotifyAs",
+              "description": "1.173.0: system (default — today's row: role system, author flow:<id>) or agent (role assistant, author agent:<agent_uri's id>, on_behalf_of flow:<id>). Never a user role."
+            },
+            "agent_uri": {
+              "$ref": "resource-uri.schema.json",
+              "description": "1.173.0: required with as = agent — a node agent of the same flow or an agent of the effective Blueprint's defaults (NOTIFY_AGENT_NOT_IN_FLOW otherwise)."
+            },
+            "thread_title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "1.173.0: the title of the thread the channel form opens (nexus://chat/thread/{{initiator.global_thread}}), {{param.*}}-expanded; ignored for an existing thread."
+            },
+            "proposal": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "step",
+                "title",
+                "door"
+              ],
+              "description": "1.176.0: an *action proposed* card appended to the message — `step` of OnboardingStep, `door` of the closed route list (NOTIFY_PROPOSAL_DOOR_NOT_ALLOWED at publish otherwise); title/detail/door are {{steps.*}}/{{param.*}}-expanded at run time; an expanded door outside the list posts the text without a card (proposal_dropped).",
+              "properties": {
+                "step": {
+                  "$ref": "vocabulary.schema.json#/$defs/OnboardingStep"
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "detail": {
+                  "type": "string",
+                  "maxLength": 280
+                },
+                "door": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                }
+              }
             }
           },
           "allOf": [
@@ -1520,6 +1636,23 @@
               "then": {
                 "required": [
                   "subject"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "as": {
+                    "const": "agent"
+                  }
+                },
+                "required": [
+                  "as"
+                ]
+              },
+              "then": {
+                "required": [
+                  "agent_uri"
                 ]
               }
             }
@@ -1925,8 +2058,8 @@
         },
         "run_as": {
           "type": "string",
-          "pattern": "^(initiator|flow_owner)$",
-          "description": "Identity whose rights bound the run (delegated to the flow's agent identity)."
+          "pattern": "^(initiator|flow_owner|event_actor)$",
+          "description": "Identity whose rights bound the run (delegated to the flow's agent identity). 1.173.0: event_actor — on an event trigger the run's initiator is the event's actor_context.actor_id, resolved fail-closed; refused on a non-event trigger (RUN_AS_EVENT_ACTOR_NEEDS_EVENT_TRIGGER)."
         },
         "sensitive_outputs": {
           "type": "array",
@@ -1974,6 +2107,16 @@
         "max_cost_units": {
           "type": "number",
           "minimum": 0
+        },
+        "max_web_searches": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "1.170.0: ceiling on web.search_request units the run may spend — priced by the billing estimate; without it web spend is bounded only by max_tool_calls and estimated at 0."
+        },
+        "max_bi_queries": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "1.170.0: ceiling on bi.query units the run may spend — priced by the billing estimate; without it BI spend is bounded only by max_tool_calls and estimated at 0."
         }
       },
       "minProperties": 1

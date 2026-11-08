@@ -1,0 +1,187 @@
+{
+  "spec_version": "1.1",
+  "workflow_id": "flw_tpl_automation",
+  "uri": "nexus://workflow/template/flw_tpl_automation",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "project_id": null,
+  "name": "Automation",
+  "description": "S4: the one template the chat's automation card instantiates — on the schedule the person confirmed, call one read-only operation of the tool the sentence named, then post a line to the asking thread (the *report* step). The asker is the run's subscriber: the bell tells her with the thread as its door; the card under which it was asked is the automation's summary. Published and armed by a human only.",
+  "version": 1,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.0.0",
+    "parameters": [
+      {
+        "name": "title",
+        "type": "string",
+        "required": true,
+        "description": "The automation's name — the sentence shortened at Confirm."
+      },
+      {
+        "name": "cron",
+        "type": "cron",
+        "required": true,
+        "description": "When to run — computed from the ScheduleSpec the person confirmed, by one function."
+      },
+      {
+        "name": "timezone",
+        "type": "string",
+        "required": false,
+        "default": "Europe/Kyiv",
+        "description": "IANA time zone — the person's."
+      },
+      {
+        "name": "capability_uri",
+        "type": "ref",
+        "required": true,
+        "description": "The Tool the check step calls (nexus://tool/…) — the card's *Using* line; a read-only operation only."
+      },
+      {
+        "name": "operation",
+        "type": "string",
+        "required": true,
+        "description": "The tool operation the check step invokes (mutating = false)."
+      },
+      {
+        "name": "thread_ref",
+        "type": "ref",
+        "required": true,
+        "description": "The asking thread (nexus://chat/thread/…) — the report step's channel and the bell's door."
+      }
+    ]
+  },
+  "requires": {
+    "models": [],
+    "tools": [
+      "{{param.capability_uri}}"
+    ]
+  },
+  "trigger": {
+    "kind": "schedule",
+    "schedule_cron": "{{param.cron}}",
+    "schedule_timezone": "{{param.timezone}}"
+  },
+  "inputs": [],
+  "outputs": [],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "On schedule"
+    },
+    {
+      "id": "check",
+      "kind": "tool",
+      "label": "Check",
+      "timeout_s": 120,
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 10
+      },
+      "idempotency": {
+        "key_template": "check:{{run_id}}",
+        "dedupe_window_s": 3600
+      },
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "automation"
+      },
+      "tool": {
+        "tool_uri": "{{param.capability_uri}}",
+        "operation": "{{param.operation}}",
+        "mutating": false
+      },
+      "input_mapping": {}
+    },
+    {
+      "id": "report",
+      "kind": "notify",
+      "label": "Report to the thread",
+      "retry": {
+        "max_attempts": 3,
+        "backoff": "exponential",
+        "initial_delay_s": 5,
+        "max_delay_s": 60
+      },
+      "idempotency": {
+        "key_template": "report:{{run_id}}",
+        "dedupe_window_s": 86400
+      },
+      "notify": {
+        "channel_uri": "{{param.thread_ref}}",
+        "template": "«{{param.title}}» ran — the receipt is under the card.",
+        "channel": "thread"
+      }
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Done"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-check",
+      "source": "trigger",
+      "target": "check"
+    },
+    {
+      "id": "e-check-report",
+      "source": "check",
+      "target": "report"
+    },
+    {
+      "id": "e-report-end",
+      "source": "report",
+      "target": "end"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": false,
+    "max_run_duration_s": 600,
+    "allowed_tool_uris": [
+      "{{param.capability_uri}}"
+    ],
+    "run_as": "initiator",
+    "sensitive_outputs": [],
+    "max_loop_depth": 1,
+    "sandbox_profile_uri": "nexus://sandbox/profile/public-dev"
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 200,
+        "y": 0
+      },
+      "check": {
+        "x": 200,
+        "y": 116
+      },
+      "report": {
+        "x": 200,
+        "y": 232
+      },
+      "end": {
+        "x": 200,
+        "y": 348
+      }
+    }
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-11-04T00:00:00Z"
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-11-04T00:00:00Z",
+  "published_at": "2026-11-04T00:00:00Z"
+}

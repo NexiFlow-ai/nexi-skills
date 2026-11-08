@@ -1,0 +1,868 @@
+{
+  "spec_version": "1.2",
+  "workflow_id": "flw_tpl_pipeline_tuner",
+  "uri": "nexus://workflow/template/flw_tpl_pipeline_tuner",
+  "tenancy": {
+    "enterprise_id": "nexus",
+    "tenant_id": "platform"
+  },
+  "project_id": null,
+  "name": "Pipeline tuner",
+  "description": "The Project's retrieval and processing dials are tuned by measurement, never by a model's word: each pass of the loop takes the next point of a dial grid the owner named (coordinate descent — one dial changed per candidate, the winners of earlier dials carried; deterministic, propensity 1.0), drafts it, orders a shadow run when a processing dial changed, orders a bench run of the Project's reviewed question set on that candidate and waits for NexGraph to finish it, and the engine's deterministic evaluator reads the per-section vector against the goal. When the goal is met or the grid is spent, `graph.bench.tuning.decide` writes one `pipeline_tuning` decision record with every candidate as an arm and the best eligible one as the proposal; one NexTasks approval (the Tuning proposal card, DS-6920 — two runs side by side, regressions first) puts it before the Project owner, who may be the run's own initiator ((a): what is gated is the Flow and the model, not the person). The Flow never activates: `graph.profile.activate` runs through NexTasks's record of the approval, as the approver, and activates the approved change — the draft goes live, the shadow flips. No pick → the run ends with nothing proposed and the record says so. `approval_for_external_writes` is off: `draft`, `shadow` and `bench` fill drafts and orders nobody reads before the review; the one human gate is `review`, and `activate` stands behind it. A run that names no baseline orders one itself on the active profiles first: the baseline and every candidate are measured by the same runner, or they are not comparable.",
+  "version": 1,
+  "status": "published",
+  "classification": "confidential",
+  "template": {
+    "is_template": true,
+    "source_pack_uri": "nexus://core/pack/nexus-base",
+    "source_template_version": "1.0.2"
+  },
+  "requires": {
+    "models": [],
+    "tools": [
+      "nexus://tool/graph.bench.run",
+      "nexus://tool/graph.bench.read",
+      "nexus://tool/graph.bench.tuning.decide",
+      "nexus://tool/graph.profile.draft",
+      "nexus://tool/graph.profile.shadow",
+      "nexus://tool/graph.profile.activate"
+    ]
+  },
+  "capability": {
+    "intents": [
+      "review_document"
+    ],
+    "domains": [
+      "engineering"
+    ],
+    "inputs": [
+      "text"
+    ],
+    "outputs": [
+      "record"
+    ],
+    "side_effects": true,
+    "background_supported": true,
+    "cost_class": "medium",
+    "latency_class": "background",
+    "classification_max": "confidential",
+    "routable": false
+  },
+  "presentation": {
+    "title": {
+      "en": "Pipeline tuner",
+      "uk": "Тюнер конвеєра"
+    },
+    "stage_labels": [
+      {
+        "node_id": "baseline_order",
+        "label": {
+          "en": "Measuring the baseline",
+          "uk": "Вимірюю базовий прогін"
+        }
+      },
+      {
+        "node_id": "baseline",
+        "label": {
+          "en": "Reading the baseline",
+          "uk": "Читаю базовий прогін"
+        }
+      },
+      {
+        "node_id": "tuning",
+        "label": {
+          "en": "Trying candidates",
+          "uk": "Пробую кандидатів"
+        }
+      },
+      {
+        "node_id": "decide",
+        "label": {
+          "en": "Ranking the candidates",
+          "uk": "Ранжую кандидатів"
+        }
+      },
+      {
+        "node_id": "review",
+        "label": {
+          "en": "Waiting for the owner",
+          "uk": "Чекаю на власника"
+        }
+      },
+      {
+        "node_id": "activate",
+        "label": {
+          "en": "Activating",
+          "uk": "Активую"
+        }
+      }
+    ],
+    "person_steps": [
+      "review"
+    ],
+    "receipt_fields": [
+      {
+        "key": "tried",
+        "label": {
+          "en": "Candidates tried",
+          "uk": "Кандидатів перевірено"
+        }
+      },
+      {
+        "key": "activated_version",
+        "label": {
+          "en": "Activated",
+          "uk": "Активовано"
+        }
+      }
+    ],
+    "result_kind": "none"
+  },
+  "trigger": {
+    "kind": "manual"
+  },
+  "inputs": [
+    {
+      "name": "baseline_run_ref",
+      "type": "resource_uri",
+      "required": false,
+      "description": "The bench run the candidates are measured against (`nexus://graph/dataset_version/dsv_…`), run by NexGraph's own bench runner on the active profiles. Leave it empty and the Flow orders that baseline itself first"
+    },
+    {
+      "name": "grid",
+      "type": "array",
+      "required": true,
+      "description": "The dial grid: `[{dial, values[]}]` in the order to walk — retrieval dials (`rerank_confident`, `lexical_weight`, `candidates_multiplier`, `heading_follow_chunks`, …) and processing dials (`chunk_chars`, `mention_threshold`; a processing point orders a shadow first)"
+    },
+    {
+      "name": "arm",
+      "type": "string",
+      "required": true,
+      "description": "The bench arm every candidate runs under — `hybrid_rerank` for the Project's resolver"
+    },
+    {
+      "name": "floor",
+      "type": "number",
+      "required": true,
+      "description": "Per-section fact-coverage floor — the goal's `min_coverage ≥ floor` (the register's default 0.60)"
+    },
+    {
+      "name": "ceiling",
+      "type": "number",
+      "required": true,
+      "description": "False-evidence ceiling — the goal's `false_evidence ≤ ceiling` (the register's default 0.05)"
+    },
+    {
+      "name": "tolerance",
+      "type": "number",
+      "required": true,
+      "description": "How far one section may fall before the candidate is ineligible"
+    },
+    {
+      "name": "corpus_version_ref",
+      "type": "resource_uri",
+      "required": false,
+      "description": "The one live source version to shadow when a processing dial changes; absent → every live head of the Project"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "decision_ref",
+      "type": "resource_uri"
+    },
+    {
+      "name": "tried",
+      "type": "integer"
+    },
+    {
+      "name": "activated_version",
+      "type": "string"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trigger",
+      "kind": "trigger",
+      "label": "Start"
+    },
+    {
+      "id": "has_baseline",
+      "kind": "condition",
+      "label": "A baseline named?",
+      "condition": {
+        "language": "nexus-expr-v1",
+        "source": "$.inputs.baseline_run_ref != null"
+      }
+    },
+    {
+      "id": "baseline_order",
+      "kind": "tool",
+      "label": "Order the baseline",
+      "description": "No baseline named: a bench order of the Project's reviewed question set on the active profiles, by the same runner that benches every candidate — the one measurement the candidates are comparable with.",
+      "timeout_s": 60,
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "pipeline_tuning"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/graph.bench.run",
+        "operation": "run",
+        "mutating": true
+      },
+      "input_mapping": {
+        "arm": "$.inputs.arm"
+      },
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "idempotency": {
+        "key_template": "tuner-baseline:{{run_id}}",
+        "dedupe_window_s": 86400
+      }
+    },
+    {
+      "id": "wait_baseline",
+      "kind": "wait",
+      "label": "Baseline finished",
+      "description": "NexGraph's `bench.finished` for the baseline order — refs only.",
+      "timeout_s": 3600,
+      "wait": {
+        "kind": "event",
+        "event_subject": "nexus.graph.bench.finished.v1",
+        "event_filter": {
+          "language": "nexus-expr-v1",
+          "source": "$.event.payload.run_ref == $.node.baseline_order.output.run_ref"
+        }
+      }
+    },
+    {
+      "id": "baseline",
+      "kind": "tool",
+      "label": "Read the baseline",
+      "description": "The baseline run's vector — the numbers every candidate is compared with: the named run, or the order this run placed. Read-only.",
+      "timeout_s": 60,
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "pipeline_tuning"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/graph.bench.read",
+        "operation": "read",
+        "mutating": false
+      },
+      "input_mapping": {
+        "bench_run_ref": "$.inputs.baseline_run_ref",
+        "run_ref": "$.node.baseline_order.output.run_ref"
+      },
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      }
+    },
+    {
+      "id": "goal",
+      "kind": "transform",
+      "label": "The goal",
+      "description": "The goal as `decide` reads it — floor · ceiling · tolerance — from the inputs.",
+      "transform": {
+        "mapping": {
+          "floor": "$.inputs.floor",
+          "ceiling": "$.inputs.ceiling",
+          "tolerance": "$.inputs.tolerance"
+        }
+      }
+    },
+    {
+      "id": "tuning",
+      "kind": "loop",
+      "label": "One candidate per pass",
+      "description": "One pass = the next grid point drafted (`next`), a shadow run when a processing dial changed (`shadow` · `wait_shadow`), a bench order on the candidate (`bench` · `wait_bench`), its vector read (`read`) and judged by the engine. The exit test is the goal over the inputs — the lowest section ≥ `floor`, false evidence ≤ `ceiling` — or the grid spent (`remaining = 0`): `complete` on either (`decide` ranks what was tried), `exhausted` when a limit hits.",
+      "loop": {
+        "entry_node_id": "next",
+        "body_node_ids": [
+          "next",
+          "needs_shadow",
+          "shadow",
+          "wait_shadow",
+          "bench",
+          "wait_bench",
+          "read",
+          "judge"
+        ],
+        "until": {
+          "evaluator_node_id": "judge",
+          "kind": "expression",
+          "expression": {
+            "language": "nexus-expr-v1",
+            "source": "$.node.next.output.remaining == 0 || ($.node.read.output.vector != null && $.node.read.output.vector.min_coverage >= $.inputs.floor && $.node.read.output.vector.false_evidence <= $.inputs.ceiling)"
+          }
+        },
+        "max_iterations": 12,
+        "max_duration_s": 7200,
+        "budget": {
+          "max_tool_calls": 84
+        },
+        "on_no_progress": "finish",
+        "no_progress_after": 12,
+        "iteration_context": "summarize"
+      }
+    },
+    {
+      "id": "next",
+      "kind": "tool",
+      "label": "Next grid point",
+      "description": "The next untried point of the grid after this run's own candidates (NexGraph reads them from the run's bench orders): one dial changed from the base, the winners of earlier dials carried (coordinate descent). Drafts the profile(s) the diff touches; `spent` when nothing is left (the loop still benches nothing new — `remaining = 0` closes it).",
+      "timeout_s": 60,
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "pipeline_tuning"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/graph.profile.draft",
+        "operation": "draft",
+        "mutating": true
+      },
+      "input_mapping": {
+        "grid": "$.inputs.grid",
+        "baseline_run_ref": "$.node.baseline.output.bench_run_ref",
+        "tolerance": "$.inputs.tolerance"
+      },
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      },
+      "idempotency": {
+        "key_template": "tuner-next:{{run_id}}:{{loop.tuning.iteration}}",
+        "dedupe_window_s": 86400
+      }
+    },
+    {
+      "id": "needs_shadow",
+      "kind": "condition",
+      "label": "Processing dial changed?",
+      "condition": {
+        "language": "nexus-expr-v1",
+        "source": "$.node.next.output.processing_changed == true"
+      }
+    },
+    {
+      "id": "shadow",
+      "kind": "tool",
+      "label": "Order the shadow",
+      "description": "A processing candidate is measured on a shadow re-processing of the corpus under the draft: invisible to every reader but the bench until an activation flips it.",
+      "timeout_s": 60,
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "pipeline_tuning"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/graph.profile.shadow",
+        "operation": "shadow",
+        "mutating": true
+      },
+      "input_mapping": {
+        "source_version_ref": "$.inputs.corpus_version_ref"
+      },
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "idempotency": {
+        "key_template": "tuner-shadow:{{run_id}}:{{loop.tuning.iteration}}",
+        "dedupe_window_s": 86400
+      }
+    },
+    {
+      "id": "wait_shadow",
+      "kind": "wait",
+      "label": "Shadow finished",
+      "description": "NexGraph's `run.finished` for the shadow run this pass ordered (relayed to NexChat's events door).",
+      "timeout_s": 3600,
+      "wait": {
+        "kind": "event",
+        "event_subject": "nexus.graph.run.finished.v1",
+        "event_filter": {
+          "language": "nexus-expr-v1",
+          "source": "$.event.payload.run_ref == $.node.shadow.output.runs[0].run_ref"
+        }
+      }
+    },
+    {
+      "id": "bench",
+      "kind": "tool",
+      "label": "Order the bench",
+      "description": "A bench order of the Project's reviewed question set on the candidate — the draft retrieval version pinned, the shadow pinned when a processing dial changed; NexGraph runs it in process and publishes a `bench_run`. The candidate's diff stays on the order (the run's candidates are its orders).",
+      "timeout_s": 60,
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "pipeline_tuning"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/graph.bench.run",
+        "operation": "run",
+        "mutating": true
+      },
+      "input_mapping": {
+        "arm": "$.inputs.arm",
+        "retrieval_profile_version": "$.node.next.output.retrieval_profile_version",
+        "processing_profile_version": "$.node.next.output.processing_profile_version",
+        "diff": "$.node.next.output.diff"
+      },
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 5
+      },
+      "idempotency": {
+        "key_template": "tuner-bench:{{run_id}}:{{loop.tuning.iteration}}",
+        "dedupe_window_s": 86400
+      }
+    },
+    {
+      "id": "wait_bench",
+      "kind": "wait",
+      "label": "Bench finished",
+      "description": "NexGraph's `bench.finished` for the order this pass placed — refs only.",
+      "timeout_s": 3600,
+      "wait": {
+        "kind": "event",
+        "event_subject": "nexus.graph.bench.finished.v1",
+        "event_filter": {
+          "language": "nexus-expr-v1",
+          "source": "$.event.payload.run_ref == $.node.bench.output.run_ref"
+        }
+      }
+    },
+    {
+      "id": "read",
+      "kind": "tool",
+      "label": "Read the vector",
+      "description": "The finished order's per-section vector (`min_coverage` · `false_evidence` · `mean_coverage` · `sections`) — numbers and refs; a failed bench reads `failed` and no vector (the arm is `run_failed`, the loop goes on).",
+      "timeout_s": 60,
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "pipeline_tuning"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/graph.bench.read",
+        "operation": "read",
+        "mutating": false
+      },
+      "input_mapping": {
+        "run_ref": "$.node.bench.output.run_ref"
+      },
+      "retry": {
+        "max_attempts": 3,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      }
+    },
+    {
+      "id": "judge",
+      "kind": "evaluator",
+      "label": "Goal met?",
+      "description": "The engine compares the candidate's vector with the goal the owner gave: the lowest section at or above `floor`, false evidence at or below `ceiling` — the loop's exit test, evaluated by the engine over the vector; no model proposes a verdict here. A failed bench has no vector and never passes.",
+      "timeout_s": 30,
+      "evaluator": {
+        "kind": "deterministic",
+        "metrics_path": "$.node.read.output.vector"
+      }
+    },
+    {
+      "id": "decide",
+      "kind": "tool",
+      "label": "Rank the candidates",
+      "description": "Eligibility and rank of every candidate of this run against the baseline, one `pipeline_tuning` record with every candidate as an arm and `propensity 1`, and the proposal — the best eligible candidate that gains on at least one section beyond the tolerance, regressions first — or `chosen = none`.",
+      "timeout_s": 120,
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "pipeline_tuning"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/graph.bench.tuning.decide",
+        "operation": "decide",
+        "mutating": true
+      },
+      "input_mapping": {
+        "baseline_run_ref": "$.node.baseline.output.bench_run_ref",
+        "goal": "$.node.goal.output"
+      },
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      },
+      "idempotency": {
+        "key_template": "tuner-decide:{{run_id}}",
+        "dedupe_window_s": 86400
+      }
+    },
+    {
+      "id": "has_pick",
+      "kind": "condition",
+      "label": "A candidate to propose?",
+      "condition": {
+        "language": "nexus-expr-v1",
+        "source": "$.node.decide.output.chosen != \"none\""
+      }
+    },
+    {
+      "id": "review",
+      "kind": "approval",
+      "label": "Propose to the owner",
+      "description": "One NexTasks approval: the change as `dial old → new`, the goal and how many sections met it, the overall and per-section deltas with regressions first, how many candidates were tried. The Project owner decides — self-approval allowed ((a)); a proposal that regresses a section beyond the tolerance is not approvable (NexTasks refuses `approve`, never UI-only).",
+      "timeout_s": 604800,
+      "policy": {
+        "pep_action": "approve",
+        "purpose": "pipeline_tuning"
+      },
+      "approval": {
+        "approver": {
+          "relation": "owner"
+        },
+        "title_template": "Activate the tuned profile? {{node.decide.output.proposal.tried}} candidates tried",
+        "on_timeout": "fail",
+        "subject": {
+          "kind": "tuning_proposal",
+          "from": "$.node.decide.output.proposal"
+        }
+      }
+    },
+    {
+      "id": "activate",
+      "kind": "tool",
+      "label": "Activate as the approver",
+      "description": "On NexTasks's record of the decision (NexChat reads it; the arguments are replaced by it): approve → the approved change is drafted again and every profile it touches goes live as the approver, the shadow flips; reject → nothing changes. NexGraph decides the approver's own relation and writes the outcome on the record either way.",
+      "timeout_s": 120,
+      "policy": {
+        "pep_action": "invoke",
+        "purpose": "pipeline_tuning"
+      },
+      "tool": {
+        "tool_uri": "nexus://tool/graph.profile.activate",
+        "operation": "activate",
+        "mutating": true
+      },
+      "input_mapping": {
+        "approval_ref": "$.node.review.output.approval_uri",
+        "decision": "$.node.review.output.decision",
+        "approver_id": "$.node.review.output.decided_by",
+        "decided_at": "$.node.review.output.decided_at",
+        "decision_ref": "$.node.decide.output.decision_ref",
+        "via_ref": "$.run.uri"
+      },
+      "retry": {
+        "max_attempts": 2,
+        "backoff": "fixed",
+        "initial_delay_s": 3
+      },
+      "idempotency": {
+        "key_template": "tuner-activate:{{run_id}}",
+        "dedupe_window_s": 86400
+      }
+    },
+    {
+      "id": "notify",
+      "kind": "notify",
+      "label": "Tell the thread",
+      "retry": {
+        "max_attempts": 3,
+        "backoff": "exponential",
+        "initial_delay_s": 5,
+        "max_delay_s": 60
+      },
+      "idempotency": {
+        "key_template": "tuner-notify:{{run_id}}",
+        "dedupe_window_s": 86400
+      },
+      "notify": {
+        "channel_uri": "nexus://chat/thread/{{run.thread_id}}",
+        "template": "Pipeline tuner finished: {{node.decide.output.proposal.tried}} candidates tried.",
+        "channel": "thread"
+      }
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "label": "Decided",
+      "input_mapping": {
+        "decision_ref": "$.node.decide.output.decision_ref",
+        "tried": "$.node.decide.output.proposal.tried",
+        "activated_version": "$.node.activate.output.version"
+      }
+    },
+    {
+      "id": "end_none",
+      "kind": "end",
+      "label": "Nothing to propose",
+      "description": "No candidate earned a proposal: the record says so with every arm; nothing is proposed, nothing changes.",
+      "input_mapping": {
+        "decision_ref": "$.node.decide.output.decision_ref",
+        "tried": "$.node.tuning.output.iterations"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-has_baseline",
+      "source": "trigger",
+      "target": "has_baseline"
+    },
+    {
+      "id": "e-has_baseline-baseline-true",
+      "source": "has_baseline",
+      "target": "baseline",
+      "when": "true"
+    },
+    {
+      "id": "e-has_baseline-baseline_order-false",
+      "source": "has_baseline",
+      "target": "baseline_order",
+      "when": "false"
+    },
+    {
+      "id": "e-baseline_order-wait_baseline",
+      "source": "baseline_order",
+      "target": "wait_baseline"
+    },
+    {
+      "id": "e-wait_baseline-baseline",
+      "source": "wait_baseline",
+      "target": "baseline"
+    },
+    {
+      "id": "e-baseline-goal",
+      "source": "baseline",
+      "target": "goal"
+    },
+    {
+      "id": "e-goal-tuning",
+      "source": "goal",
+      "target": "tuning"
+    },
+    {
+      "id": "e-next-needs_shadow",
+      "source": "next",
+      "target": "needs_shadow"
+    },
+    {
+      "id": "e-needs_shadow-shadow-true",
+      "source": "needs_shadow",
+      "target": "shadow",
+      "when": "true"
+    },
+    {
+      "id": "e-needs_shadow-bench-false",
+      "source": "needs_shadow",
+      "target": "bench",
+      "when": "false"
+    },
+    {
+      "id": "e-shadow-wait_shadow",
+      "source": "shadow",
+      "target": "wait_shadow"
+    },
+    {
+      "id": "e-wait_shadow-bench",
+      "source": "wait_shadow",
+      "target": "bench"
+    },
+    {
+      "id": "e-bench-wait_bench",
+      "source": "bench",
+      "target": "wait_bench"
+    },
+    {
+      "id": "e-wait_bench-read",
+      "source": "wait_bench",
+      "target": "read"
+    },
+    {
+      "id": "e-read-judge",
+      "source": "read",
+      "target": "judge"
+    },
+    {
+      "id": "e-tuning-decide-complete",
+      "source": "tuning",
+      "target": "decide",
+      "when": "complete"
+    },
+    {
+      "id": "e-tuning-decide-exhausted",
+      "source": "tuning",
+      "target": "decide",
+      "when": "exhausted"
+    },
+    {
+      "id": "e-tuning-decide-needs_human",
+      "source": "tuning",
+      "target": "decide",
+      "when": "needs_human"
+    },
+    {
+      "id": "e-decide-has_pick",
+      "source": "decide",
+      "target": "has_pick"
+    },
+    {
+      "id": "e-has_pick-review-true",
+      "source": "has_pick",
+      "target": "review",
+      "when": "true"
+    },
+    {
+      "id": "e-has_pick-end_none-false",
+      "source": "has_pick",
+      "target": "end_none",
+      "when": "false"
+    },
+    {
+      "id": "e-review-activate-approved",
+      "source": "review",
+      "target": "activate",
+      "when": "approved"
+    },
+    {
+      "id": "e-review-activate-rejected",
+      "source": "review",
+      "target": "activate",
+      "when": "rejected"
+    },
+    {
+      "id": "e-activate-notify",
+      "source": "activate",
+      "target": "notify"
+    },
+    {
+      "id": "e-notify-end",
+      "source": "notify",
+      "target": "end"
+    }
+  ],
+  "policy": {
+    "approval_for_external_writes": false,
+    "max_run_duration_s": 1209600,
+    "allowed_tool_uris": [
+      "nexus://tool/graph.bench.run",
+      "nexus://tool/graph.bench.read",
+      "nexus://tool/graph.bench.tuning.decide",
+      "nexus://tool/graph.profile.draft",
+      "nexus://tool/graph.profile.shadow",
+      "nexus://tool/graph.profile.activate"
+    ],
+    "run_as": "initiator",
+    "sensitive_outputs": [],
+    "budget": {
+      "max_tool_calls": 96
+    },
+    "max_loop_depth": 1
+  },
+  "layout": {
+    "positions": {
+      "trigger": {
+        "x": 200,
+        "y": 0
+      },
+      "baseline": {
+        "x": 200,
+        "y": 464
+      },
+      "goal": {
+        "x": 200,
+        "y": 580
+      },
+      "tuning": {
+        "x": 200,
+        "y": 696
+      },
+      "next": {
+        "x": 360,
+        "y": 696
+      },
+      "needs_shadow": {
+        "x": 360,
+        "y": 812
+      },
+      "shadow": {
+        "x": 560,
+        "y": 928
+      },
+      "wait_shadow": {
+        "x": 560,
+        "y": 1044
+      },
+      "bench": {
+        "x": 360,
+        "y": 1160
+      },
+      "wait_bench": {
+        "x": 360,
+        "y": 1276
+      },
+      "read": {
+        "x": 360,
+        "y": 1392
+      },
+      "judge": {
+        "x": 360,
+        "y": 1508
+      },
+      "decide": {
+        "x": 200,
+        "y": 1624
+      },
+      "has_pick": {
+        "x": 200,
+        "y": 1740
+      },
+      "review": {
+        "x": 200,
+        "y": 1856
+      },
+      "activate": {
+        "x": 200,
+        "y": 1972
+      },
+      "notify": {
+        "x": 200,
+        "y": 2088
+      },
+      "end": {
+        "x": 200,
+        "y": 2204
+      },
+      "end_none": {
+        "x": -40,
+        "y": 1856
+      },
+      "has_baseline": {
+        "x": 200,
+        "y": 116
+      },
+      "baseline_order": {
+        "x": -40,
+        "y": 232
+      },
+      "wait_baseline": {
+        "x": -40,
+        "y": 348
+      }
+    }
+  },
+  "governance": {
+    "state": "approved",
+    "reviewed_at": "2026-11-03T00:00:00Z"
+  },
+  "security_review": {
+    "state": "not_required"
+  },
+  "created_by": "pack:nexus-base",
+  "created_at": "2026-11-03T00:00:00Z",
+  "published_at": "2026-11-03T00:00:00Z"
+}

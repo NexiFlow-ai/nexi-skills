@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.nexiflow.ai/v1/billing-settings.schema.json",
+  "title": "BillingSettings",
+  "description": "1.175.0: the closed values block of one billing_settings_versions row — the thresholds and drivers a provider_owner changes with a record, never a Blueprint knob. The environment (tuning_of(settings)) is the floor; the effective settings at an instant are the latest row with effective_from ≤ now; a period keeps the row it ran under. Every amount is a Decimal string (never a float); cost_drivers values are in the contour's currency; nxc_rate carries its currency and its history is this table. `enforce` is NOT here and never will be — that flag has its own door at S6 with the two record ids quoted; a version carrying it is 422 SETTINGS_FIELD_RESERVED. Prices are never here — a price book is a signed, dual-approved document.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "promo_on_create",
+    "promo_on_first_connection",
+    "promo_expiry_days",
+    "reservation_ttl_min",
+    "default_ceiling_nxc",
+    "adjustment_dual_approval_above",
+    "low_balance_thresholds_pct",
+    "cost_drivers",
+    "fixed_weight",
+    "nxc_rate",
+    "reconciliation_variance_pct",
+    "unallocated_org_ids",
+    "promo_on_create_max"
+  ],
+  "properties": {
+    "promo_on_create": {
+      "type": "string",
+      "pattern": "^-?[0-9]{1,18}(\\.[0-9]{1,6})?$",
+      "description": "the promo lot (NXC) every new organization receives on organization.created — Decimal string"
+    },
+    "promo_on_first_connection": {
+      "type": "string",
+      "pattern": "^-?[0-9]{1,18}(\\.[0-9]{1,6})?$",
+      "description": "the promo lot (NXC) on the first healthy organization-owned connection — Decimal string"
+    },
+    "promo_expiry_days": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 365,
+      "description": "promo lots expire this many days after the grant"
+    },
+    "reservation_ttl_min": {
+      "type": "integer",
+      "minimum": 5,
+      "maximum": 1440,
+      "description": "a reservation not settled or released within this window is released by the worker"
+    },
+    "default_ceiling_nxc": {
+      "type": "string",
+      "pattern": "^-?[0-9]{1,18}(\\.[0-9]{1,6})?$",
+      "description": "the estimate's ceiling (NXC) when the Flow's Budget names none — Decimal string"
+    },
+    "adjustment_dual_approval_above": {
+      "type": "string",
+      "pattern": "^-?[0-9]{1,18}(\\.[0-9]{1,6})?$",
+      "description": "an adjustment or grant above this amount (NXC) needs a second operator's approval — Decimal string"
+    },
+    "low_balance_thresholds_pct": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 100
+      },
+      "description": "nexus.billing.low_balance.v1 once per (organization · threshold · period) as available credits cross each percentage"
+    },
+    "cost_drivers": {
+      "type": "object",
+      "description": "the disclosed unit-cost table per contour — {contour: {service_code: unit_cost}}, every value a Decimal string (up to twelve places — a per-ms rate) IN THE CONTOUR'S CURRENCY (the binding's billing account's). Direct cost = Σ rated units × unit_cost; a code the table does not name carries no direct cost.",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64
+      },
+      "additionalProperties": {
+        "type": "object",
+        "propertyNames": {
+          "$ref": "vocabulary.schema.json#/$defs/UsageServiceCode"
+        },
+        "additionalProperties": {
+          "type": "string",
+          "pattern": "^-?[0-9]{1,18}(\\.[0-9]{1,12})?$"
+        }
+      }
+    },
+    "fixed_weight": {
+      "$ref": "vocabulary.schema.json#/$defs/CostFixedWeight",
+      "description": "the capacity weight that spreads the contour's shared-fixed bucket — seats or members; never activity"
+    },
+    "nxc_rate": {
+      "$ref": "#/$defs/NxcRate",
+      "description": "the NXC → money rate of the margin read model with its currency; a change needs effective_from ≥ now + SETTINGS_RATE_LEAD_HOURS (24) — a rate never moves a day already closed, and the five numbers read the rate effective on the day, never today's"
+    },
+    "reconciliation_variance_pct": {
+      "type": "string",
+      "pattern": "^-?[0-9]{1,18}(\\.[0-9]{1,6})?$",
+      "description": "|reconciled − estimated| / estimated above this percentage files exactly one operational_issue per (contour · day) — Decimal string"
+    },
+    "unallocated_org_ids": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64
+      },
+      "description": "the organizations whose share is the contour's unallocated line (the provider's own organization, QA, CI, subsidised trials); never spread to customers"
+    },
+    "promo_on_create_max": {
+      "type": "string",
+      "pattern": "^-?[0-9]{1,18}(\\.[0-9]{1,6})?$",
+      "description": "1.183.0: the most NXC a prepared organization's `credits_on_activation` may grant on organization.created — the lot is min(credits_on_activation, promo_on_create_max); a row that names no credits gets promo_on_create. Decimal string; default 1000"
+    }
+  },
+  "$defs": {
+    "NxcRate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "currency",
+        "rate"
+      ],
+      "properties": {
+        "currency": {
+          "$ref": "vocabulary.schema.json#/$defs/CurrencyCode"
+        },
+        "rate": {
+          "type": "string",
+          "pattern": "^-?[0-9]{1,18}(\\.[0-9]{1,6})?$",
+          "description": "money per 1 NXC in `currency`, Decimal string"
+        }
+      }
+    }
+  }
+}
